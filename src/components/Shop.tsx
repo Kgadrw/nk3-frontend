@@ -74,14 +74,26 @@ const Shop = () => {
   const addToCart = (product: Product) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => (item.product.id || item.product._id) === (product.id || product._id));
+      let updatedCart;
       if (existingItem) {
-        return prevCart.map(item =>
+        updatedCart = prevCart.map(item =>
           (item.product.id || item.product._id) === (product.id || product._id)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
+      } else {
+        updatedCart = [...prevCart, { product, quantity: 1 }];
       }
-      return [...prevCart, { product, quantity: 1 }];
+      
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        const totalItems = updatedCart.reduce((total, item) => total + item.quantity, 0);
+        localStorage.setItem('cartCount', totalItems.toString());
+        window.dispatchEvent(new Event('cartUpdated'));
+      }
+      
+      return updatedCart;
     });
     setCartOpen(true);
   };
@@ -91,17 +103,39 @@ const Shop = () => {
       removeFromCart(productId);
       return;
     }
-    setCart(prevCart =>
-      prevCart.map(item =>
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item =>
         (item.product.id || item.product._id) === productId
           ? { ...item, quantity }
           : item
-      )
-    );
+      );
+      
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        const totalItems = updatedCart.reduce((total, item) => total + item.quantity, 0);
+        localStorage.setItem('cartCount', totalItems.toString());
+        window.dispatchEvent(new Event('cartUpdated'));
+      }
+      
+      return updatedCart;
+    });
   };
 
   const removeFromCart = (productId: string | number) => {
-    setCart(prevCart => prevCart.filter(item => (item.product.id || item.product._id) !== productId));
+    setCart(prevCart => {
+      const updatedCart = prevCart.filter(item => (item.product.id || item.product._id) !== productId);
+      
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        const totalItems = updatedCart.reduce((total, item) => total + item.quantity, 0);
+        localStorage.setItem('cartCount', totalItems.toString());
+        window.dispatchEvent(new Event('cartUpdated'));
+      }
+      
+      return updatedCart;
+    });
   };
 
   const getTotalItems = () => {

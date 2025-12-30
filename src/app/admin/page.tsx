@@ -6,6 +6,7 @@ import {
   GraduationCap, 
   Users, 
   ShoppingCart, 
+  Package,
   Upload,
   Image as ImageIcon,
   Grid3x3,
@@ -24,7 +25,7 @@ import {
 import Image from 'next/image';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
-type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy';
+type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy' | 'orders';
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -178,6 +179,10 @@ export default function AdminDashboard() {
   const [paymentInstructions, setPaymentInstructions] = useState('');
   const [paymentIsActive, setPaymentIsActive] = useState(true);
   
+  // Orders management state
+  const [orders, setOrders] = useState<any[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  
   // Data from database
   const [teams, setTeams] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -275,14 +280,15 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes] = await Promise.all([
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes] = await Promise.all([
         fetch('/api/team'),
         fetch('/api/shop'),
         fetch('/api/academic'),
         fetch('/api/portfolio'),
         fetch('/api/social'),
           fetch('/api/partners'),
-          fetch('/api/payment')
+          fetch('/api/payment'),
+          fetch('/api/order')
       ]);
       
       const teamsData = await teamsRes.json();
@@ -292,6 +298,7 @@ export default function AdminDashboard() {
       const socialData = await socialRes.json();
       const partnersData = await partnersRes.json();
       const paymentData = await paymentRes.json();
+      const ordersData = await ordersRes.json();
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -323,6 +330,7 @@ export default function AdminDashboard() {
       setPublications(publicationsData || []);
       setPortfolios(portfoliosData || []);
       setPaymentMethods(paymentData || []);
+      setOrders(ordersData || []);
       if (socialData) {
         setSocialLinks({
           facebook: socialData.facebook || '',
@@ -1242,6 +1250,7 @@ export default function AdminDashboard() {
     { id: 'team' as ActiveTab, label: 'Team', icon: Users },
     { id: 'shop' as ActiveTab, label: 'Shop', icon: ShoppingCart },
     { id: 'academy' as ActiveTab, label: 'Academic', icon: GraduationCap },
+    { id: 'orders' as ActiveTab, label: 'Orders', icon: Package },
   ];
 
   return (
@@ -2937,6 +2946,194 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Orders Management */}
+        {activeTab === 'orders' && (
+          <div className="p-6 space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-[#009f3b]">Orders Management</h2>
+              <div className="text-sm text-gray-600">
+                Total Orders: <span className="font-bold text-[#009f3b]">{orders.length}</span>
+              </div>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No orders yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div
+                    key={order._id || order.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-bold text-gray-900">
+                              Order #{order.orderNumber}
+                            </h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'processing' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Pending'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            {new Date(order.orderDate || order.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-[#009f3b]">
+                            {new Intl.NumberFormat('en-RW', {
+                              style: 'currency',
+                              currency: 'RWF',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            }).format(order.subtotal || 0)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-2">Customer Information</h4>
+                          <p className="text-sm text-gray-700"><span className="font-medium">Name:</span> {order.customer?.fullName}</p>
+                          <p className="text-sm text-gray-700"><span className="font-medium">Email:</span> {order.customer?.email}</p>
+                          <p className="text-sm text-gray-700"><span className="font-medium">Phone:</span> {order.customer?.phone}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-2">Shipping Address</h4>
+                          <p className="text-sm text-gray-700">{order.customer?.address}</p>
+                          {order.customer?.city && (
+                            <p className="text-sm text-gray-700">{order.customer.city}</p>
+                          )}
+                          {order.customer?.country && (
+                            <p className="text-sm text-gray-700">{order.customer.country}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Payment Method */}
+                      {order.paymentMethod && (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-2">Payment Method</h4>
+                          <p className="text-sm text-gray-700">{order.paymentMethod.methodName}</p>
+                        </div>
+                      )}
+
+                      {/* Order Items */}
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">Order Items ({order.items?.length || 0})</h4>
+                        <div className="space-y-2">
+                          {order.items?.map((item: any, index: number) => (
+                            <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                              <div className="relative w-16 h-16 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                <Image
+                                  src={item.product?.image || '/placeholder.png'}
+                                  alt={item.product?.name || 'Product'}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-900">{item.product?.name}</p>
+                                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-[#009f3b]">
+                                  {new Intl.NumberFormat('en-RW', {
+                                    style: 'currency',
+                                    currency: 'RWF',
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  }).format((item.product?.price || 0) * item.quantity)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      {order.notes && (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-2">Order Notes</h4>
+                          <p className="text-sm text-gray-700">{order.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div className="flex gap-2">
+                          <select
+                            value={order.status || 'pending'}
+                            onChange={async (e) => {
+                              try {
+                                const res = await fetch(`/api/order/${order._id || order.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: e.target.value }),
+                                });
+                                if (res.ok) {
+                                  await fetchAllData();
+                                  showToast('Order status updated successfully!', 'success');
+                                } else {
+                                  showToast('Error updating order status', 'error');
+                                }
+                              } catch (error) {
+                                showToast('Error updating order status', 'error');
+                              }
+                            }}
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this order?')) {
+                              try {
+                                const res = await fetch(`/api/order/${order._id || order.id}`, {
+                                  method: 'DELETE',
+                                });
+                                if (res.ok) {
+                                  await fetchAllData();
+                                  showToast('Order deleted successfully!', 'success');
+                                } else {
+                                  showToast('Error deleting order', 'error');
+                                }
+                              } catch (error) {
+                                showToast('Error deleting order', 'error');
+                              }
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
+                        >
+                          Delete Order
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

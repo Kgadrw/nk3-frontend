@@ -27,17 +27,33 @@ export default function CartPage() {
 
   useEffect(() => {
     // Load cart from localStorage
-    if (typeof window !== 'undefined') {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        try {
-          setCart(JSON.parse(savedCart));
-        } catch (error) {
-          console.error('Error parsing cart:', error);
+    const loadCart = () => {
+      if (typeof window !== 'undefined') {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+          try {
+            const parsedCart = JSON.parse(savedCart);
+            setCart(parsedCart);
+          } catch (error) {
+            console.error('Error parsing cart:', error);
+          }
         }
+        setLoading(false);
       }
-      setLoading(false);
-    }
+    };
+    
+    loadCart();
+    
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      loadCart();
+    };
+    
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, []);
 
   const updateQuantity = (productId: string | number, quantity: number) => {
