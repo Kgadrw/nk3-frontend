@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 // Custom hook for typing effect
@@ -101,9 +102,12 @@ const Hero = () => {
             </p>
 
             {/* CTA Button */}
-            <button className="bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base">
+            <Link 
+              href="/contact"
+              className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
+            >
               {heroData.buttonText}
-            </button>
+            </Link>
           </div>
         </div>
       </div>

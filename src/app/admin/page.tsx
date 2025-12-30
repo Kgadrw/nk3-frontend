@@ -78,10 +78,6 @@ export default function AdminDashboard() {
   const [academyImage, setAcademyImage] = useState('');
   const [teamImage, setTeamImage] = useState('');
   const [shopImage, setShopImage] = useState('');
-  const [aboutPageImage, setAboutPageImage] = useState('');
-  const [aboutComponentImage, setAboutComponentImage] = useState('');
-  const [aboutBackgroundImage, setAboutBackgroundImage] = useState('');
-  
   // PDF state for academic section
   const [pdfLink, setPdfLink] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -102,22 +98,6 @@ export default function AdminDashboard() {
   // Partners logos state
   const [partnerLogos, setPartnerLogos] = useState<any[]>([]);
   const [newPartnerLogo, setNewPartnerLogo] = useState('');
-  
-  // About Us content states
-  const [aboutTitle, setAboutTitle] = useState('Our Story, Vision, and Values');
-  const [aboutSubtitle, setAboutSubtitle] = useState('Learn about our commitment to excellence, innovation, and the principles that guide our work every day.');
-  const [aboutQuote, setAboutQuote] = useState('We are dedicated to bringing your visions to life, transforming ideas into impactful architectural experiences. Our team combines creativity, technical expertise, and a deep understanding of local context to deliver projects that exceed expectations.');
-  const [aboutParagraph1, setAboutParagraph1] = useState('We believe in the power of collaboration and creativity. Every project we undertake is a partnership, where we work closely with our clients to understand their unique needs, challenges, and aspirations.');
-  const [aboutParagraph2, setAboutParagraph2] = useState('Our approach is holistic, combining design excellence, technical innovation, and strategic thinking. We don\'t just create buildings; we craft environments that inspire, function seamlessly, and stand the test of time.');
-  const [aboutParagraph3, setAboutParagraph3] = useState('We stay ahead of industry trends, continuously learning and adapting to bring the latest innovations in architecture, engineering, and sustainable design to every project. Our commitment to quality and excellence has made us a trusted partner in Rwanda\'s construction industry.');
-  const [aboutHomeHeading, setAboutHomeHeading] = useState('ABOUT US');
-  const [aboutHomeSubheading, setAboutHomeSubheading] = useState('NK 3D ARCHITECTURE STUDIO.');
-  const [aboutHomeSince, setAboutHomeSince] = useState('we are here since 2016');
-  const [aboutHomeDescription1, setAboutHomeDescription1] = useState('We are a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.');
-  const [aboutHomeDescription2, setAboutHomeDescription2] = useState('The firm has a skilled team consisting of architects, engineers, quantity surveyors, technicians, designers, specialist consultants and support staff that are able to offer quality consultancy services on all types of construction work.');
-  const [projectsCount, setProjectsCount] = useState('100+');
-  const [clientsCount, setClientsCount] = useState('50+');
-  const [yearsCount, setYearsCount] = useState('010');
   
   // Portfolio management state
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
@@ -141,6 +121,7 @@ export default function AdminDashboard() {
   const [teamCategory, setTeamCategory] = useState('');
   const [teamPhone, setTeamPhone] = useState('');
   const [teamLinkedin, setTeamLinkedin] = useState('');
+  const [teamDescription, setTeamDescription] = useState('');
   
   // Shop management state
   const [showShopForm, setShowShopForm] = useState(false);
@@ -197,6 +178,37 @@ export default function AdminDashboard() {
     }
   }, [isLoggedIn]);
   
+  // Populate portfolio form when editing
+  useEffect(() => {
+    if (editingPortfolio && portfolios.length > 0) {
+      const portfolio = portfolios.find(p => (p._id || p.id) === editingPortfolio);
+      if (portfolio) {
+        setPortfolioTitle(portfolio.title || '');
+        setPortfolioCategory(portfolio.category || '');
+        setPortfolioYear(portfolio.year || '');
+        setPortfolioDescription(portfolio.description || '');
+        setPortfolioArea(portfolio.area || '');
+        setPortfolioClient(portfolio.client || '');
+        setPortfolioStatus(portfolio.status || '');
+        setPortfolioLocation(portfolio.location || '');
+        setPortfolioKeyFeatures(portfolio.keyFeatures || '');
+        setPortfolioImage(portfolio.image || '');
+      }
+    } else if (!editingPortfolio) {
+      // Reset form when not editing
+      setPortfolioTitle('');
+      setPortfolioCategory('');
+      setPortfolioYear('');
+      setPortfolioDescription('');
+      setPortfolioArea('');
+      setPortfolioClient('');
+      setPortfolioStatus('');
+      setPortfolioLocation('');
+      setPortfolioKeyFeatures('');
+      setPortfolioImage('');
+    }
+  }, [editingPortfolio, portfolios]);
+
   // Populate shop form when editing
   useEffect(() => {
     if (editingShop && products.length > 0) {
@@ -221,14 +233,13 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, aboutRes] = await Promise.all([
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes] = await Promise.all([
         fetch('/api/team'),
         fetch('/api/shop'),
         fetch('/api/academic'),
         fetch('/api/portfolio'),
         fetch('/api/social'),
-          fetch('/api/partners'),
-          fetch('/api/about')
+          fetch('/api/partners')
       ]);
       
       const teamsData = await teamsRes.json();
@@ -237,27 +248,6 @@ export default function AdminDashboard() {
       const portfoliosData = await portfoliosRes.json();
       const socialData = await socialRes.json();
       const partnersData = await partnersRes.json();
-      const aboutData = await aboutRes.json();
-      
-      // Populate About content
-      if (aboutData) {
-        setAboutTitle(aboutData.title || '');
-        setAboutSubtitle(aboutData.subtitle || '');
-        setAboutQuote(aboutData.quote || '');
-        setAboutParagraph1(aboutData.paragraph1 || '');
-        setAboutParagraph2(aboutData.paragraph2 || '');
-        setAboutParagraph3(aboutData.paragraph3 || '');
-        setAboutPageImage(aboutData.aboutImage || '');
-        setAboutHomeHeading(aboutData.homeHeading || '');
-        setAboutHomeSubheading(aboutData.homeSubheading || '');
-        setAboutHomeSince(aboutData.homeSince || '');
-        setAboutHomeDescription1(aboutData.homeDescription1 || '');
-        setAboutHomeDescription2(aboutData.homeDescription2 || '');
-        setAboutComponentImage(aboutData.homeImage || '');
-        setProjectsCount(aboutData.projectsCount || '');
-        setClientsCount(aboutData.clientsCount || '');
-        setYearsCount(aboutData.yearsCount || '');
-      }
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -374,9 +364,13 @@ export default function AdminDashboard() {
       const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
       if (res.ok) {
         await fetchAllData();
+        showToast('Portfolio deleted successfully', 'success');
+      } else {
+        showToast('Failed to delete portfolio', 'error');
       }
     } catch (error) {
       console.error('Error deleting portfolio:', error);
+      showToast('Error deleting portfolio. Please try again.', 'error');
     }
   };
 
@@ -411,7 +405,8 @@ export default function AdminDashboard() {
         category: teamCategory?.trim() || 'Uncategorized',
         image: teamImage.trim(),
         phone: teamPhone?.trim() || '',
-        linkedin: teamLinkedin?.trim() || ''
+        linkedin: teamLinkedin?.trim() || '',
+        description: teamDescription?.trim() || ''
       };
       const teamId = editingTeam ? String(editingTeam).trim() : null;
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
@@ -431,6 +426,7 @@ export default function AdminDashboard() {
         setTeamCategory('');
         setTeamPhone('');
         setTeamLinkedin('');
+        setTeamDescription('');
         setTeamImage('');
       } else {
         // Try to get error message from response
@@ -807,40 +803,6 @@ export default function AdminDashboard() {
     );
   };
 
-  const saveAboutContent = async () => {
-    try {
-      const res = await fetch('/api/about', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: aboutTitle,
-          subtitle: aboutSubtitle,
-          quote: aboutQuote,
-          paragraph1: aboutParagraph1,
-          paragraph2: aboutParagraph2,
-          paragraph3: aboutParagraph3,
-          aboutImage: aboutPageImage,
-          homeHeading: aboutHomeHeading,
-          homeSubheading: aboutHomeSubheading,
-          homeSince: aboutHomeSince,
-          homeDescription1: aboutHomeDescription1,
-          homeDescription2: aboutHomeDescription2,
-          homeImage: aboutComponentImage,
-          projectsCount: projectsCount,
-          clientsCount: clientsCount,
-          yearsCount: yearsCount,
-        }),
-      });
-      if (res.ok) {
-        showToast('About content saved successfully!', 'success');
-      } else {
-        showToast('Failed to save about content', 'error');
-      }
-    } catch (error) {
-      console.error('Error saving about content:', error);
-      showToast('Error saving about content', 'error');
-    }
-  };
 
   const saveSocialLinks = async () => {
     try {
@@ -1512,181 +1474,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* About Content Management */}
-              <div className="bg-white p-4 md:p-6 rounded-lg">
-                <h3 className="text-lg font-bold text-[#009f3b] mb-4">About Page Content</h3>
-                <div className="space-y-6">
-                  {/* About Page Section */}
-                  <div className="border-b pb-6">
-                    <h4 className="text-md font-semibold text-gray-700 mb-4">About Page</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-                        <input
-                          type="text"
-                          value={aboutTitle}
-                          onChange={(e) => setAboutTitle(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
-                        <textarea
-                          value={aboutSubtitle}
-                          onChange={(e) => setAboutSubtitle(e.target.value)}
-                          rows={2}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Quote</label>
-                        <textarea
-                          value={aboutQuote}
-                          onChange={(e) => setAboutQuote(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 1</label>
-                        <textarea
-                          value={aboutParagraph1}
-                          onChange={(e) => setAboutParagraph1(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 2</label>
-                        <textarea
-                          value={aboutParagraph2}
-                          onChange={(e) => setAboutParagraph2(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 3</label>
-                        <textarea
-                          value={aboutParagraph3}
-                          onChange={(e) => setAboutParagraph3(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <ImageUploadField
-                          label="About Page Image"
-                          imageUrl={aboutPageImage}
-                          onImageChange={setAboutPageImage}
-                          folder="nk3d/about"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Homepage About Component Section */}
-                  <div className="border-b pb-6">
-                    <h4 className="text-md font-semibold text-gray-700 mb-4">Homepage About Component</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Heading</label>
-                        <input
-                          type="text"
-                          value={aboutHomeHeading}
-                          onChange={(e) => setAboutHomeHeading(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Subheading</label>
-                        <input
-                          type="text"
-                          value={aboutHomeSubheading}
-                          onChange={(e) => setAboutHomeSubheading(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Since Text</label>
-                        <input
-                          type="text"
-                          value={aboutHomeSince}
-                          onChange={(e) => setAboutHomeSince(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description 1</label>
-                        <textarea
-                          value={aboutHomeDescription1}
-                          onChange={(e) => setAboutHomeDescription1(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description 2</label>
-                        <textarea
-                          value={aboutHomeDescription2}
-                          onChange={(e) => setAboutHomeDescription2(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <ImageUploadField
-                          label="Homepage About Image"
-                          imageUrl={aboutComponentImage}
-                          onImageChange={setAboutComponentImage}
-                          folder="nk3d/about"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Statistics Section */}
-                  <div>
-                    <h4 className="text-md font-semibold text-gray-700 mb-4">Statistics</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Projects Count</label>
-                        <input
-                          type="text"
-                          value={projectsCount}
-                          onChange={(e) => setProjectsCount(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Clients Count</label>
-                        <input
-                          type="text"
-                          value={clientsCount}
-                          onChange={(e) => setClientsCount(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Years Count</label>
-                        <input
-                          type="text"
-                          value={yearsCount}
-                          onChange={(e) => setYearsCount(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={saveAboutContent}
-                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-                  >
-                    Save About Content
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1758,7 +1545,13 @@ export default function AdminDashboard() {
                             </p>
                             <p className="text-sm text-gray-700 mb-4 line-clamp-2">{portfolio.description}</p>
                             <div className="flex gap-2">
-                              <button className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] transition-colors flex items-center justify-center gap-1">
+                              <button 
+                                onClick={() => {
+                                  const portfolioId = portfolio._id || portfolio.id;
+                                  window.open(`/portfolio/${portfolioId}`, '_blank');
+                                }}
+                                className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] transition-colors flex items-center justify-center gap-1"
+                              >
                                 <Eye className="w-4 h-4" />
                                 View
                               </button>
@@ -1771,7 +1564,16 @@ export default function AdminDashboard() {
                               >
                                 Edit
                               </button>
-                              <button className="px-3 py-2 bg-[#00782d] text-white text-sm hover:bg-[#009f3b] transition-colors">
+                              <button 
+                                onClick={() => {
+                                  const portfolioId = portfolio._id || portfolio.id;
+                                  showDeleteConfirmation(
+                                    `Are you sure you want to delete "${portfolio.title}"? This action cannot be undone.`,
+                                    () => deletePortfolio(String(portfolioId))
+                                  );
+                                }}
+                                className="px-3 py-2 bg-[#00782d] text-white text-sm hover:bg-[#009f3b] transition-colors"
+                              >
                                 Delete
                               </button>
                 </div>
@@ -1804,7 +1606,13 @@ export default function AdminDashboard() {
                                 <p className="text-sm text-gray-700">{portfolio.description}</p>
                 </div>
                               <div className="flex gap-2 mt-4">
-                                <button className="px-3 py-1 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] transition-colors flex items-center gap-1">
+                                <button 
+                                  onClick={() => {
+                                    const portfolioId = portfolio._id || portfolio.id;
+                                    window.open(`/portfolio/${portfolioId}`, '_blank');
+                                  }}
+                                  className="px-3 py-1 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] transition-colors flex items-center gap-1"
+                                >
                                   <Eye className="w-4 h-4" />
                                   View
                                 </button>
@@ -1817,7 +1625,16 @@ export default function AdminDashboard() {
                                 >
                                   Edit
                                 </button>
-                                <button className="px-3 py-1 bg-[#00782d] text-white text-sm hover:bg-[#009f3b] transition-colors">
+                                <button 
+                                  onClick={() => {
+                                    const portfolioId = portfolio._id || portfolio.id;
+                                    showDeleteConfirmation(
+                                      `Are you sure you want to delete "${portfolio.title}"? This action cannot be undone.`,
+                                      () => deletePortfolio(String(portfolioId))
+                                    );
+                                  }}
+                                  className="px-3 py-1 bg-[#00782d] text-white text-sm hover:bg-[#009f3b] transition-colors"
+                                >
                                   Delete
                 </button>
               </div>
@@ -2240,6 +2057,7 @@ export default function AdminDashboard() {
                       setTeamCategory('');
                       setTeamPhone('');
                       setTeamLinkedin('');
+                      setTeamDescription('');
                       setTeamImage('');
                       setShowTeamForm(true);
                     }}
@@ -2342,6 +2160,7 @@ export default function AdminDashboard() {
                                               setTeamCategory(member.category || '');
                                               setTeamPhone(member.phone || '');
                                               setTeamLinkedin(member.linkedin || '');
+                                              setTeamDescription(member.description || '');
                                               setTeamImage(member.image || '');
                                               setShowTeamForm(true);
                                             }}
@@ -2495,6 +2314,18 @@ export default function AdminDashboard() {
                         value={teamLinkedin}
                         onChange={(e) => setTeamLinkedin(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description/Summary <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <textarea
+                        placeholder="Brief description or summary showcasing the team member's potential, expertise, and achievements..."
+                        value={teamDescription}
+                        onChange={(e) => setTeamDescription(e.target.value)}
+                        rows={4}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y" 
                       />
                     </div>
                   </div>

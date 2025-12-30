@@ -18,33 +18,59 @@ export default function AboutPage() {
     clientsCount: '50+',
     yearsCount: '010',
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAboutContent = async () => {
       try {
+        setLoading(true);
         const res = await fetch('/api/about');
         const data = await res.json();
-        if (data) {
+        
+        // Check if data exists and has properties
+        if (data && Object.keys(data).length > 0) {
           setAboutContent({
-            title: data.title || aboutContent.title,
-            subtitle: data.subtitle || aboutContent.subtitle,
-            quote: data.quote || aboutContent.quote,
-            paragraph1: data.paragraph1 || aboutContent.paragraph1,
-            paragraph2: data.paragraph2 || aboutContent.paragraph2,
-            paragraph3: data.paragraph3 || aboutContent.paragraph3,
-            aboutImage: data.aboutImage || aboutContent.aboutImage,
-            projectsCount: data.projectsCount || aboutContent.projectsCount,
-            clientsCount: data.clientsCount || aboutContent.clientsCount,
-            yearsCount: data.yearsCount || aboutContent.yearsCount,
+            title: data.title || 'Our Story, Vision, and Values',
+            subtitle: data.subtitle || 'Learn about our commitment to excellence, innovation, and the principles that guide our work every day.',
+            quote: data.quote || 'We are dedicated to bringing your visions to life, transforming ideas into impactful architectural experiences. Our team combines creativity, technical expertise, and a deep understanding of local context to deliver projects that exceed expectations.',
+            paragraph1: data.paragraph1 || 'We believe in the power of collaboration and creativity. Every project we undertake is a partnership, where we work closely with our clients to understand their unique needs, challenges, and aspirations.',
+            paragraph2: data.paragraph2 || 'Our approach is holistic, combining design excellence, technical innovation, and strategic thinking. We don\'t just create buildings; we craft environments that inspire, function seamlessly, and stand the test of time.',
+            paragraph3: data.paragraph3 || 'We stay ahead of industry trends, continuously learning and adapting to bring the latest innovations in architecture, engineering, and sustainable design to every project. Our commitment to quality and excellence has made us a trusted partner in Rwanda\'s construction industry.',
+            aboutImage: data.aboutImage || '/about.jpg',
+            projectsCount: data.projectsCount || '100+',
+            clientsCount: data.clientsCount || '50+',
+            yearsCount: data.yearsCount || '010',
           });
         }
       } catch (error) {
         console.error('Error fetching about content:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAboutContent();
   }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8 py-8 md:py-12">
+          <div className="text-center py-12">
+            <Image
+              src="/loader.gif"
+              alt="Loading..."
+              width={100}
+              height={100}
+              className="mx-auto"
+              unoptimized
+            />
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-white">

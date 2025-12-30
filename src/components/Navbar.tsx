@@ -166,9 +166,9 @@ const Navbar = () => {
       }`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
           {/* Left: Get A Quote Button */}
-          <button className="bg-[#90EE90] text-[#009f3b] px-4 py-2 font-semibold uppercase hover:bg-[#7dd87d] transition-colors text-xs md:text-sm">
+          <Link href="/contact" className="bg-[#90EE90] text-[#009f3b] px-4 py-2 font-semibold uppercase hover:bg-[#7dd87d] transition-colors text-xs md:text-sm inline-block">
             GET A QUOTE
-          </button>
+          </Link>
 
           {/* Right: Contact Info and Social Media */}
           <div className="flex items-center gap-4 md:gap-6 flex-wrap text-xs md:text-sm">

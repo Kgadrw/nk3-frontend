@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 type Project = {
@@ -17,7 +18,30 @@ type Project = {
 const Portfolio = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([{ id: 'all', label: 'All Projects' }]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to format category name
+  const formatCategoryLabel = (category: string): string => {
+    if (!category) return 'Uncategorized';
+    // Handle common cases
+    const categoryLower = category.toLowerCase();
+    const labelMap: { [key: string]: string } = {
+      'residential': 'Residential',
+      'commercial': 'Commercial',
+      'institutional': 'Institutional',
+    };
+
+    if (labelMap[categoryLower]) {
+      return labelMap[categoryLower];
+    }
+
+    // Format other categories: capitalize first letter of each word
+    return category
+      .split(/[\s_-]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -29,6 +53,25 @@ const Portfolio = () => {
           id: p._id || p.id
         }));
         setProjects(projectsData);
+
+        // Extract unique categories from backend data
+        const uniqueCategories = new Set<string>();
+        projectsData.forEach((project: Project) => {
+          if (project.category && project.category.trim()) {
+            uniqueCategories.add(project.category.trim().toLowerCase());
+          }
+        });
+
+        // Sort categories and format labels
+        const sortedCategories = Array.from(uniqueCategories).sort();
+        const dynamicCategories = [
+          { id: 'all', label: 'All Projects' },
+          ...sortedCategories.map(cat => ({
+            id: cat,
+            label: formatCategoryLabel(cat)
+          }))
+        ];
+        setCategories(dynamicCategories);
       } catch (error) {
         console.error('Error fetching portfolio:', error);
       } finally {
@@ -38,16 +81,9 @@ const Portfolio = () => {
     fetchProjects();
   }, []);
 
-  const categories = [
-    { id: 'all', label: 'All Projects' },
-    { id: 'residential', label: 'Residential' },
-    { id: 'commercial', label: 'Commercial' },
-    { id: 'institutional', label: 'Institutional' },
-  ];
-
   const filteredProjects = selectedCategory === 'all' 
     ? projects 
-    : projects.filter(project => project.category?.toLowerCase() === selectedCategory.toLowerCase());
+    : projects.filter(project => project.category?.toLowerCase().trim() === selectedCategory.toLowerCase());
 
   if (loading) {
     return (
@@ -84,28 +120,32 @@ const Portfolio = () => {
         {/* Category Filter */}
         <div className="mb-6 md:mb-8">
           <div className="flex flex-wrap justify-start gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold uppercase transition-all duration-300 ${
-                  selectedCategory === category.id
-                    ? 'bg-[#009f3b] text-white'
-                    : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
+            {categories.map((category) => {
+              const isActive = selectedCategory.toLowerCase() === category.id.toLowerCase();
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold uppercase transition-all duration-300 ${
+                    isActive
+                      ? 'bg-[#009f3b] text-white'
+                      : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
+                  }`}
+                >
+                  {category.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredProjects.map((project) => (
-            <div
+            <Link
               key={project._id || project.id}
-              className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer"
+              href={`/portfolio/${project._id || project.id}`}
+              className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer block"
             >
               {/* Project Image */}
               <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -149,7 +189,7 @@ const Portfolio = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 

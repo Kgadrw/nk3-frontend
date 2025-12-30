@@ -8,11 +8,24 @@ import { Maximize, Minimize, X } from 'lucide-react';
 
 export default function AcademyPage() {
   const [researchPublications, setResearchPublications] = useState<any[]>([]);
+  const [allPublications, setAllPublications] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const pdfViewerRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to format category name
+  const formatCategoryLabel = (category: string): string => {
+    if (!category) return 'Uncategorized';
+    // Format: capitalize first letter of each word
+    return category
+      .split(/[\s_-]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   useEffect(() => {
     const fetchPublications = async () => {
@@ -27,7 +40,21 @@ export default function AcademyPage() {
           pdf: p.pdfLink || p.pdf || '#',
           citation: `${p.author}. (${p.year || 'N/A'}). ${p.title}. NK 3D Academy Research Journal.`
         }));
+        setAllPublications(publications);
         setResearchPublications(publications);
+
+        // Extract unique categories from backend data
+        const uniqueCategories = new Set<string>();
+        publications.forEach((pub: any) => {
+          if (pub.category && pub.category.trim()) {
+            uniqueCategories.add(pub.category.trim().toLowerCase());
+          }
+        });
+        
+        // Sort categories (store raw values, format for display)
+        const sortedCategories = Array.from(uniqueCategories).sort();
+        const formattedCategories = ['All', ...sortedCategories];
+        setCategories(formattedCategories);
       } catch (error) {
         console.error('Error fetching publications:', error);
       } finally {
@@ -36,6 +63,19 @@ export default function AcademyPage() {
     };
     fetchPublications();
   }, []);
+
+  // Filter publications by selected category
+  useEffect(() => {
+    if (selectedCategory === 'All') {
+      setResearchPublications(allPublications);
+    } else {
+      const filtered = allPublications.filter((pub: any) => {
+        const pubCategory = pub.category ? pub.category.trim().toLowerCase() : 'uncategorized';
+        return pubCategory === selectedCategory.toLowerCase();
+      });
+      setResearchPublications(filtered);
+    }
+  }, [selectedCategory, allPublications]);
   
   // Handle fullscreen change events
   useEffect(() => {
@@ -55,8 +95,6 @@ export default function AcademyPage() {
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
-
-  const categories = ['All', 'Architecture', 'Engineering', 'Urban Planning', 'Housing', 'Interior Design'];
 
   return (
     <main className="min-h-screen bg-white">
@@ -90,14 +128,23 @@ export default function AcademyPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-3xl md:text-4xl font-bold text-[#009f3b]">Research Publications</h2>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  className="px-4 py-2 bg-gray-100 text-[#009f3b] font-semibold hover:bg-[#009f3b] hover:text-white transition-colors text-sm"
-                >
-                  {category}
-                </button>
-              ))}
+              {categories.map((category) => {
+                const displayLabel = category === 'All' ? 'All' : formatCategoryLabel(category);
+                const isActive = selectedCategory.toLowerCase() === category.toLowerCase();
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 font-semibold transition-colors text-sm ${
+                      isActive
+                        ? 'bg-[#009f3b] text-white'
+                        : 'bg-gray-100 text-[#009f3b] hover:bg-[#009f3b] hover:text-white'
+                    }`}
+                  >
+                    {displayLabel}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -120,7 +167,7 @@ export default function AcademyPage() {
                 <div className="mb-3">
                   {publication.category && (
                     <span className="text-xs font-semibold text-[#009f3b] bg-gray-100 px-3 py-1 rounded">
-                      {publication.category}
+                      {formatCategoryLabel(publication.category)}
                     </span>
                   )}
                   <span className="text-xs text-gray-500 ml-2">{publication.date}</span>

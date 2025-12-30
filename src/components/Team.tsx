@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 // Team Member Card Component
-const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: string; image: string; phone?: string; email?: string } }) => {
+const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: string; image: string; phone?: string; email?: string; description?: string } }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -74,22 +74,50 @@ const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: 
         <h3 className="text-lg font-semibold text-[#009f3b] mb-1">
           {member.name}
         </h3>
-        <p className="text-sm text-gray-600 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed mb-2">
           {member.role}
         </p>
+        {member.description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
+            {member.description}
+          </p>
+        )}
       </div>
     </div>
   );
 };
 
-type TeamCategory = 'founder' | 'technical' | 'advisors' | null;
+type TeamCategory = string | null;
 
 const Team = () => {
   const searchParams = useSearchParams();
-  const categoryParam = searchParams.get('category') as TeamCategory;
+  const categoryParam = searchParams.get('category');
   const [activeCategory, setActiveCategory] = useState<TeamCategory>(categoryParam || null);
   const [teamData, setTeamData] = useState<any>({});
+  const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to format category name
+  const formatCategoryLabel = (category: string): string => {
+    // Handle common cases
+    const categoryLower = category.toLowerCase();
+    const labelMap: { [key: string]: string } = {
+      'founder': 'Company Founder',
+      'technical': 'Technical Team',
+      'advisors': 'Company Advisors',
+      'uncategorized': 'Uncategorized',
+    };
+
+    if (labelMap[categoryLower]) {
+      return labelMap[categoryLower];
+    }
+
+    // Format other categories: capitalize first letter of each word
+    return category
+      .split(/[\s_-]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   useEffect(() => {
     setActiveCategory(categoryParam || null);
@@ -115,6 +143,14 @@ const Team = () => {
           });
         });
         setTeamData(grouped);
+
+        // Generate categories dynamically from backend data
+        const uniqueCategories = Object.keys(grouped).sort();
+        const dynamicCategories = uniqueCategories.map(cat => ({
+          id: cat,
+          label: formatCategoryLabel(cat)
+        }));
+        setCategories(dynamicCategories);
       } catch (error) {
         console.error('Error fetching team:', error);
       } finally {
@@ -123,13 +159,6 @@ const Team = () => {
     };
     fetchTeams();
   }, []);
-
-  const categories = [
-    { id: 'founder' as TeamCategory, label: 'Company Founder' },
-    { id: 'technical' as TeamCategory, label: 'Technical Team' },
-    { id: 'advisors' as TeamCategory, label: 'Company Advisors' },
-    { id: 'uncategorized' as TeamCategory, label: 'Uncategorized' },
-  ];
 
   // Map activeCategory to the data key (handle case differences)
   const getCurrentTeam = () => {
@@ -187,19 +216,22 @@ const Team = () => {
             {/* Category Toggle Buttons */}
             <div className="mb-6">
               <div className="flex flex-wrap justify-start gap-2">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/team?category=${category.id}`}
-                    className={`px-4 py-2 text-sm font-semibold uppercase transition-all duration-300 ${
-                      activeCategory === category.id
-                        ? 'bg-[#009f3b] text-white'
-                        : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
-                    }`}
-                  >
-                    {category.label}
-                  </Link>
-                ))}
+                {categories.map((category) => {
+                  const isActive = activeCategory?.toLowerCase() === category.id.toLowerCase();
+                  return (
+                    <Link
+                      key={category.id}
+                      href={`/team?category=${category.id}`}
+                      className={`px-4 py-2 text-sm font-semibold uppercase transition-all duration-300 ${
+                        isActive
+                          ? 'bg-[#009f3b] text-white'
+                          : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
+                      }`}
+                    >
+                      {category.label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 

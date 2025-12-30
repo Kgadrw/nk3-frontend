@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Calendar, Tag, Building2 } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 
 export default function PortfolioDetailPage() {
@@ -233,6 +234,7 @@ export default function PortfolioDetailPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

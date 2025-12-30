@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 const About = () => {
@@ -74,9 +75,12 @@ const About = () => {
             </div>
 
             {/* CTA Button */}
-            <button className="bg-[#009f3b] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold hover:bg-[#00782d] transition-colors shadow-lg mt-6">
+            <Link 
+              href="/about"
+              className="inline-block bg-[#009f3b] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold hover:bg-[#00782d] transition-colors shadow-lg mt-6"
+            >
               MORE ABOUT US
-            </button>
+            </Link>
           </div>
 
           {/* Right Section - Image */}

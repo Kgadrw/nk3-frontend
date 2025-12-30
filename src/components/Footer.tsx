@@ -64,34 +64,34 @@ const Footer = () => {
             <h4 className="text-lg md:text-xl font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/portfolio" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Portfolio
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Services
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/team" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Team
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -101,29 +101,29 @@ const Footer = () => {
             <h4 className="text-lg md:text-xl font-semibold mb-4">Services</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Architectural Design
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Engineering
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Interior Design
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Construction Management
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Quantity Surveying
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

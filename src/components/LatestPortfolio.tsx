@@ -93,9 +93,12 @@ const LatestPortfolio = () => {
                 <List className="w-5 h-5" />
               </button>
             </div>
-            <button className="bg-[#009f3b] text-white px-6 py-2 md:px-8 md:py-3 rounded-none font-semibold uppercase hover:bg-[#00782d] transition-colors shadow-lg text-xs md:text-sm">
+            <Link 
+              href="/portfolio"
+              className="bg-[#009f3b] text-white px-6 py-2 md:px-8 md:py-3 rounded-none font-semibold uppercase hover:bg-[#00782d] transition-colors shadow-lg text-xs md:text-sm inline-block text-center"
+            >
               VIEW ALL PORTFOLIO
-            </button>
+            </Link>
           </div>
         </div>
 
