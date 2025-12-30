@@ -3,8 +3,49 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import { useState, useEffect } from 'react';
 
 export default function AboutPage() {
+  const [aboutContent, setAboutContent] = useState({
+    title: 'Our Story, Vision, and Values',
+    subtitle: 'Learn about our commitment to excellence, innovation, and the principles that guide our work every day.',
+    quote: 'We are dedicated to bringing your visions to life, transforming ideas into impactful architectural experiences. Our team combines creativity, technical expertise, and a deep understanding of local context to deliver projects that exceed expectations.',
+    paragraph1: 'We believe in the power of collaboration and creativity. Every project we undertake is a partnership, where we work closely with our clients to understand their unique needs, challenges, and aspirations.',
+    paragraph2: 'Our approach is holistic, combining design excellence, technical innovation, and strategic thinking. We don\'t just create buildings; we craft environments that inspire, function seamlessly, and stand the test of time.',
+    paragraph3: 'We stay ahead of industry trends, continuously learning and adapting to bring the latest innovations in architecture, engineering, and sustainable design to every project. Our commitment to quality and excellence has made us a trusted partner in Rwanda\'s construction industry.',
+    aboutImage: '/about.jpg',
+    projectsCount: '100+',
+    clientsCount: '50+',
+    yearsCount: '010',
+  });
+
+  useEffect(() => {
+    const fetchAboutContent = async () => {
+      try {
+        const res = await fetch('/api/about');
+        const data = await res.json();
+        if (data) {
+          setAboutContent({
+            title: data.title || aboutContent.title,
+            subtitle: data.subtitle || aboutContent.subtitle,
+            quote: data.quote || aboutContent.quote,
+            paragraph1: data.paragraph1 || aboutContent.paragraph1,
+            paragraph2: data.paragraph2 || aboutContent.paragraph2,
+            paragraph3: data.paragraph3 || aboutContent.paragraph3,
+            aboutImage: data.aboutImage || aboutContent.aboutImage,
+            projectsCount: data.projectsCount || aboutContent.projectsCount,
+            clientsCount: data.clientsCount || aboutContent.clientsCount,
+            yearsCount: data.yearsCount || aboutContent.yearsCount,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching about content:', error);
+      }
+    };
+
+    fetchAboutContent();
+  }, []);
+
   return (
     <main className="min-h-screen bg-white">
       {/* Main Content */}
@@ -15,17 +56,17 @@ export default function AboutPage() {
             {/* Title Section */}
             <div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#009f3b] mb-4">
-                Our Story, Vision, and Values
+                {aboutContent.title}
               </h1>
               <p className="text-gray-600 text-lg leading-relaxed">
-                Learn about our commitment to excellence, innovation, and the principles that guide our work every day.
+                {aboutContent.subtitle}
               </p>
             </div>
 
             {/* Large Image */}
             <div className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden">
               <Image
-                src="/about.jpg"
+                src={aboutContent.aboutImage || '/about.jpg'}
                 alt="Our Story"
                 fill
                 className="object-cover"
@@ -43,7 +84,7 @@ export default function AboutPage() {
                 66
               </div>
               <p className="text-gray-700 text-lg md:text-xl leading-relaxed relative z-10">
-                We are dedicated to bringing your visions to life, transforming ideas into impactful architectural experiences. Our team combines creativity, technical expertise, and a deep understanding of local context to deliver projects that exceed expectations.
+                {aboutContent.quote}
               </p>
             </div>
 
@@ -56,15 +97,9 @@ export default function AboutPage() {
                 <h2 className="text-2xl md:text-3xl font-bold">ABOUT US</h2>
               </div>
               <div className="space-y-4 text-gray-200 leading-relaxed">
-                <p>
-                  We believe in the power of collaboration and creativity. Every project we undertake is a partnership, where we work closely with our clients to understand their unique needs, challenges, and aspirations.
-                </p>
-                <p>
-                  Our approach is holistic, combining design excellence, technical innovation, and strategic thinking. We don't just create buildings; we craft environments that inspire, function seamlessly, and stand the test of time.
-                </p>
-                <p>
-                  We stay ahead of industry trends, continuously learning and adapting to bring the latest innovations in architecture, engineering, and sustainable design to every project. Our commitment to quality and excellence has made us a trusted partner in Rwanda's construction industry.
-                </p>
+                <p>{aboutContent.paragraph1}</p>
+                <p>{aboutContent.paragraph2}</p>
+                <p>{aboutContent.paragraph3}</p>
               </div>
             </div>
 
@@ -72,15 +107,15 @@ export default function AboutPage() {
             <div className="bg-white border border-gray-200 rounded-lg p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 <div className="text-center md:text-left">
-                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">100+</div>
+                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">{aboutContent.projectsCount}</div>
                   <div className="text-gray-600 text-sm md:text-base">Projects Completed</div>
                 </div>
                 <div className="text-center md:text-left border-l-0 md:border-l border-gray-300 pl-0 md:pl-8">
-                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">50+</div>
+                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">{aboutContent.clientsCount}</div>
                   <div className="text-gray-600 text-sm md:text-base">Satisfied Clients</div>
                 </div>
                 <div className="text-center md:text-left border-l-0 md:border-l border-gray-300 pl-0 md:pl-8">
-                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">010</div>
+                  <div className="text-4xl md:text-5xl font-bold text-[#009f3b] mb-2">{aboutContent.yearsCount}</div>
                   <div className="text-gray-600 text-sm md:text-base">Years of Excellence</div>
                 </div>
               </div>

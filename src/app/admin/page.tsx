@@ -221,13 +221,14 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes] = await Promise.all([
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, aboutRes] = await Promise.all([
         fetch('/api/team'),
         fetch('/api/shop'),
         fetch('/api/academic'),
         fetch('/api/portfolio'),
         fetch('/api/social'),
-        fetch('/api/partners')
+          fetch('/api/partners'),
+          fetch('/api/about')
       ]);
       
       const teamsData = await teamsRes.json();
@@ -236,6 +237,27 @@ export default function AdminDashboard() {
       const portfoliosData = await portfoliosRes.json();
       const socialData = await socialRes.json();
       const partnersData = await partnersRes.json();
+      const aboutData = await aboutRes.json();
+      
+      // Populate About content
+      if (aboutData) {
+        setAboutTitle(aboutData.title || '');
+        setAboutSubtitle(aboutData.subtitle || '');
+        setAboutQuote(aboutData.quote || '');
+        setAboutParagraph1(aboutData.paragraph1 || '');
+        setAboutParagraph2(aboutData.paragraph2 || '');
+        setAboutParagraph3(aboutData.paragraph3 || '');
+        setAboutPageImage(aboutData.aboutImage || '');
+        setAboutHomeHeading(aboutData.homeHeading || '');
+        setAboutHomeSubheading(aboutData.homeSubheading || '');
+        setAboutHomeSince(aboutData.homeSince || '');
+        setAboutHomeDescription1(aboutData.homeDescription1 || '');
+        setAboutHomeDescription2(aboutData.homeDescription2 || '');
+        setAboutComponentImage(aboutData.homeImage || '');
+        setProjectsCount(aboutData.projectsCount || '');
+        setClientsCount(aboutData.clientsCount || '');
+        setYearsCount(aboutData.yearsCount || '');
+      }
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -416,7 +438,7 @@ export default function AdminDashboard() {
         try {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
-            const errorData = await res.json();
+        const errorData = await res.json();
             console.error('Team save error response:', errorData);
             // Try different possible error message fields
             errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData) || errorMessage;
@@ -568,7 +590,7 @@ export default function AdminDashboard() {
         
         if (contentType && contentType.includes('application/json')) {
           try {
-            const errorData = await res.json();
+        const errorData = await res.json();
             errorMessage = errorData.error || errorData.message || errorMessage;
           } catch (e) {
             // If JSON parsing fails, use default message
@@ -605,12 +627,12 @@ export default function AdminDashboard() {
       async () => {
         try {
           console.log('Delete shop - Sending DELETE request to:', `/api/shop/${id}`);
-          const res = await fetch(`/api/shop/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/shop/${id}`, { method: 'DELETE' });
           
           console.log('Delete shop - Response status:', res.status, res.statusText);
           
-          if (res.ok) {
-            await fetchAllData();
+      if (res.ok) {
+        await fetchAllData();
             showToast('Product deleted successfully', 'success');
           } else {
         const contentType = res.headers.get('content-type');
@@ -663,8 +685,8 @@ export default function AdminDashboard() {
       if (pdfFile && !finalPdfLink) {
         console.log('PDF file selected but no link found, uploading to Cloudinary...');
         try {
-          const { uploadToCloudinary } = await import('@/lib/cloudinary');
-          finalPdfLink = await uploadToCloudinary(pdfFile, 'nk3d/pdfs');
+        const { uploadToCloudinary } = await import('@/lib/cloudinary');
+        finalPdfLink = await uploadToCloudinary(pdfFile, 'nk3d/pdfs');
           console.log('PDF uploaded successfully:', finalPdfLink);
           // Update the pdfLink state so it shows in the form
           setPdfLink(finalPdfLink);
@@ -720,7 +742,7 @@ export default function AdminDashboard() {
         try {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
-            const errorData = await res.json();
+        const errorData = await res.json();
             console.error('Academic save error response:', errorData);
             errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData) || errorMessage;
           } else {
@@ -749,10 +771,10 @@ export default function AdminDashboard() {
     showDeleteConfirmation(
       'Are you sure you want to delete this publication? This action cannot be undone.',
       async () => {
-        try {
-          const res = await fetch(`/api/academic/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            await fetchAllData();
+    try {
+      const res = await fetch(`/api/academic/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchAllData();
             showToast('Publication deleted successfully!', 'success');
           } else {
             const contentType = res.headers.get('content-type');
@@ -778,11 +800,46 @@ export default function AdminDashboard() {
             console.error('Academic delete failed - Status:', res.status, 'Message:', errorMessage);
           }
         } catch (error: any) {
-          console.error('Error deleting academic:', error);
+      console.error('Error deleting academic:', error);
           showToast(`Error deleting publication: ${error.message || 'Please try again'}`, 'error');
         }
       }
     );
+  };
+
+  const saveAboutContent = async () => {
+    try {
+      const res = await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: aboutTitle,
+          subtitle: aboutSubtitle,
+          quote: aboutQuote,
+          paragraph1: aboutParagraph1,
+          paragraph2: aboutParagraph2,
+          paragraph3: aboutParagraph3,
+          aboutImage: aboutPageImage,
+          homeHeading: aboutHomeHeading,
+          homeSubheading: aboutHomeSubheading,
+          homeSince: aboutHomeSince,
+          homeDescription1: aboutHomeDescription1,
+          homeDescription2: aboutHomeDescription2,
+          homeImage: aboutComponentImage,
+          projectsCount: projectsCount,
+          clientsCount: clientsCount,
+          yearsCount: yearsCount,
+        }),
+      });
+      if (res.ok) {
+        showToast('About content saved successfully!', 'success');
+      } else {
+        showToast('Failed to save about content', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving about content:', error);
+      showToast('Error saving about content', 'error');
+    }
   };
 
   const saveSocialLinks = async () => {
@@ -943,10 +1000,10 @@ export default function AdminDashboard() {
     showDeleteConfirmation(
       'Are you sure you want to delete this partner logo? This action cannot be undone.',
       async () => {
-        try {
-          const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            await fetchAllData();
+    try {
+      const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchAllData();
             showToast('Partner logo deleted successfully!', 'success');
           } else {
             const contentType = res.headers.get('content-type');
@@ -964,9 +1021,9 @@ export default function AdminDashboard() {
             showToast(`Error: ${errorMessage}`, 'error');
           }
         } catch (error: any) {
-          console.error('Error deleting partner:', error);
+      console.error('Error deleting partner:', error);
           showToast(`Error deleting partner logo: ${error.message || 'Please try again'}`, 'error');
-        }
+    }
       }
     );
   };
@@ -1452,6 +1509,182 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* About Content Management */}
+              <div className="bg-white p-4 md:p-6 rounded-lg">
+                <h3 className="text-lg font-bold text-[#009f3b] mb-4">About Page Content</h3>
+                <div className="space-y-6">
+                  {/* About Page Section */}
+                  <div className="border-b pb-6">
+                    <h4 className="text-md font-semibold text-gray-700 mb-4">About Page</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
+                        <input
+                          type="text"
+                          value={aboutTitle}
+                          onChange={(e) => setAboutTitle(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
+                        <textarea
+                          value={aboutSubtitle}
+                          onChange={(e) => setAboutSubtitle(e.target.value)}
+                          rows={2}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Quote</label>
+                        <textarea
+                          value={aboutQuote}
+                          onChange={(e) => setAboutQuote(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 1</label>
+                        <textarea
+                          value={aboutParagraph1}
+                          onChange={(e) => setAboutParagraph1(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 2</label>
+                        <textarea
+                          value={aboutParagraph2}
+                          onChange={(e) => setAboutParagraph2(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Paragraph 3</label>
+                        <textarea
+                          value={aboutParagraph3}
+                          onChange={(e) => setAboutParagraph3(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <ImageUploadField
+                          label="About Page Image"
+                          imageUrl={aboutPageImage}
+                          onImageChange={setAboutPageImage}
+                          folder="nk3d/about"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Homepage About Component Section */}
+                  <div className="border-b pb-6">
+                    <h4 className="text-md font-semibold text-gray-700 mb-4">Homepage About Component</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Heading</label>
+                        <input
+                          type="text"
+                          value={aboutHomeHeading}
+                          onChange={(e) => setAboutHomeHeading(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Subheading</label>
+                        <input
+                          type="text"
+                          value={aboutHomeSubheading}
+                          onChange={(e) => setAboutHomeSubheading(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Since Text</label>
+                        <input
+                          type="text"
+                          value={aboutHomeSince}
+                          onChange={(e) => setAboutHomeSince(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description 1</label>
+                        <textarea
+                          value={aboutHomeDescription1}
+                          onChange={(e) => setAboutHomeDescription1(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description 2</label>
+                        <textarea
+                          value={aboutHomeDescription2}
+                          onChange={(e) => setAboutHomeDescription2(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <ImageUploadField
+                          label="Homepage About Image"
+                          imageUrl={aboutComponentImage}
+                          onImageChange={setAboutComponentImage}
+                          folder="nk3d/about"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Statistics Section */}
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-700 mb-4">Statistics</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Projects Count</label>
+                        <input
+                          type="text"
+                          value={projectsCount}
+                          onChange={(e) => setProjectsCount(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Clients Count</label>
+                        <input
+                          type="text"
+                          value={clientsCount}
+                          onChange={(e) => setClientsCount(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Years Count</label>
+                        <input
+                          type="text"
+                          value={yearsCount}
+                          onChange={(e) => setYearsCount(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={saveAboutContent}
+                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                  >
+                    Save About Content
+                  </button>
                 </div>
               </div>
             </div>
@@ -2369,29 +2602,29 @@ export default function AdminDashboard() {
               {showShopForm && (
                 <div className="border-t pt-6">
                   <form onSubmit={handleSaveShop}>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-bold text-[#009f3b]">
-                        {editingShop ? 'Edit Product' : 'Add New Product'}
-                      </h3>
-                      <button
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-[#009f3b]">
+                      {editingShop ? 'Edit Product' : 'Add New Product'}
+                    </h3>
+                <button
                         type="button"
-                        onClick={() => {
-                          setShowShopForm(false);
-                          setEditingShop(null);
+                      onClick={() => {
+                        setShowShopForm(false);
+                        setEditingShop(null);
                           setShopName('');
                           setShopPrice('');
                           setShopCategory('');
                           setShopDescription('');
                           setShopImage('');
-                        }}
-                        className="text-gray-600 hover:text-gray-800 text-sm"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                      }}
+                      className="text-gray-600 hover:text-gray-800 text-sm"
+                    >
+                      Cancel
+                </button>
+              </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Product Name *</label>
                           <input 
                             type="text" 
@@ -2400,17 +2633,17 @@ export default function AdminDashboard() {
                             className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
                             required
                           />
-                        </div>
-                        <div>
-                          <ImageUploadField
+                    </div>
+                    <div>
+                      <ImageUploadField
                             label="Product Image *"
-                            imageUrl={shopImage}
-                            onImageChange={setShopImage}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        imageUrl={shopImage}
+                        onImageChange={setShopImage}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
                           <input 
                             type="text" 
@@ -2420,8 +2653,8 @@ export default function AdminDashboard() {
                             placeholder="e.g., 100000 or $100"
                             required
                           />
-                        </div>
-                        <div>
+                    </div>
+                    <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
                           <input 
                             type="text" 
@@ -2431,8 +2664,8 @@ export default function AdminDashboard() {
                             placeholder="e.g., Furniture, Decor, etc."
                             required
                           />
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                         <textarea 
@@ -2443,33 +2676,33 @@ export default function AdminDashboard() {
                           rows={4}
                         />
                       </div>
-                      <div className="flex gap-3">
-                        <button
+                    <div className="flex gap-3">
+                <button
                           type="submit"
-                          className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-                        >
-                          {editingShop ? 'Update Product' : 'Add Product'}
-                        </button>
-                        <button
+                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                      >
+                        {editingShop ? 'Update Product' : 'Add Product'}
+                </button>
+                <button
                           type="button"
-                          onClick={() => {
-                            setShowShopForm(false);
-                            setEditingShop(null);
+                        onClick={() => {
+                          setShowShopForm(false);
+                          setEditingShop(null);
                             setShopName('');
                             setShopPrice('');
                             setShopCategory('');
                             setShopDescription('');
                             setShopImage('');
-                          }}
-                          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                        }}
+                        className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
+                      >
+                        Cancel
+                </button>
                     </div>
+              </div>
                   </form>
-                </div>
-              )}
+            </div>
+          )}
             </div>
           )}
 

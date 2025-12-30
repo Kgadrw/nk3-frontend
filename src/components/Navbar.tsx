@@ -380,33 +380,36 @@ const Navbar = () => {
             </nav>
 
             {/* Right: Action Icons */}
-            <div className={`flex items-center gap-3 transition-all duration-300 ${
-              isPastHero ? 'hidden' : ''
-            }`}>
-              {/* Shopping Cart */}
-              <Link href="/shop" className="relative p-2 hover:bg-gray-100 rounded transition-colors">
-                <svg className="w-6 h-6 text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-[#90EE90] text-[#009f3b] rounded-full flex items-center justify-center text-xs font-bold">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
+            <div className="flex items-center gap-3 transition-all duration-300">
+              {/* Shopping Cart and Search - Hidden when past hero */}
+              <div className={`flex items-center gap-3 transition-all duration-300 ${
+                isPastHero ? 'hidden' : ''
+              }`}>
+                {/* Shopping Cart */}
+                <Link href="/shop" className="relative p-2 hover:bg-gray-100 rounded transition-colors">
+                  <svg className="w-6 h-6 text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute top-0 right-0 w-5 h-5 bg-[#90EE90] text-[#009f3b] rounded-full flex items-center justify-center text-xs font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
 
-              {/* Search Button */}
-              <button 
-                onClick={() => setSearchOpen(true)}
-                className="w-10 h-10 bg-[#90EE90] flex items-center justify-center hover:bg-[#7dd87d] transition-colors cursor-pointer"
-                aria-label="Search"
-              >
-                <svg className="w-5 h-5 text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+                {/* Search Button */}
+                <button 
+                  onClick={() => setSearchOpen(true)}
+                  className="w-10 h-10 bg-[#90EE90] flex items-center justify-center hover:bg-[#7dd87d] transition-colors cursor-pointer"
+                  aria-label="Search"
+                >
+                  <svg className="w-5 h-5 text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button - Always visible on mobile */}
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden w-10 h-10 bg-[#009f3b] flex items-center justify-center hover:bg-[#00782d] transition-colors"
@@ -426,7 +429,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu */}
-          {mobileMenuOpen && !isPastHero && (
+          {mobileMenuOpen && (
             <div className="md:hidden bg-white border-t border-gray-200">
               <nav className="px-4 py-4 space-y-2">
                 <Link 
