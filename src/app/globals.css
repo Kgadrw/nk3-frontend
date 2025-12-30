@@ -44,7 +44,33 @@ body {
   font-variation-settings: "GRAD" 0;
 }
 
-/* Hide scrollbar for webkit browsers */
+/* Custom scrollbar - small and green */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #009f3b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00782d;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #009f3b transparent;
+}
+
+/* Hide scrollbar for webkit browsers (utility class) */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
