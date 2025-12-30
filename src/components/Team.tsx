@@ -8,6 +8,7 @@ import Image from 'next/image';
 // Team Member Card Component
 const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: string; image: string; phone?: string; email?: string; description?: string } }) => {
   const [imageError, setImageError] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -78,9 +79,17 @@ const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: 
           {member.role}
         </p>
         {member.description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
-            {member.description}
-          </p>
+          <div className="space-y-2">
+            <p className={`text-xs text-gray-500 leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+              {member.description}
+            </p>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[#009f3b] hover:text-[#00782d] font-semibold underline transition-colors"
+            >
+              {isExpanded ? 'Less info' : 'More info'}
+            </button>
+          </div>
         )}
       </div>
     </div>

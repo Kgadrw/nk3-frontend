@@ -24,7 +24,9 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [cartOpen, setCartOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -37,6 +39,25 @@ const Shop = () => {
           price: typeof p.price === 'string' ? parseFloat(p.price.replace(/[^0-9.]/g, '')) || 0 : p.price
         }));
         setProducts(productsData);
+
+        // Extract unique categories from products
+        const uniqueCategories = new Set<string>();
+        productsData.forEach((product: Product) => {
+          if (product.category && product.category.trim()) {
+            uniqueCategories.add(product.category.trim());
+          }
+        });
+
+        // Sort categories and create category list
+        const sortedCategories = Array.from(uniqueCategories).sort();
+        const categoryList = [
+          { id: 'all', label: 'All Products' },
+          ...sortedCategories.map(cat => ({
+            id: cat,
+            label: cat
+          }))
+        ];
+        setCategories(categoryList);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -45,10 +66,6 @@ const Shop = () => {
     };
     fetchProducts();
   }, []);
-
-  const categories = [
-    { id: 'all', label: 'All Products' },
-  ];
 
   const filteredProducts = selectedCategory === 'all' 
     ? products 
@@ -142,67 +159,145 @@ const Shop = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-        <div className="w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
+        <div className="flex gap-6">
+          {/* Sidebar - Category Filter */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 sticky top-24">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Categories</h2>
+              <div className="space-y-2">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                      selectedCategory === category.id
+                        ? 'bg-[#009f3b] text-white font-semibold'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* Mobile Sidebar Toggle */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="bg-white border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Filter Categories
+            </button>
+          </div>
+
+          {/* Mobile Sidebar Overlay */}
+          {sidebarOpen && (
+            <div className="lg:hidden fixed inset-0 bg-black/50 z-50" onClick={() => setSidebarOpen(false)}>
+              <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+                  <button onClick={() => setSidebarOpen(false)} className="text-gray-500">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-4 space-y-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        setSidebarOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        selectedCategory === category.id
+                          ? 'bg-[#009f3b] text-white font-semibold'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
-          <div className="w-full">
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="flex-1 min-w-0">
+            {/* Products Grid - Alibaba Style */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {filteredProducts.map((product) => (
-                <div
+                <Link
                   key={product._id || product.id}
-                  className="bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                  href={`/shop/${product._id || product.id}`}
+                  className="bg-white border border-gray-200 hover:border-[#009f3b] transition-all duration-200 overflow-hidden group cursor-pointer flex flex-col"
                 >
-                  {/* Product Image - Clickable */}
-                  <Link href={`/shop/${product._id || product.id}`}>
-                    <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 cursor-pointer">
+                  {/* Product Image Container */}
+                  <div className="relative w-full aspect-square overflow-hidden bg-white">
+                    {/* Category Sticker - Top Left */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="bg-[#009f3b] text-white text-xs font-bold px-2 py-1 rounded shadow-md uppercase">
+                        {product.category}
+                      </span>
+                    </div>
+                    
+                    <div className="relative w-full h-full">
                       <Image
                         src={product.image}
                         alt={product.name}
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
                         unoptimized
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                  </Link>
+                  </div>
 
-                  {/* Product Info */}
-                  <div className="p-4 md:p-5">
-                    <div className="mb-2">
-                      <span className="text-xs font-semibold text-[#90EE90] uppercase tracking-wide">
-                        {product.category}
-                      </span>
-                    </div>
-                    <Link href={`/shop/${product._id || product.id}`}>
-                      <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 group-hover:text-[#009f3b] transition-colors cursor-pointer">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <p className="text-xs md:text-sm text-gray-600 mb-4 line-clamp-2 min-h-[2.5rem]">
-                      {product.description}
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xl md:text-2xl font-bold text-[#009f3b]">
+                  {/* Product Info - Alibaba Style */}
+                  <div className="p-3 flex-1 flex flex-col bg-white">
+                    {/* Product Name - 2 lines max */}
+                    <h3 className="text-xs sm:text-sm text-gray-800 mb-1 line-clamp-2 min-h-[2.5rem] group-hover:text-[#009f3b] transition-colors leading-tight">
+                      {product.name}
+                    </h3>
+                    
+                    {/* Description - Show a bit */}
+                    {product.description && (
+                      <p className="text-xs text-gray-500 mb-2 line-clamp-2 leading-relaxed">
+                        {product.description}
+                      </p>
+                    )}
+                    
+                    {/* Price Section */}
+                    <div className="mt-auto">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-bold text-[#FF6600]">
                           {formatPrice(product.price)}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="mt-3 pt-3 border-t border-gray-100">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           addToCart(product);
                         }}
-                        className="w-full sm:w-auto bg-[#009f3b] text-white px-4 md:px-5 py-2 md:py-2.5 font-semibold hover:bg-[#00782d] transition-colors flex items-center justify-center gap-2 group/btn text-sm md:text-base"
+                        className="w-full bg-[#009f3b] text-white text-xs py-2 px-3 hover:bg-[#00782d] transition-colors font-medium"
                       >
-                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span>Add</span>
+                        Add to Cart
                       </button>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 
@@ -222,15 +317,15 @@ const Shop = () => {
       {/* Mobile Cart Button */}
       {cart.length > 0 && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50">
-          <button
-            onClick={() => setCartOpen(!cartOpen)}
-            className="w-full bg-[#009f3b] text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+          <Link
+            href="/cart"
+            className="block w-full bg-[#009f3b] text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             View Cart ({getTotalItems()}) - {formatPrice(getTotalPrice())}
-          </button>
+          </Link>
         </div>
       )}
 
