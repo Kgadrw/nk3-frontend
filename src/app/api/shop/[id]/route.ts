@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender.com';
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const productId = resolvedParams?.id;
+    
+    if (!productId) {
+      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+    }
+    
+    const res = await fetch(`${API_URL}/api/shop/${productId}`);
+    
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+    
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json({ error: 'Invalid response from backend' }, { status: 500 });
+    }
+    
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }

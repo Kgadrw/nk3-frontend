@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 type Product = {
@@ -152,17 +153,19 @@ const Shop = () => {
                   key={product._id || product.id}
                   className="bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
                 >
-                  {/* Product Image */}
-                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                  {/* Product Image - Clickable */}
+                  <Link href={`/shop/${product._id || product.id}`}>
+                    <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 cursor-pointer">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        unoptimized
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </Link>
 
                   {/* Product Info */}
                   <div className="p-4 md:p-5">
@@ -171,9 +174,11 @@ const Shop = () => {
                         {product.category}
                       </span>
                     </div>
-                    <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 group-hover:text-[#009f3b] transition-colors">
-                      {product.name}
-                    </h3>
+                    <Link href={`/shop/${product._id || product.id}`}>
+                      <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 group-hover:text-[#009f3b] transition-colors cursor-pointer">
+                        {product.name}
+                      </h3>
+                    </Link>
                     <p className="text-xs md:text-sm text-gray-600 mb-4 line-clamp-2 min-h-[2.5rem]">
                       {product.description}
                     </p>
@@ -184,7 +189,10 @@ const Shop = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => addToCart(product)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product);
+                        }}
                         className="w-full sm:w-auto bg-[#009f3b] text-white px-4 md:px-5 py-2 md:py-2.5 font-semibold hover:bg-[#00782d] transition-colors flex items-center justify-center gap-2 group/btn text-sm md:text-base"
                       >
                         <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

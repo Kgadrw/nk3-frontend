@@ -112,6 +112,8 @@ export default function AdminDashboard() {
   const [portfolioStatus, setPortfolioStatus] = useState('');
   const [portfolioLocation, setPortfolioLocation] = useState('');
   const [portfolioKeyFeatures, setPortfolioKeyFeatures] = useState('');
+  const [portfolioGallery, setPortfolioGallery] = useState<string[]>([]);
+  const [newGalleryImage, setNewGalleryImage] = useState('');
   
   // Team management state
   const [showTeamForm, setShowTeamForm] = useState(false);
@@ -164,6 +166,18 @@ export default function AdminDashboard() {
     };
   }, []);
   
+  // Payment method management state
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<string | null>(null);
+  const [paymentName, setPaymentName] = useState('');
+  const [paymentType, setPaymentType] = useState('');
+  const [paymentAccountName, setPaymentAccountName] = useState('');
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
+  const [paymentProvider, setPaymentProvider] = useState('');
+  const [paymentInstructions, setPaymentInstructions] = useState('');
+  const [paymentIsActive, setPaymentIsActive] = useState(true);
+  
   // Data from database
   const [teams, setTeams] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -193,6 +207,7 @@ export default function AdminDashboard() {
         setPortfolioLocation(portfolio.location || '');
         setPortfolioKeyFeatures(portfolio.keyFeatures || '');
         setPortfolioImage(portfolio.image || '');
+        setPortfolioGallery(Array.isArray(portfolio.gallery) ? portfolio.gallery : []);
       }
     } else if (!editingPortfolio) {
       // Reset form when not editing
@@ -206,6 +221,8 @@ export default function AdminDashboard() {
       setPortfolioLocation('');
       setPortfolioKeyFeatures('');
       setPortfolioImage('');
+      setPortfolioGallery([]);
+      setNewGalleryImage('');
     }
   }, [editingPortfolio, portfolios]);
 
@@ -229,17 +246,43 @@ export default function AdminDashboard() {
       setShopImage('');
     }
   }, [editingShop, products]);
+
+  // Populate payment form when editing
+  useEffect(() => {
+    if (editingPayment && paymentMethods.length > 0) {
+      const method = paymentMethods.find(m => (m._id || m.id) === editingPayment);
+      if (method) {
+        setPaymentName(method.name || '');
+        setPaymentType(method.type || '');
+        setPaymentAccountName(method.accountName || '');
+        setPaymentAccountNumber(method.accountNumber || '');
+        setPaymentProvider(method.provider || '');
+        setPaymentInstructions(method.instructions || '');
+        setPaymentIsActive(method.isActive !== false);
+      }
+    } else if (!editingPayment) {
+      // Reset form when not editing
+      setPaymentName('');
+      setPaymentType('');
+      setPaymentAccountName('');
+      setPaymentAccountNumber('');
+      setPaymentProvider('');
+      setPaymentInstructions('');
+      setPaymentIsActive(true);
+    }
+  }, [editingPayment, paymentMethods]);
   
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes] = await Promise.all([
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes] = await Promise.all([
         fetch('/api/team'),
         fetch('/api/shop'),
         fetch('/api/academic'),
         fetch('/api/portfolio'),
         fetch('/api/social'),
-          fetch('/api/partners')
+          fetch('/api/partners'),
+          fetch('/api/payment')
       ]);
       
       const teamsData = await teamsRes.json();
@@ -248,6 +291,7 @@ export default function AdminDashboard() {
       const portfoliosData = await portfoliosRes.json();
       const socialData = await socialRes.json();
       const partnersData = await partnersRes.json();
+      const paymentData = await paymentRes.json();
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -278,6 +322,7 @@ export default function AdminDashboard() {
       setProducts(productsData || []);
       setPublications(publicationsData || []);
       setPortfolios(portfoliosData || []);
+      setPaymentMethods(paymentData || []);
       if (socialData) {
         setSocialLinks({
           facebook: socialData.facebook || '',
@@ -322,6 +367,7 @@ export default function AdminDashboard() {
         location: portfolioLocation,
         description: portfolioDescription,
         image: portfolioImage,
+        gallery: portfolioGallery.filter(img => img.trim() !== ''),
         area: portfolioArea,
         client: portfolioClient,
         status: portfolioStatus || 'Completed',
@@ -349,6 +395,8 @@ export default function AdminDashboard() {
         setPortfolioLocation('');
         setPortfolioKeyFeatures('');
         setPortfolioImage('');
+        setPortfolioGallery([]);
+        setNewGalleryImage('');
       } else {
         const errorData = await res.json();
         showToast(`Error: ${errorData.error || 'Failed to save portfolio'}`, 'error');
@@ -607,6 +655,74 @@ export default function AdminDashboard() {
       console.error('Error saving shop:', error);
       showToast(`Error saving product: ${error.message || 'Please try again'}`, 'error');
     }
+  };
+
+  const handleSavePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentName || !paymentType) {
+      showToast('Please fill in all required fields (Name, Type)', 'warning');
+      return;
+    }
+    try {
+      const data = {
+        name: paymentName.trim(),
+        type: paymentType.trim(),
+        accountName: paymentAccountName.trim(),
+        accountNumber: paymentAccountNumber.trim(),
+        provider: paymentProvider.trim(),
+        instructions: paymentInstructions.trim(),
+        isActive: paymentIsActive
+      };
+      const url = editingPayment ? `/api/payment/${editingPayment}` : '/api/payment';
+      const method = editingPayment ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        await fetchAllData();
+        setShowPaymentForm(false);
+        setEditingPayment(null);
+        setPaymentName('');
+        setPaymentType('');
+        setPaymentAccountName('');
+        setPaymentAccountNumber('');
+        setPaymentProvider('');
+        setPaymentInstructions('');
+        setPaymentIsActive(true);
+        showToast(editingPayment ? 'Payment method updated successfully!' : 'Payment method added successfully!', 'success');
+      } else {
+        const errorData = await res.json();
+        showToast(`Error: ${errorData.error || 'Failed to save payment method'}`, 'error');
+      }
+    } catch (error: any) {
+      showToast(`Error saving payment method: ${error.message || 'Please try again'}`, 'error');
+    }
+  };
+
+  const deletePayment = async (id: string) => {
+    if (!id) {
+      showToast('Invalid payment method ID', 'error');
+      return;
+    }
+    showDeleteConfirmation(
+      'Are you sure you want to delete this payment method? This action cannot be undone.',
+      async () => {
+        try {
+          const res = await fetch(`/api/payment/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            await fetchAllData();
+            showToast('Payment method deleted successfully!', 'success');
+          } else {
+            const errorData = await res.json();
+            showToast(`Error: ${errorData.error || 'Failed to delete payment method'}`, 'error');
+          }
+        } catch (error: any) {
+          showToast(`Error deleting payment method: ${error.message || 'Please try again'}`, 'error');
+        }
+      }
+    );
   };
 
   const deleteShop = async (id: string) => {
@@ -1511,6 +1627,8 @@ export default function AdminDashboard() {
                       setPortfolioLocation('');
                       setPortfolioKeyFeatures('');
                       setPortfolioImage('');
+                      setPortfolioGallery([]);
+                      setNewGalleryImage('');
                       setShowPortfolioForm(true);
                     }}
                     className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
@@ -1682,6 +1800,63 @@ export default function AdminDashboard() {
                         imageUrl={portfolioImage}
                         onImageChange={setPortfolioImage}
                       />
+                    </div>
+                  </div>
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-bold text-gray-800 mb-4">Project Gallery (Additional Images)</h4>
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <ImageUploadField
+                            label="Add Gallery Image"
+                            imageUrl={newGalleryImage}
+                            onImageChange={setNewGalleryImage}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newGalleryImage.trim()) {
+                              setPortfolioGallery([...portfolioGallery, newGalleryImage]);
+                              setNewGalleryImage('');
+                            }
+                          }}
+                          className="mt-6 bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors h-fit"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      {portfolioGallery.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Gallery Images ({portfolioGallery.length})
+                          </label>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {portfolioGallery.map((img, index) => (
+                              <div key={index} className="relative group">
+                                <div className="relative aspect-[4/3] bg-gray-100 rounded overflow-hidden">
+                                  <Image
+                                    src={img}
+                                    alt={`Gallery ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPortfolioGallery(portfolioGallery.filter((_, i) => i !== index));
+                                    }}
+                                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Remove image"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -2531,11 +2706,239 @@ export default function AdminDashboard() {
                 </button>
                     </div>
               </div>
+                </form>
+              </div>
+            )}
+
+            {/* Payment Method Management */}
+            <div className="border-t pt-6 mt-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-[#009f3b]">Payment Methods</h2>
+                <button 
+                  onClick={() => {
+                    setShowPaymentForm(true);
+                    setEditingPayment(null);
+                    setPaymentName('');
+                    setPaymentType('');
+                    setPaymentAccountName('');
+                    setPaymentAccountNumber('');
+                    setPaymentProvider('');
+                    setPaymentInstructions('');
+                    setPaymentIsActive(true);
+                  }}
+                  className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                >
+                  + Add Payment Method
+                </button>
+              </div>
+
+              {/* Payment Methods List */}
+              {!showPaymentForm && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Payment Methods ({paymentMethods.length})</h3>
+                  {paymentMethods.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No payment methods added yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Provider</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Account Number</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentMethods.map((method) => (
+                            <tr key={method._id || method.id} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">{method.name}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600 capitalize">{method.type}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{method.provider || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{method.accountNumber || '-'}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 text-xs rounded ${method.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                  {method.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => {
+                                      setShowPaymentForm(true);
+                                      setEditingPayment(method._id || method.id);
+                                      setPaymentName(method.name || '');
+                                      setPaymentType(method.type || '');
+                                      setPaymentAccountName(method.accountName || '');
+                                      setPaymentAccountNumber(method.accountNumber || '');
+                                      setPaymentProvider(method.provider || '');
+                                      setPaymentInstructions(method.instructions || '');
+                                      setPaymentIsActive(method.isActive !== false);
+                                    }}
+                                    className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => deletePayment(method._id || method.id)}
+                                    className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Add/Edit Payment Method Form */}
+              {showPaymentForm && (
+                <div className="border-t pt-6">
+                  <form onSubmit={handleSavePayment}>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-bold text-[#009f3b]">
+                        {editingPayment ? 'Edit Payment Method' : 'Add New Payment Method'}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPaymentForm(false);
+                          setEditingPayment(null);
+                          setPaymentName('');
+                          setPaymentType('');
+                          setPaymentAccountName('');
+                          setPaymentAccountNumber('');
+                          setPaymentProvider('');
+                          setPaymentInstructions('');
+                          setPaymentIsActive(true);
+                        }}
+                        className="text-gray-600 hover:text-gray-800 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method Name *</label>
+                          <input 
+                            type="text" 
+                            value={paymentName}
+                            onChange={(e) => setPaymentName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            placeholder="e.g., MTN Mobile Money"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Type *</label>
+                          <select
+                            value={paymentType}
+                            onChange={(e) => setPaymentType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                            required
+                          >
+                            <option value="">Select Type</option>
+                            <option value="mobile_money">Mobile Money</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="card">Card Payment</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Provider</label>
+                          <input 
+                            type="text" 
+                            value={paymentProvider}
+                            onChange={(e) => setPaymentProvider(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            placeholder="e.g., MTN, Airtel, Bank Name"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Account Name</label>
+                          <input 
+                            type="text" 
+                            value={paymentAccountName}
+                            onChange={(e) => setPaymentAccountName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            placeholder="Account holder name"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Account Number</label>
+                        <input 
+                          type="text" 
+                          value={paymentAccountNumber}
+                          onChange={(e) => setPaymentAccountNumber(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                          placeholder="Phone number or account number"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Instructions</label>
+                        <textarea 
+                          value={paymentInstructions}
+                          onChange={(e) => setPaymentInstructions(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y" 
+                          placeholder="Additional payment instructions for customers..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="paymentIsActive"
+                          checked={paymentIsActive}
+                          onChange={(e) => setPaymentIsActive(e.target.checked)}
+                          className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
+                        />
+                        <label htmlFor="paymentIsActive" className="text-sm font-semibold text-gray-700">
+                          Active (Show to customers)
+                        </label>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                        >
+                          {editingPayment ? 'Update Payment Method' : 'Add Payment Method'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowPaymentForm(false);
+                            setEditingPayment(null);
+                            setPaymentName('');
+                            setPaymentType('');
+                            setPaymentAccountName('');
+                            setPaymentAccountNumber('');
+                            setPaymentProvider('');
+                            setPaymentInstructions('');
+                            setPaymentIsActive(true);
+                          }}
+                          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
                   </form>
+                </div>
+              )}
             </div>
-          )}
-            </div>
-          )}
+          </div>
+        )}
 
         </div>
       </div>
