@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   const [showSocialNotification, setShowSocialNotification] = useState(false);
   
   // Partners logos state
-  const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
+  const [partnerLogos, setPartnerLogos] = useState<any[]>([]);
   const [newPartnerLogo, setNewPartnerLogo] = useState('');
   
   // About Us content states
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
           setCompanyProfilePdf(socialData.companyProfilePdf);
         }
       }
-      if (partnersData) setPartnerLogos(partnersData.map((p: any) => p.logo));
+      if (partnersData) setPartnerLogos(partnersData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -935,14 +935,40 @@ export default function AdminDashboard() {
   };
 
   const deletePartner = async (id: string) => {
-    try {
-      const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        await fetchAllData();
-      }
-    } catch (error) {
-      console.error('Error deleting partner:', error);
+    if (!id) {
+      showToast('Invalid partner ID', 'error');
+      return;
     }
+    
+    showDeleteConfirmation(
+      'Are you sure you want to delete this partner logo? This action cannot be undone.',
+      async () => {
+        try {
+          const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            await fetchAllData();
+            showToast('Partner logo deleted successfully!', 'success');
+          } else {
+            const contentType = res.headers.get('content-type');
+            let errorMessage = 'Failed to delete partner logo';
+            
+            if (contentType && contentType.includes('application/json')) {
+              try {
+                const errorData = await res.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+              } catch (e) {
+                console.error('Error parsing JSON error response:', e);
+              }
+            }
+            
+            showToast(`Error: ${errorMessage}`, 'error');
+          }
+        } catch (error: any) {
+          console.error('Error deleting partner:', error);
+          showToast(`Error deleting partner logo: ${error.message || 'Please try again'}`, 'error');
+        }
+      }
+    );
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setImage: (url: string) => void, folder: string = 'nk3d/images') => {
@@ -1405,14 +1431,19 @@ export default function AdminDashboard() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-3">Current Partner Logos ({partnerLogos.length})</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {partnerLogos.map((logo, index) => (
-                          <div key={index} className="relative border border-gray-200 p-3">
-                            <img src={logo} alt={`Partner ${index + 1}`} className="w-full h-20 object-contain" />
+                        {partnerLogos.map((partner: any) => (
+                          <div key={partner._id || partner.id} className="relative border border-gray-200 p-3">
+                            <img src={partner.logo} alt={`Partner ${partner._id || partner.id}`} className="w-full h-20 object-contain" />
                             <button
                               onClick={() => {
-                                setPartnerLogos(partnerLogos.filter((_, i) => i !== index));
+                                const partnerId = partner._id || partner.id;
+                                if (partnerId) {
+                                  deletePartner(String(partnerId));
+                                } else {
+                                  showToast('Error: Invalid partner ID', 'error');
+                                }
                               }}
-                              className="absolute -top-2 -right-2 bg-[#00782d] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-[#009f3b]"
+                              className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700 transition-colors"
                             >
                               ×
                             </button>
