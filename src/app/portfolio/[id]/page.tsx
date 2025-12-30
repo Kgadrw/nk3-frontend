@@ -134,7 +134,7 @@ export default function PortfolioDetailPage() {
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">Project Gallery</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {portfolio.gallery.map((img, index) => (
+                  {portfolio.gallery.map((img: string, index: number) => (
                     <div key={index} className="relative aspect-[4/3] overflow-hidden rounded-lg">
                       <Image
                         src={img}
@@ -153,7 +153,7 @@ export default function PortfolioDetailPage() {
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">Key Features</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {portfolio.features.map((feature, index) => (
+                  {portfolio.features.map((feature: string, index: number) => (
                     <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
                       <div className="w-2 h-2 bg-[#009f3b] rounded-full mt-2 flex-shrink-0"></div>
                       <span className="text-gray-700">{feature}</span>

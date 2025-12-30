@@ -205,7 +205,7 @@ const Team = () => {
 
             {/* Team Members Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-              {currentTeam.map((member) => (
+              {currentTeam.map((member: any) => (
                 <TeamMemberCard key={member.id} member={member} />
               ))}
             </div>

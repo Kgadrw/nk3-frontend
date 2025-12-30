@@ -2025,7 +2025,7 @@ export default function AdminDashboard() {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {groupedTeams[category].map((member) => (
+                                  {groupedTeams[category].map((member: any) => (
                                     <tr key={member._id || member.id} className="border-b border-gray-200 hover:bg-gray-50">
                                       <td className="px-4 py-3">
                                         <div className="relative w-12 h-12">

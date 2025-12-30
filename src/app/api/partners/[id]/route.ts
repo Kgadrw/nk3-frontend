@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender.com';
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const res = await fetch(`${API_URL}/api/partners/${params.id}`, {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const partnerId = resolvedParams?.id;
+
+    if (!partnerId) {
+      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
+    }
+
+    const res = await fetch(`${API_URL}/api/partners/${partnerId}`, {
       method: 'DELETE',
     });
     

@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
 type Product = {
-  id: number;
+  id: number | string;
+  _id?: string;
   name: string;
   description: string;
   price: number;

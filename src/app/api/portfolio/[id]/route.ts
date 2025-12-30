@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender.com';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const res = await fetch(`${API_URL}/api/portfolio/${params.id}`);
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const portfolioId = resolvedParams?.id;
+
+    if (!portfolioId) {
+      return NextResponse.json({ error: 'Portfolio ID is required' }, { status: 400 });
+    }
+
+    const res = await fetch(`${API_URL}/api/portfolio/${portfolioId}`);
     
     if (!res.ok) {
       return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 });
@@ -22,10 +32,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const portfolioId = resolvedParams?.id;
+
+    if (!portfolioId) {
+      return NextResponse.json({ error: 'Portfolio ID is required' }, { status: 400 });
+    }
+
     const body = await request.json();
-    const res = await fetch(`${API_URL}/api/portfolio/${params.id}`, {
+    const res = await fetch(`${API_URL}/api/portfolio/${portfolioId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -48,9 +68,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const res = await fetch(`${API_URL}/api/portfolio/${params.id}`, {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const portfolioId = resolvedParams?.id;
+
+    if (!portfolioId) {
+      return NextResponse.json({ error: 'Portfolio ID is required' }, { status: 400 });
+    }
+
+    const res = await fetch(`${API_URL}/api/portfolio/${portfolioId}`, {
       method: 'DELETE',
     });
     
