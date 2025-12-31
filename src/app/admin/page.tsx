@@ -114,7 +114,6 @@ export default function AdminDashboard() {
   const [portfolioLocation, setPortfolioLocation] = useState('');
   const [portfolioKeyFeatures, setPortfolioKeyFeatures] = useState('');
   const [portfolioGallery, setPortfolioGallery] = useState<string[]>([]);
-  const [newGalleryImage, setNewGalleryImage] = useState('');
   
   // Team management state
   const [showTeamForm, setShowTeamForm] = useState(false);
@@ -227,7 +226,6 @@ export default function AdminDashboard() {
       setPortfolioKeyFeatures('');
       setPortfolioImage('');
       setPortfolioGallery([]);
-      setNewGalleryImage('');
     }
   }, [editingPortfolio, portfolios]);
 
@@ -1136,6 +1134,44 @@ export default function AdminDashboard() {
     }
   };
 
+  // Handle multiple image uploads for gallery
+  const handleMultipleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, folder: string = 'nk3d/images') => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    showToast(`Uploading ${fileArray.length} image(s)...`, 'info');
+
+    try {
+      const { uploadToCloudinary } = await import('@/lib/cloudinary');
+      const uploadPromises = fileArray.map(async (file) => {
+        try {
+          const cloudinaryUrl = await uploadToCloudinary(file, folder);
+          return cloudinaryUrl;
+        } catch (error) {
+          console.error('Failed to upload image:', error);
+          return null;
+        }
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      
+      if (validUrls.length > 0) {
+        setPortfolioGallery([...portfolioGallery, ...validUrls]);
+        showToast(`Successfully uploaded ${validUrls.length} image(s)!`, 'success');
+      } else {
+        showToast('Failed to upload images. Please try again.', 'error');
+      }
+
+      // Reset file input
+      e.target.value = '';
+    } catch (error) {
+      console.error('Error uploading multiple images:', error);
+      showToast('Error uploading images. Please try again.', 'error');
+    }
+  };
+
   // Reusable Image Upload Component
   const ImageUploadField = ({ 
     label, 
@@ -1814,56 +1850,82 @@ export default function AdminDashboard() {
                   <div className="border-t pt-4">
                     <h4 className="text-sm font-bold text-gray-800 mb-4">Project Gallery (Additional Images)</h4>
                     <div className="space-y-4">
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <ImageUploadField
-                            label="Add Gallery Image"
-                            imageUrl={newGalleryImage}
-                            onImageChange={setNewGalleryImage}
+                      {/* Multiple Image Upload */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Add Multiple Images
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const fileInput = document.getElementById('gallery-multi-upload') as HTMLInputElement;
+                              fileInput?.click();
+                            }}
+                            className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#009f3b] hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
+                            <Upload className="w-5 h-5 text-gray-600" />
+                            <span className="text-sm text-gray-600">Select Multiple Images</span>
+                          </button>
+                          <input
+                            id="gallery-multi-upload"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleMultipleImageUpload(e, 'nk3d/images')}
+                            className="hidden"
                           />
+                          <p className="text-xs text-gray-500">
+                            You can select multiple images at once
+                          </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (newGalleryImage.trim()) {
-                              setPortfolioGallery([...portfolioGallery, newGalleryImage]);
-                              setNewGalleryImage('');
-                            }
-                          }}
-                          className="mt-6 bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors h-fit"
-                        >
-                          Add
-                        </button>
                       </div>
+                      
+                      {/* Gallery Preview */}
                       {portfolioGallery.length > 0 && (
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Gallery Images ({portfolioGallery.length})
                           </label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {portfolioGallery.map((img, index) => (
                               <div key={index} className="relative group">
-                                <div className="relative aspect-[4/3] bg-gray-100 rounded overflow-hidden">
+                                <div className="relative aspect-[4/3] bg-gray-100 rounded overflow-hidden border border-gray-200">
                                   <Image
                                     src={img}
                                     alt={`Gallery ${index + 1}`}
                                     fill
                                     className="object-cover"
+                                    unoptimized
                                   />
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setPortfolioGallery(portfolioGallery.filter((_, i) => i !== index));
                                     }}
-                                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100 shadow-lg"
                                     title="Remove image"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Image {index + 1}
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to remove all ${portfolioGallery.length} gallery images?`)) {
+                                setPortfolioGallery([]);
+                              }
+                            }}
+                            className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
+                          >
+                            Clear All Gallery Images
+                          </button>
                         </div>
                       )}
                     </div>
