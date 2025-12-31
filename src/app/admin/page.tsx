@@ -344,7 +344,6 @@ export default function AdminDashboard() {
         }
         
         if (!id || id === 'undefined' || id === 'null') {
-          console.warn('Team member missing ID:', team);
           return null;
         }
         
@@ -354,8 +353,7 @@ export default function AdminDashboard() {
           _id: id.trim()
         };
       }).filter((team: any) => team && team.id); // Filter out teams without IDs
-      console.log('Teams loaded:', teamsWithIds.length, 'members');
-      console.log('Sample team IDs:', teamsWithIds.slice(0, 3).map((t: any) => ({ name: t.name, id: t.id, _id: t._id })));
+      // Teams loaded successfully
       setTeams(teamsWithIds);
       setProducts(productsData || []);
       setPublications(publicationsData || []);
@@ -386,7 +384,7 @@ export default function AdminDashboard() {
       }
       if (partnersData) setPartnerLogos(partnersData);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      // Error fetching data
     } finally {
       setLoading(false);
     }
@@ -491,13 +489,13 @@ export default function AdminDashboard() {
       const teamId = String(editingTeam).trim();
       if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
         showToast('Error: Invalid team member ID. Please try refreshing the page.', 'error');
-        console.error('Invalid editingTeam ID:', editingTeam, 'Stringified:', teamId);
+        // Invalid team ID
         return;
       }
       // MongoDB ObjectId should be 24 hex characters
       if (!/^[0-9a-fA-F]{24}$/.test(teamId)) {
         showToast('Error: Team member ID format is invalid. Please try refreshing the page.', 'error');
-        console.error('Invalid ObjectId format:', teamId);
+        // Invalid ObjectId format
         return;
       }
     }
@@ -539,38 +537,33 @@ export default function AdminDashboard() {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
         const errorData = await res.json();
-            console.error('Team save error response:', errorData);
-            // Try different possible error message fields
-            errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData) || errorMessage;
+            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
           } else {
             const errorText = await res.text();
-            console.error('Team save error text:', errorText);
             errorMessage = errorText || errorMessage;
           }
         } catch (parseError) {
-          console.error('Error parsing error response:', parseError);
+          // Error parsing response
         }
         showToast(`Error: ${errorMessage}`, 'error');
-        console.error('Team save failed - Status:', res.status, 'Message:', errorMessage);
       }
     } catch (error) {
-      console.error('Error saving team:', error);
+      // Error saving team
       showToast('Error saving team member. Please try again.', 'error');
     }
   };
 
   const deleteTeam = async (id: string) => {
     const teamId = String(id || '').trim();
-    console.log('deleteTeam called with ID:', id, 'Stringified:', teamId);
     
     if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
       showToast('Error: Invalid team member ID', 'error');
-      console.error('Invalid team ID for deletion - empty or undefined:', id, 'Stringified:', teamId);
+      // Invalid team ID for deletion
       return;
     }
     
     // Log the ID format for debugging
-    console.log('Team ID format check:', {
+    // Team ID format check
       id: teamId,
       length: teamId.length,
       isObjectIdFormat: /^[0-9a-fA-F]{24}$/.test(teamId),
@@ -582,18 +575,12 @@ export default function AdminDashboard() {
     // Let the API and MongoDB handle format validation
     if (teamId.length < 1) {
       showToast('Error: Invalid team member ID format - ID is too short', 'error');
-      console.error('Invalid ID format for deletion - too short:', teamId, 'Length:', teamId.length);
+      // Invalid ID format for deletion
       return;
     }
     
     try {
       const deleteUrl = `/api/team/${teamId}`;
-      console.log('Attempting to delete team member:', {
-        id: teamId,
-        url: deleteUrl,
-        urlLength: deleteUrl.length,
-        encodedUrl: encodeURIComponent(teamId)
-      });
       const res = await fetch(deleteUrl, { method: 'DELETE' });
       if (res.ok) {
         await fetchAllData();
@@ -605,21 +592,18 @@ export default function AdminDashboard() {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             const errorData = await res.json();
-            console.error('Delete error response:', errorData);
-            errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData) || errorMessage;
+            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
           } else {
             const errorText = await res.text();
-            console.error('Delete error text:', errorText);
             errorMessage = errorText || errorMessage;
           }
         } catch (parseError) {
-          console.error('Error parsing delete error response:', parseError);
+          // Error parsing delete error response
         }
         showToast(`Error deleting team member: ${errorMessage}`, 'error');
-        console.error('Delete failed - Status:', res.status, 'Message:', errorMessage);
       }
     } catch (error) {
-      console.error('Error deleting team:', error);
+      // Error deleting team
       showToast('Error deleting team member. Please try again.', 'error');
     }
   };
@@ -639,13 +623,8 @@ export default function AdminDashboard() {
         image: shopImage
       };
       
-      console.log('Saving shop product:', data);
-      console.log('Editing mode:', editingShop ? 'Yes' : 'No');
-      
       const url = editingShop ? `/api/shop/${editingShop}` : '/api/shop';
       const method = editingShop ? 'PUT' : 'POST';
-      
-      console.log('Sending request to:', url, 'Method:', method);
       
       const res = await fetch(url, {
         method,
@@ -656,21 +635,18 @@ export default function AdminDashboard() {
       console.log('Response status:', res.status, res.statusText);
       
       const contentType = res.headers.get('content-type');
-      console.log('Response content-type:', contentType);
       
       if (res.ok) {
         // Parse response to ensure it's valid
         let responseData;
         if (contentType && contentType.includes('application/json')) {
           responseData = await res.json();
-          console.log('Success response data:', responseData);
         } else {
           const text = await res.text();
-          console.log('Success response text:', text);
           try {
             responseData = JSON.parse(text);
           } catch (e) {
-            console.warn('Response is not JSON, but status is OK');
+            // Response is not JSON, but status is OK
           }
         }
         
@@ -705,10 +681,10 @@ export default function AdminDashboard() {
         }
         
         showToast(`Error: ${errorMessage}`, 'error');
-        console.error('Shop save error:', errorMessage);
+        // Shop save error
       }
     } catch (error: any) {
-      console.error('Error saving shop:', error);
+      // Error saving shop
       showToast(`Error saving product: ${error.message || 'Please try again'}`, 'error');
     }
   };
@@ -787,14 +763,11 @@ export default function AdminDashboard() {
       return;
     }
     
-    console.log('Delete shop - Product ID:', id);
-    console.log('Delete shop - ID type:', typeof id);
     
     showDeleteConfirmation(
       'Are you sure you want to delete this product? This action cannot be undone.',
       async () => {
         try {
-          console.log('Delete shop - Sending DELETE request to:', `/api/shop/${id}`);
       const res = await fetch(`/api/shop/${id}`, { method: 'DELETE' });
           
           console.log('Delete shop - Response status:', res.status, res.statusText);
@@ -811,25 +784,22 @@ export default function AdminDashboard() {
           try {
             errorDetails = await res.json();
             errorMessage = errorDetails.error || errorDetails.message || errorMessage;
-            console.error('Delete shop error (JSON):', errorDetails);
           } catch (e) {
-            console.error('Error parsing JSON error response:', e);
+            // Error parsing JSON error response
           }
         } else {
           try {
             const errorText = await res.text();
-            console.error('Delete shop error (text):', errorText);
             if (errorText) errorMessage = errorText;
           } catch (e) {
-            console.error('Error parsing text error response:', e);
+            // Error parsing text error response
           }
         }
         
         showToast(`Error deleting product: ${errorMessage}`, 'error');
-        console.error('Delete shop failed - Status:', res.status, 'Details:', errorDetails);
       }
     } catch (error: any) {
-      console.error('Error deleting shop (catch):', error);
+      // Error deleting shop
       showToast(`Error deleting product: ${error.message || 'Please try again'}`, 'error');
     }
       }
@@ -851,15 +821,15 @@ export default function AdminDashboard() {
       
       // If we have a file but the link hasn't been set yet (upload might have failed), try uploading
       if (pdfFile && !finalPdfLink) {
-        console.log('PDF file selected but no link found, uploading to Cloudinary...');
+        // Uploading PDF to Cloudinary
         try {
         const { uploadToCloudinary } = await import('@/lib/cloudinary');
         finalPdfLink = await uploadToCloudinary(pdfFile, 'nk3d/pdfs');
-          console.log('PDF uploaded successfully:', finalPdfLink);
+          // PDF uploaded successfully
           // Update the pdfLink state so it shows in the form
           setPdfLink(finalPdfLink);
         } catch (uploadError) {
-          console.error('Failed to upload PDF to Cloudinary:', uploadError);
+          // Failed to upload PDF to Cloudinary
           showToast('Failed to upload PDF file. Please try again or provide a PDF link instead.', 'error');
           return;
         }
@@ -879,10 +849,6 @@ export default function AdminDashboard() {
         pdfLink: finalPdfLink
       };
       
-      console.log('Saving academic publication:', {
-        editing: !!editingAcademy,
-        data: data
-      });
       
       const url = editingAcademy ? `/api/academic/${editingAcademy}` : '/api/academic';
       const method = editingAcademy ? 'PUT' : 'POST';
@@ -892,7 +858,6 @@ export default function AdminDashboard() {
         body: JSON.stringify(data),
       });
       
-      console.log('Academic save response:', res.status, res.statusText);
       if (res.ok) {
         await fetchAllData();
         setShowAcademyForm(false);
@@ -911,21 +876,18 @@ export default function AdminDashboard() {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
         const errorData = await res.json();
-            console.error('Academic save error response:', errorData);
-            errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData) || errorMessage;
+            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
           } else {
             const errorText = await res.text();
-            console.error('Academic save error text:', errorText);
             errorMessage = errorText || errorMessage;
           }
         } catch (parseError) {
-          console.error('Error parsing academic save error response:', parseError);
+          // Error parsing academic save error response
         }
         showToast(`Error: ${errorMessage}`, 'error');
-        console.error('Academic save failed - Status:', res.status, 'Message:', errorMessage);
       }
     } catch (error) {
-      console.error('Error saving academic:', error);
+      // Error saving academic
       showToast('Error saving publication. Please try again.', 'error');
     }
   };
@@ -953,22 +915,21 @@ export default function AdminDashboard() {
                 const errorData = await res.json();
                 errorMessage = errorData.error || errorData.message || errorMessage;
               } catch (e) {
-                console.error('Error parsing JSON error response:', e);
+                // Error parsing JSON error response
               }
             } else {
               try {
                 const errorText = await res.text();
                 if (errorText) errorMessage = errorText;
               } catch (e) {
-                console.error('Error parsing text error response:', e);
+                // Error parsing text error response
               }
             }
             
             showToast(`Error: ${errorMessage}`, 'error');
-            console.error('Academic delete failed - Status:', res.status, 'Message:', errorMessage);
           }
         } catch (error: any) {
-      console.error('Error deleting academic:', error);
+      // Error deleting academic
           showToast(`Error deleting publication: ${error.message || 'Please try again'}`, 'error');
         }
       }
@@ -994,7 +955,7 @@ export default function AdminDashboard() {
         showToast('Failed to save social media links', 'error');
       }
     } catch (error) {
-      console.error('Error saving social links:', error);
+      // Error saving social links
       showToast('Error saving social media links', 'error');
     }
   };
@@ -1015,7 +976,7 @@ export default function AdminDashboard() {
         setCompanyProfilePdf(cloudinaryUrl);
         showToast('Company profile PDF uploaded successfully!', 'success');
       } catch (error) {
-        console.error('Failed to upload company profile PDF:', error);
+        // Failed to upload company profile PDF
         showToast('Failed to upload PDF. Please try again.', 'error');
       }
     }
@@ -1049,7 +1010,7 @@ export default function AdminDashboard() {
         pdfUrl = uploadData.secure_url;
         setCompanyProfilePdf(pdfUrl);
       } catch (error) {
-        console.error('Error uploading PDF:', error);
+        // Error uploading PDF
         showToast('Failed to upload PDF', 'error');
         return;
       }
@@ -1178,7 +1139,7 @@ export default function AdminDashboard() {
         const cloudinaryUrl = await uploadToCloudinary(file, folder);
         setImage(cloudinaryUrl);
       } catch (error) {
-        console.error('Failed to upload to Cloudinary:', error);
+        // Failed to upload to Cloudinary
         // Keep the local preview if upload fails
       }
     }
@@ -2389,7 +2350,7 @@ export default function AdminDashboard() {
                                       const cloudinaryUrl = await uploadToCloudinary(file, 'nk3d/pdfs');
                                       setPdfLink(cloudinaryUrl);
                                     } catch (error) {
-                                      console.error('Failed to upload PDF to Cloudinary:', error);
+                                      // Failed to upload PDF to Cloudinary
                                     }
                                   }
                                 }}
@@ -2539,7 +2500,7 @@ export default function AdminDashboard() {
                                         const id = member._id || member.id;
                                         if (!id) {
                                           showToast('Error: Team member ID is missing', 'error');
-                                          console.error('Team member missing ID:', member);
+                                          // Team member missing ID
                                           return;
                                         }
                                         const teamId = String(id).trim();
@@ -2548,7 +2509,6 @@ export default function AdminDashboard() {
                                           console.error('Invalid team ID:', id, 'Stringified:', teamId);
                                           return;
                                         }
-                                        console.log('Setting editingTeam to:', teamId);
                                         setEditingTeam(teamId);
                                         setTeamName(member.name || '');
                                         setTeamPosition(member.position || '');
@@ -2571,27 +2531,25 @@ export default function AdminDashboard() {
                                         } else if (id) {
                                           id = String(id);
                                         }
-                                        console.log('Delete button clicked - Member:', member.name, 'Raw ID:', member._id || member.id, 'Processed ID:', id, 'Full member:', member);
                                         if (!id || id === 'undefined' || id === 'null') {
                                           showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
-                                          console.error('Team member missing ID for deletion:', member);
+                                          // Team member missing ID for deletion
                                           return;
                                         }
                                         const teamId = id.trim();
                                         if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
                                           showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
-                                          console.error('Invalid team ID for deletion:', id, 'Stringified:', teamId, 'Member object:', member);
+                                          // Invalid team ID for deletion
                                           return;
                                         }
                                         if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
                                           showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
-                                          console.error('Invalid ID format for deletion:', teamId, 'Length:', teamId.length, 'Member:', member);
+                                          // Invalid ID format for deletion
                                           return;
                                         }
                                         showDeleteConfirmation(
                                           `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
                                           () => {
-                                            console.log('Confirmed deletion for team member:', member.name, 'ID:', teamId);
                                             deleteTeam(teamId);
                                           }
                                         );
@@ -2655,7 +2613,7 @@ export default function AdminDashboard() {
                                               const id = member._id || member.id;
                                               if (!id) {
                                                 showToast('Error: Team member ID is missing', 'error');
-                                                console.error('Team member missing ID:', member);
+                                                // Team member missing ID
                                                 return;
                                               }
                                               const teamId = String(id).trim();
@@ -2664,7 +2622,6 @@ export default function AdminDashboard() {
                                                 console.error('Invalid team ID:', id, 'Stringified:', teamId);
                                                 return;
                                               }
-                                              console.log('Setting editingTeam to:', teamId);
                                               setEditingTeam(teamId);
                                               setTeamName(member.name || '');
                                               setTeamPosition(member.position || '');
@@ -2687,27 +2644,25 @@ export default function AdminDashboard() {
                                               } else if (id) {
                                                 id = String(id);
                                               }
-                                              console.log('Delete button clicked - Member:', member.name, 'Raw ID:', member._id || member.id, 'Processed ID:', id, 'Full member:', member);
                                               if (!id || id === 'undefined' || id === 'null') {
                                                 showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
-                                                console.error('Team member missing ID for deletion:', member);
+                                                // Team member missing ID for deletion
                                                 return;
                                               }
                                               const teamId = id.trim();
                                               if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
                                                 showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
-                                                console.error('Invalid team ID for deletion:', id, 'Stringified:', teamId, 'Member object:', member);
+                                                // Invalid team ID for deletion
                                                 return;
                                               }
                                               if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
                                                 showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
-                                                console.error('Invalid ID format for deletion:', teamId, 'Length:', teamId.length, 'Member:', member);
+                                                // Invalid ID format for deletion
                                                 return;
                                               }
                                               showDeleteConfirmation(
                                                 `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
                                                 () => {
-                                                  console.log('Confirmed deletion for team member:', member.name, 'ID:', teamId);
                                                   deleteTeam(teamId);
                                                 }
                                               );

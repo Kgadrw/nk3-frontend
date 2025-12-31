@@ -16,9 +16,7 @@ const Footer = () => {
     const fetchSocialLinks = async () => {
       try {
         const res = await fetch('/api/social');
-        console.log('Footer - Social links response status:', res.status);
         const data = await res.json();
-        console.log('Footer - Social links data:', data);
         if (data) {
           setSocialLinks({
             facebook: data.facebook || '',
@@ -26,15 +24,9 @@ const Footer = () => {
             linkedin: data.linkedin || '',
             instagram: data.instagram || ''
           });
-          console.log('Footer - Set social links:', {
-            facebook: data.facebook || '',
-            twitter: data.twitter || '',
-            linkedin: data.linkedin || '',
-            instagram: data.instagram || ''
-          });
         }
       } catch (error) {
-        console.error('Footer - Error fetching social links:', error);
+        // Silently handle error
       }
     };
 

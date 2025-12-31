@@ -40,15 +40,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     
     // Validate ID - ensure it's a valid MongoDB ObjectId format
     const teamId = String(rawId || '').trim();
-    console.log('PUT request received - Raw params:', resolvedParams, 'Raw ID:', rawId, 'Stringified:', teamId);
-    
     if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
-      console.error('Invalid team ID in PUT request:', rawId);
       return NextResponse.json({ error: `Invalid team member ID: ID is empty or undefined. Received: "${rawId}"` }, { status: 400 });
     }
     // MongoDB ObjectId should be 24 hex characters
     if (!/^[0-9a-fA-F]{24}$/.test(teamId)) {
-      console.error('Invalid ObjectId format in PUT request:', teamId);
+      // Invalid ObjectId format
       return NextResponse.json({ error: 'Invalid team member ID format' }, { status: 400 });
     }
     
@@ -66,7 +63,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const errorData = await res.json();
-          console.error('Backend error response:', errorData);
+          // Backend error response
           // Try different possible error message fields
           errorMessage = errorData.error || errorData.message || errorData.msg || JSON.stringify(errorData);
           // If errorMessage is still empty or just "{}", use a default message
@@ -75,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           }
         } else {
           const errorText = await res.text();
-          console.error('Backend error text:', errorText);
+          // Backend error text
           // Try to parse as JSON if it looks like JSON
           if (errorText.trim().startsWith('{')) {
             try {
@@ -89,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           }
         }
       } catch (parseError) {
-        console.error('Error parsing backend error response:', parseError);
+        // Error parsing backend error response
         errorMessage = `Failed to parse backend error: ${res.status} ${res.statusText}`;
       }
       return NextResponse.json({ error: errorMessage }, { status: res.status });
@@ -115,22 +112,19 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     
     // Validate ID - be very lenient, let MongoDB handle validation
     const teamId = String(rawId || '').trim();
-    console.log('DELETE request received - Raw params:', resolvedParams, 'Raw ID:', rawId, 'Type:', typeof rawId, 'Stringified:', teamId, 'Length:', teamId.length);
     
     // Only check for truly invalid cases - empty, undefined, null
     if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
-      console.error('Invalid team ID in DELETE request - empty. Raw params:', resolvedParams, 'Raw ID:', rawId);
       return NextResponse.json({ error: `Invalid team member ID: ID is empty or undefined. Received: "${rawId}"` }, { status: 400 });
     }
     
     // Very minimal validation - just ensure it's not obviously wrong
     // MongoDB will validate the ObjectId format, so we don't need to be strict here
     if (teamId.length < 1) {
-      console.error('Invalid ID format in DELETE request - too short:', teamId);
+      // Invalid ID format
       return NextResponse.json({ error: 'Invalid team member ID format: ID is too short' }, { status: 400 });
     }
     
-    console.log('Proceeding with DELETE request for ID:', teamId, 'Length:', teamId.length);
     
     const res = await fetch(`${API_URL}/api/team/${teamId}`, {
       method: 'DELETE',
@@ -152,7 +146,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           }
         } else {
           const errorText = await res.text();
-          console.error('Backend delete error text:', errorText);
+          // Backend delete error text
           // Try to parse as JSON if it looks like JSON
           if (errorText.trim().startsWith('{')) {
             try {
@@ -166,7 +160,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           }
         }
       } catch (parseError) {
-        console.error('Error parsing backend delete error response:', parseError);
+        // Error parsing backend delete error response
         errorMessage = `Failed to parse backend error: ${res.status} ${res.statusText}`;
       }
       return NextResponse.json({ error: errorMessage }, { status: res.status });

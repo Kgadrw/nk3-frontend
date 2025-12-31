@@ -4,27 +4,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender
 
 export async function GET() {
   try {
-    console.log('API Social GET - Fetching from backend:', `${API_URL}/api/social`);
     const res = await fetch(`${API_URL}/api/social`);
     
-    console.log('API Social GET - Backend response status:', res.status, res.statusText);
-    
     if (!res.ok) {
-      console.error('API Social GET - Backend error:', res.status);
       return NextResponse.json({});
     }
     
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      console.error('API Social GET - Invalid content type:', contentType);
       return NextResponse.json({});
     }
     
     const data = await res.json();
-    console.log('API Social GET - Backend data received:', data);
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('API Social GET - Error:', error);
     return NextResponse.json({});
   }
 }

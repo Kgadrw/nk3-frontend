@@ -39,9 +39,7 @@ const Navbar = () => {
     const fetchSocialLinks = async () => {
       try {
         const res = await fetch('/api/social');
-        console.log('Navbar - Social links response status:', res.status);
         const data = await res.json();
-        console.log('Navbar - Social links data:', data);
         if (data) {
           setSocialLinks({
             facebook: data.facebook || '',
@@ -49,15 +47,9 @@ const Navbar = () => {
             linkedin: data.linkedin || '',
             instagram: data.instagram || ''
           });
-          console.log('Navbar - Set social links:', {
-            facebook: data.facebook || '',
-            twitter: data.twitter || '',
-            linkedin: data.linkedin || '',
-            instagram: data.instagram || ''
-          });
         }
       } catch (error) {
-        console.error('Navbar - Error fetching social links:', error);
+        // Silently handle error
       }
     };
 
