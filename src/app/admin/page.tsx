@@ -1216,7 +1216,7 @@ export default function AdminDashboard() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black placeholder:text-black"
               />
             </div>
             <div>
@@ -1229,7 +1229,7 @@ export default function AdminDashboard() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="admin"
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black placeholder:text-black"
               />
             </div>
             <p className="text-xs text-gray-500 text-center">Username: <strong>admin</strong> | Password: <strong>admin</strong></p>
@@ -1424,7 +1424,7 @@ export default function AdminDashboard() {
                         value={socialLinks.facebook}
                         onChange={(e) => setSocialLinks({...socialLinks, facebook: e.target.value})}
                         placeholder="https://facebook.com/yourpage"
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                       />
                     </div>
                     <div>
@@ -1434,7 +1434,7 @@ export default function AdminDashboard() {
                         value={socialLinks.twitter}
                         onChange={(e) => setSocialLinks({...socialLinks, twitter: e.target.value})}
                         placeholder="https://twitter.com/yourhandle"
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                       />
                     </div>
                     <div>
@@ -1444,7 +1444,7 @@ export default function AdminDashboard() {
                         value={socialLinks.linkedin}
                         onChange={(e) => setSocialLinks({...socialLinks, linkedin: e.target.value})}
                         placeholder="https://linkedin.com/company/yourcompany"
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                       />
                     </div>
                     <div>
@@ -1454,7 +1454,7 @@ export default function AdminDashboard() {
                         value={socialLinks.instagram}
                         onChange={(e) => setSocialLinks({...socialLinks, instagram: e.target.value})}
                         placeholder="https://instagram.com/yourhandle"
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                       />
                     </div>
                   </div>
@@ -1799,7 +1799,7 @@ export default function AdminDashboard() {
                         type="text" 
                         value={portfolioTitle}
                         onChange={(e) => setPortfolioTitle(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                         required
                       />
                     </div>
@@ -1875,7 +1875,7 @@ export default function AdminDashboard() {
                           type="text" 
                           value={portfolioCategory}
                           onChange={(e) => setPortfolioCategory(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                           required
                         />
                     </div>
@@ -1886,7 +1886,7 @@ export default function AdminDashboard() {
                           placeholder="e.g., 2024" 
                           value={portfolioYear}
                           onChange={(e) => setPortfolioYear(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                           required
                         />
                     </div>
@@ -1897,7 +1897,7 @@ export default function AdminDashboard() {
                         rows={3} 
                         value={portfolioDescription}
                         onChange={(e) => setPortfolioDescription(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         required
                       />
                   </div>
@@ -1911,7 +1911,7 @@ export default function AdminDashboard() {
                           placeholder="e.g., 15,000 sqm" 
                           value={portfolioArea}
                           onChange={(e) => setPortfolioArea(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                         />
                       </div>
                       <div>
@@ -1921,7 +1921,7 @@ export default function AdminDashboard() {
                           placeholder="e.g., Private Developer" 
                           value={portfolioClient}
                           onChange={(e) => setPortfolioClient(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                         />
                       </div>
                       <div>
@@ -1929,7 +1929,7 @@ export default function AdminDashboard() {
                         <select 
                           value={portfolioStatus}
                           onChange={(e) => setPortfolioStatus(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         >
                           <option value="">Select Status</option>
                           <option value="Completed">Completed</option>
@@ -1945,7 +1945,7 @@ export default function AdminDashboard() {
                           placeholder="e.g., Kigali, Rwanda" 
                           value={portfolioLocation}
                           onChange={(e) => setPortfolioLocation(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                         />
                       </div>
                     </div>
@@ -1957,7 +1957,7 @@ export default function AdminDashboard() {
                       placeholder="Enter key features, one per line or separated by commas"
                       value={portfolioKeyFeatures}
                       onChange={(e) => setPortfolioKeyFeatures(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                      className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                     />
                     <p className="text-xs text-gray-500 mt-1">List the key features of this project</p>
                   </div>
@@ -2098,7 +2098,7 @@ export default function AdminDashboard() {
                         type="text" 
                         value={academicTitle}
                         onChange={(e) => setAcademicTitle(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         required
                       />
                   </div>
@@ -2109,7 +2109,7 @@ export default function AdminDashboard() {
                           type="text" 
                           value={academicAuthor}
                           onChange={(e) => setAcademicAuthor(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                           required
                         />
                     </div>
@@ -2120,7 +2120,7 @@ export default function AdminDashboard() {
                           value={academicYear}
                           onChange={(e) => setAcademicYear(e.target.value)}
                           placeholder="e.g., 2024"
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                           required
                         />
                     </div>
@@ -2131,7 +2131,7 @@ export default function AdminDashboard() {
                         rows={3} 
                         value={academicDescription}
                         onChange={(e) => setAcademicDescription(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         required
                       />
                   </div>
@@ -2145,7 +2145,7 @@ export default function AdminDashboard() {
                             value={pdfLink}
                             onChange={(e) => setPdfLink(e.target.value)}
                             placeholder="https://example.com/publication.pdf"
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                           />
                         </div>
                         <div>
@@ -2534,7 +2534,7 @@ export default function AdminDashboard() {
                         type="text" 
                         value={teamName}
                         onChange={(e) => setTeamName(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         required
                       />
                     </div>
@@ -2553,7 +2553,7 @@ export default function AdminDashboard() {
                         type="text" 
                         value={teamPosition}
                         onChange={(e) => setTeamPosition(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                         required
                       />
                     </div>
@@ -2566,7 +2566,7 @@ export default function AdminDashboard() {
                         placeholder="e.g., Founder, Technical Team, Management"
                         value={teamCategory}
                         onChange={(e) => setTeamCategory(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                       />
                     </div>
                   </div>
@@ -2580,7 +2580,7 @@ export default function AdminDashboard() {
                         placeholder="e.g., +250 788 123 456"
                         value={teamPhone}
                         onChange={(e) => setTeamPhone(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                       />
                     </div>
                     <div>
@@ -2592,7 +2592,7 @@ export default function AdminDashboard() {
                         placeholder="e.g., https://linkedin.com/in/username"
                         value={teamLinkedin}
                         onChange={(e) => setTeamLinkedin(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                       />
                     </div>
                     <div>
@@ -2604,7 +2604,7 @@ export default function AdminDashboard() {
                         value={teamDescription}
                         onChange={(e) => setTeamDescription(e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
                       />
                     </div>
                   </div>
@@ -2740,7 +2740,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={shopName}
                             onChange={(e) => setShopName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             required
                           />
                     </div>
@@ -2759,7 +2759,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={shopPrice}
                             onChange={(e) => setShopPrice(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="e.g., 100000 or $100"
                             required
                           />
@@ -2770,7 +2770,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={shopCategory}
                             onChange={(e) => setShopCategory(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="e.g., Furniture, Decor, etc."
                             required
                           />
@@ -2781,7 +2781,7 @@ export default function AdminDashboard() {
                         <textarea 
                           value={shopDescription}
                           onChange={(e) => setShopDescription(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y text-black placeholder:text-black" 
                           placeholder="Enter product description..."
                           rows={4}
                         />
@@ -2936,7 +2936,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={paymentName}
                             onChange={(e) => setPaymentName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="e.g., MTN Mobile Money"
                             required
                           />
@@ -2946,7 +2946,7 @@ export default function AdminDashboard() {
                           <select
                             value={paymentType}
                             onChange={(e) => setPaymentType(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
                             required
                           >
                             <option value="">Select Type</option>
@@ -2964,7 +2964,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={paymentProvider}
                             onChange={(e) => setPaymentProvider(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="e.g., MTN, Airtel, Bank Name"
                           />
                         </div>
@@ -2974,7 +2974,7 @@ export default function AdminDashboard() {
                             type="text" 
                             value={paymentAccountName}
                             onChange={(e) => setPaymentAccountName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="Account holder name"
                           />
                         </div>
@@ -2985,7 +2985,7 @@ export default function AdminDashboard() {
                           type="text" 
                           value={paymentAccountNumber}
                           onChange={(e) => setPaymentAccountNumber(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b]" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                           placeholder="Phone number or account number"
                         />
                       </div>
@@ -2994,7 +2994,7 @@ export default function AdminDashboard() {
                         <textarea 
                           value={paymentInstructions}
                           onChange={(e) => setPaymentInstructions(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y" 
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y text-black placeholder:text-black" 
                           placeholder="Additional payment instructions for customers..."
                           rows={3}
                         />
@@ -3191,7 +3191,7 @@ export default function AdminDashboard() {
                                 showToast('Error updating order status', 'error');
                               }
                             }}
-                            className="w-full sm:w-auto px-3 md:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                            className="w-full sm:w-auto px-3 md:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
                           >
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
