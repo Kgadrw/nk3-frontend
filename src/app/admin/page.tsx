@@ -106,6 +106,9 @@ export default function AdminDashboard() {
   const [portfolioView, setPortfolioView] = useState<'grid' | 'list'>('grid');
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioCategory, setPortfolioCategory] = useState('');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [isNewCategory, setIsNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [portfolioYear, setPortfolioYear] = useState('');
   const [portfolioDescription, setPortfolioDescription] = useState('');
   const [portfolioArea, setPortfolioArea] = useState('');
@@ -203,7 +206,19 @@ export default function AdminDashboard() {
       const portfolio = portfolios.find(p => (p._id || p.id) === editingPortfolio);
       if (portfolio) {
         setPortfolioTitle(portfolio.title || '');
-        setPortfolioCategory(portfolio.category || '');
+        const category = portfolio.category || '';
+        setPortfolioCategory(category);
+        // Check if category exists in available categories
+        if (category && availableCategories.length > 0 && !availableCategories.includes(category)) {
+          setIsNewCategory(true);
+          setNewCategoryName(category);
+        } else if (category && availableCategories.includes(category)) {
+          setIsNewCategory(false);
+          setNewCategoryName('');
+        } else {
+          setIsNewCategory(false);
+          setNewCategoryName('');
+        }
         setPortfolioYear(portfolio.year || '');
         setPortfolioDescription(portfolio.description || '');
         setPortfolioArea(portfolio.area || '');
@@ -213,7 +228,7 @@ export default function AdminDashboard() {
         // Parse key features from string to array
         const keyFeaturesStr = portfolio.keyFeatures || '';
         const keyFeaturesArray = keyFeaturesStr
-          ? keyFeaturesStr.split(/[\n,]+/).map(f => f.trim()).filter(f => f)
+          ? keyFeaturesStr.split(/[\n,]+/).map((f: string) => f.trim()).filter((f: string) => f)
           : [];
         setPortfolioKeyFeatures(keyFeaturesArray);
         setPortfolioImage(portfolio.image || '');
@@ -223,6 +238,8 @@ export default function AdminDashboard() {
       // Reset form when not editing
       setPortfolioTitle('');
       setPortfolioCategory('');
+      setIsNewCategory(false);
+      setNewCategoryName('');
       setPortfolioYear('');
       setPortfolioDescription('');
       setPortfolioArea('');
@@ -234,7 +251,7 @@ export default function AdminDashboard() {
       setPortfolioImage('');
       setPortfolioGallery([]);
     }
-  }, [editingPortfolio, portfolios]);
+  }, [editingPortfolio, portfolios, availableCategories]);
 
   // Populate shop form when editing
   useEffect(() => {
@@ -336,6 +353,16 @@ export default function AdminDashboard() {
       setPortfolios(portfoliosData || []);
       setPaymentMethods(paymentData || []);
       setOrders(ordersData || []);
+      
+      // Extract unique categories from portfolios
+      const uniqueCategories = new Set<string>();
+      (portfoliosData || []).forEach((portfolio: any) => {
+        if (portfolio.category && portfolio.category.trim()) {
+          uniqueCategories.add(portfolio.category.trim());
+        }
+      });
+      const sortedCategories = Array.from(uniqueCategories).sort();
+      setAvailableCategories(sortedCategories);
       if (socialData) {
         setSocialLinks({
           facebook: socialData.facebook || '',
@@ -394,12 +421,18 @@ export default function AdminDashboard() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
+        // Add new category to available categories if it doesn't exist
+        if (portfolioCategory && !availableCategories.includes(portfolioCategory)) {
+          setAvailableCategories([...availableCategories, portfolioCategory].sort());
+        }
         await fetchAllData();
         setShowPortfolioForm(false);
         setEditingPortfolio(null);
         // Reset form
         setPortfolioTitle('');
         setPortfolioCategory('');
+        setIsNewCategory(false);
+        setNewCategoryName('');
         setPortfolioYear('');
         setPortfolioDescription('');
         setPortfolioArea('');
@@ -407,7 +440,7 @@ export default function AdminDashboard() {
         setPortfolioStatus('');
         setPortfolioLocation('');
         setPortfolioKeyFeatures([]);
-      setNewKeyFeature('');
+        setNewKeyFeature('');
         setPortfolioImage('');
         setPortfolioGallery([]);
       } else {
@@ -1671,6 +1704,8 @@ export default function AdminDashboard() {
                       setEditingPortfolio(null);
                       setPortfolioTitle('');
                       setPortfolioCategory('');
+      setIsNewCategory(false);
+      setNewCategoryName('');
                       setPortfolioYear('');
                       setPortfolioDescription('');
                       setPortfolioArea('');
@@ -1940,13 +1975,45 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
-                        <input 
-                          type="text" 
-                          value={portfolioCategory}
-                          onChange={(e) => setPortfolioCategory(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                          required
-                        />
+                      <div className="space-y-2">
+                        <select
+                          value={isNewCategory ? 'new' : portfolioCategory}
+                          onChange={(e) => {
+                            if (e.target.value === 'new') {
+                              setIsNewCategory(true);
+                              setPortfolioCategory('');
+                              setNewCategoryName('');
+                            } else {
+                              setIsNewCategory(false);
+                              setPortfolioCategory(e.target.value);
+                              setNewCategoryName('');
+                            }
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                          required={!isNewCategory}
+                        >
+                          <option value="">Select a category</option>
+                          {availableCategories.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                          <option value="new">+ Create New Category</option>
+                        </select>
+                        {isNewCategory && (
+                          <input
+                            type="text"
+                            placeholder="Enter new category name"
+                            value={newCategoryName}
+                            onChange={(e) => {
+                              setNewCategoryName(e.target.value);
+                              setPortfolioCategory(e.target.value);
+                            }}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            required
+                          />
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Year *</label>
