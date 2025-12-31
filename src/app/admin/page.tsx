@@ -402,7 +402,6 @@ export default function AdminDashboard() {
         setPortfolioKeyFeatures('');
         setPortfolioImage('');
         setPortfolioGallery([]);
-        setNewGalleryImage('');
       } else {
         const errorData = await res.json();
         showToast(`Error: ${errorData.error || 'Failed to save portfolio'}`, 'error');
@@ -1673,7 +1672,6 @@ export default function AdminDashboard() {
                       setPortfolioKeyFeatures('');
                       setPortfolioImage('');
                       setPortfolioGallery([]);
-                      setNewGalleryImage('');
                       setShowPortfolioForm(true);
                     }}
                     className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
