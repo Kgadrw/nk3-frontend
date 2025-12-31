@@ -1444,7 +1444,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Summary Cards */}
+          {/* Summary Cards - Only show on dashboard tab */}
+          {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
@@ -1483,6 +1484,8 @@ export default function AdminDashboard() {
                     </div>
                     </div>
                     </div>
+          </div>
+          )}
 
           {/* Dashboard View */}
           {activeTab === 'dashboard' && (
@@ -2848,16 +2851,16 @@ export default function AdminDashboard() {
 
           {/* Shop Management */}
           {activeTab === 'shop' && (
-            <div className="p-6 space-y-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#009f3b]">Shop Management</h2>
-                <div className="flex gap-3">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Shop Management</h2>
+                <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
                   <button 
                     onClick={() => {
                       setShowShopForm(true);
                       setEditingShop(null);
                     }}
-                    className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                    className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
                   >
                     + Add Product
                   </button>
@@ -2867,9 +2870,10 @@ export default function AdminDashboard() {
               {/* Products List/Grid */}
               {!showShopForm && (
                     <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Products ({products.length})</h3>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-3 md:mb-4">Products ({products.length})</h3>
                   
-                  <div className="overflow-x-auto">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
@@ -2920,15 +2924,55 @@ export default function AdminDashboard() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4">
+                    {products.map((product) => (
+                      <div key={product._id || product.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="flex gap-4 mb-3">
+                          <div className="relative w-20 h-20 flex-shrink-0">
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-cover rounded"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1 truncate">{product.name}</h4>
+                            <p className="text-xs text-gray-600 mb-1">Price: <span className="font-medium">{product.price}</span></p>
+                            <p className="text-xs text-gray-600">Category: <span className="font-medium">{product.category}</span></p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-3 border-t border-gray-200">
+                          <button 
+                            onClick={() => {
+                              setShowShopForm(true);
+                              setEditingShop(product._id || product.id);
+                            }}
+                            className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-xs font-semibold hover:bg-[#00782d] transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => deleteShop(product._id || product.id)}
+                            className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
             </div>
           )}
 
               {/* Add/Edit Form */}
               {showShopForm && (
-                <div className="border-t pt-6">
+                <div className="border-t pt-4 md:pt-6">
                   <form onSubmit={handleSaveShop}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-[#009f3b]">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <h3 className="text-base md:text-lg font-bold text-[#009f3b]">
                       {editingShop ? 'Edit Product' : 'Add New Product'}
                     </h3>
                 <button
@@ -2967,7 +3011,7 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
                           <input 
@@ -3001,10 +3045,10 @@ export default function AdminDashboard() {
                           rows={4}
                         />
                       </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                 <button
                           type="submit"
-                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                        className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
                       >
                         {editingShop ? 'Update Product' : 'Add Product'}
                 </button>
@@ -3019,7 +3063,7 @@ export default function AdminDashboard() {
                             setShopDescription('');
                             setShopImage('');
                         }}
-                        className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
+                        className="bg-gray-200 text-gray-700 px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors flex-1 sm:flex-initial"
                       >
                         Cancel
                 </button>
@@ -3030,9 +3074,9 @@ export default function AdminDashboard() {
             )}
 
             {/* Payment Method Management */}
-            <div className="border-t pt-6 mt-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#009f3b]">Payment Methods</h2>
+            <div className="border-t pt-4 md:pt-6 mt-6 md:mt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Payment Methods</h2>
                 <button 
                   onClick={() => {
                     setShowPaymentForm(true);
@@ -3045,7 +3089,7 @@ export default function AdminDashboard() {
                     setPaymentInstructions('');
                     setPaymentIsActive(true);
                   }}
-                  className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                  className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors w-full sm:w-auto"
                 >
                   + Add Payment Method
                 </button>
@@ -3054,75 +3098,125 @@ export default function AdminDashboard() {
               {/* Payment Methods List */}
               {!showPaymentForm && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Payment Methods ({paymentMethods.length})</h3>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-3 md:mb-4">Payment Methods ({paymentMethods.length})</h3>
                   {paymentMethods.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">No payment methods added yet.</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Provider</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Account Number</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paymentMethods.map((method) => (
-                            <tr key={method._id || method.id} className="border-b border-gray-200 hover:bg-gray-50">
-                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">{method.name}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600 capitalize">{method.type}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600">{method.provider || '-'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600">{method.accountNumber || '-'}</td>
-                              <td className="px-4 py-3">
+                    <>
+                      {/* Desktop Table View */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Provider</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Account Number</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paymentMethods.map((method) => (
+                              <tr key={method._id || method.id} className="border-b border-gray-200 hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900 font-medium">{method.name}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600 capitalize">{method.type}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{method.provider || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{method.accountNumber || '-'}</td>
+                                <td className="px-4 py-3">
+                                  <span className={`px-2 py-1 text-xs rounded ${method.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                    {method.isActive ? 'Active' : 'Inactive'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex gap-2">
+                                    <button 
+                                      onClick={() => {
+                                        setShowPaymentForm(true);
+                                        setEditingPayment(method._id || method.id);
+                                        setPaymentName(method.name || '');
+                                        setPaymentType(method.type || '');
+                                        setPaymentAccountName(method.accountName || '');
+                                        setPaymentAccountNumber(method.accountNumber || '');
+                                        setPaymentProvider(method.provider || '');
+                                        setPaymentInstructions(method.instructions || '');
+                                        setPaymentIsActive(method.isActive !== false);
+                                      }}
+                                      className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => deletePayment(method._id || method.id)}
+                                      className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Mobile Card View */}
+                      <div className="md:hidden space-y-4">
+                        {paymentMethods.map((method) => (
+                          <div key={method._id || method.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <div className="space-y-2 mb-3">
+                              <div className="flex justify-between items-start">
+                                <h4 className="text-sm font-semibold text-gray-900">{method.name}</h4>
                                 <span className={`px-2 py-1 text-xs rounded ${method.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                                   {method.isActive ? 'Active' : 'Inactive'}
                                 </span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
-                                  <button 
-                                    onClick={() => {
-                                      setShowPaymentForm(true);
-                                      setEditingPayment(method._id || method.id);
-                                      setPaymentName(method.name || '');
-                                      setPaymentType(method.type || '');
-                                      setPaymentAccountName(method.accountName || '');
-                                      setPaymentAccountNumber(method.accountNumber || '');
-                                      setPaymentProvider(method.provider || '');
-                                      setPaymentInstructions(method.instructions || '');
-                                      setPaymentIsActive(method.isActive !== false);
-                                    }}
-                                    className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button 
-                                    onClick={() => deletePayment(method._id || method.id)}
-                                    className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                              </div>
+                              <p className="text-xs text-gray-600">Type: <span className="font-medium capitalize">{method.type}</span></p>
+                              {method.provider && (
+                                <p className="text-xs text-gray-600">Provider: <span className="font-medium">{method.provider}</span></p>
+                              )}
+                              {method.accountNumber && (
+                                <p className="text-xs text-gray-600">Account: <span className="font-medium">{method.accountNumber}</span></p>
+                              )}
+                            </div>
+                            <div className="flex gap-2 pt-3 border-t border-gray-200">
+                              <button 
+                                onClick={() => {
+                                  setShowPaymentForm(true);
+                                  setEditingPayment(method._id || method.id);
+                                  setPaymentName(method.name || '');
+                                  setPaymentType(method.type || '');
+                                  setPaymentAccountName(method.accountName || '');
+                                  setPaymentAccountNumber(method.accountNumber || '');
+                                  setPaymentProvider(method.provider || '');
+                                  setPaymentInstructions(method.instructions || '');
+                                  setPaymentIsActive(method.isActive !== false);
+                                }}
+                                className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-xs font-semibold hover:bg-[#00782d] transition-colors"
+                              >
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => deletePayment(method._id || method.id)}
+                                className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
 
               {/* Add/Edit Payment Method Form */}
               {showPaymentForm && (
-                <div className="border-t pt-6">
+                <div className="border-t pt-4 md:pt-6">
                   <form onSubmit={handleSavePayment}>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-bold text-[#009f3b]">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                      <h3 className="text-base md:text-lg font-bold text-[#009f3b]">
                         {editingPayment ? 'Edit Payment Method' : 'Add New Payment Method'}
                       </h3>
                       <button
@@ -3226,10 +3320,10 @@ export default function AdminDashboard() {
                           Active (Show to customers)
                         </label>
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           type="submit"
-                          className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                          className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
                         >
                           {editingPayment ? 'Update Payment Method' : 'Add Payment Method'}
                         </button>
@@ -3246,7 +3340,7 @@ export default function AdminDashboard() {
                             setPaymentInstructions('');
                             setPaymentIsActive(true);
                           }}
-                          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
+                          className="bg-gray-200 text-gray-700 px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors flex-1 sm:flex-initial"
                         >
                           Cancel
                         </button>
