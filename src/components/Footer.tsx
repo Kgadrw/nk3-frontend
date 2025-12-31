@@ -50,7 +50,7 @@ const Footer = () => {
             <Link href="/" className="block -mt-8 md:-mt-12 lg:-mt-16">
               <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64">
                 <Image
-                  src="/logox.png"
+                  src="/footer.png"
                   alt="NK 3D Architecture Studio Logo"
                   fill
                   className="object-contain"

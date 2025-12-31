@@ -242,7 +242,7 @@ const Navbar = () => {
                     isPastHero ? 'w-16 h-16' : isScrolled ? 'w-16 h-16' : 'w-28 h-28'
                   }`}>
                     <Image
-                      src="/logox.png"
+                      src="/logo.png"
                       alt="NK 3D Architecture Studio Logo"
                       fill
                       className="object-contain"
