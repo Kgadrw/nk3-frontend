@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender.com';
 
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  try {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const teamId = resolvedParams?.id;
+    
+    if (!teamId) {
+      return NextResponse.json({ error: 'Team member ID is required' }, { status: 400 });
+    }
+    
+    const res = await fetch(`${API_URL}/api/team/${teamId}`);
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        return NextResponse.json({ error: 'Team member not found' }, { status: 404 });
+      }
+      return NextResponse.json({ error: `Backend error: ${res.status}` }, { status: res.status });
+    }
+    
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json({ error: 'Invalid response from backend' }, { status: 500 });
+    }
+    
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
   try {
     // Handle params as either a Promise or direct object (Next.js 13+ vs 15+)

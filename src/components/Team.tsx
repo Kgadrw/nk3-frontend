@@ -6,12 +6,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 // Team Member Card Component
-const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: string; image: string; phone?: string; email?: string; description?: string } }) => {
+const TeamMemberCard = ({ member, category }: { member: { id: number | string; name: string; role: string; image: string; phone?: string; email?: string; description?: string }; category?: string | null }) => {
   const [imageError, setImageError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <Link 
+      href={`/team/${member.id}${category ? `?category=${category}` : ''}`}
+      className="flex flex-col items-center text-center cursor-pointer group transition-transform hover:scale-105"
+    >
       {/* Member Portrait with Blurred Green Background */}
       <div className="relative w-full aspect-[3/4] mb-4 overflow-hidden group">
         {/* Blurred Green Background Layer */}
@@ -92,7 +95,7 @@ const TeamMemberCard = ({ member }: { member: { id: number; name: string; role: 
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -247,7 +250,7 @@ const Team = () => {
             {/* Team Members Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
               {currentTeam.map((member: any) => (
-                <TeamMemberCard key={member.id} member={member} />
+                <TeamMemberCard key={member.id} member={member} category={activeCategory} />
               ))}
             </div>
 

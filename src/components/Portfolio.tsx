@@ -110,7 +110,7 @@ const Portfolio = () => {
         {/* Section Header */}
         <div className="text-left mb-6 md:mb-8">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#009f3b] mb-2">
-            PORTFOLIO
+            Our Portfolio
           </h2>
           <p className="text-gray-600 text-xs md:text-sm">
             Explore our completed projects and architectural achievements

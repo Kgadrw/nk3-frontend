@@ -1898,17 +1898,17 @@ export default function AdminDashboard() {
                           Add Multiple Images
                         </label>
                         <div className="flex items-center gap-4">
-                          <button
-                            type="button"
-                            onClick={() => {
+                        <button
+                          type="button"
+                          onClick={() => {
                               const fileInput = document.getElementById('gallery-multi-upload') as HTMLInputElement;
                               fileInput?.click();
-                            }}
+                          }}
                             className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#009f3b] hover:bg-gray-50 transition-colors cursor-pointer"
-                          >
+                        >
                             <Upload className="w-5 h-5 text-gray-600" />
                             <span className="text-sm text-gray-600">Select Multiple Images</span>
-                          </button>
+                        </button>
                           <input
                             id="gallery-multi-upload"
                             type="file"
@@ -1920,7 +1920,7 @@ export default function AdminDashboard() {
                           <p className="text-xs text-gray-500">
                             You can select multiple images at once
                           </p>
-                        </div>
+                      </div>
                       </div>
                       
                       {/* Gallery Preview */}
@@ -2001,8 +2001,8 @@ export default function AdminDashboard() {
                           <option value="new">+ Create New Category</option>
                         </select>
                         {isNewCategory && (
-                          <input
-                            type="text"
+                        <input 
+                          type="text" 
                             placeholder="Enter new category name"
                             value={newCategoryName}
                             onChange={(e) => {
@@ -2010,8 +2010,8 @@ export default function AdminDashboard() {
                               setPortfolioCategory(e.target.value);
                             }}
                             className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                            required
-                          />
+                          required
+                        />
                         )}
                       </div>
                     </div>
@@ -2070,8 +2070,8 @@ export default function AdminDashboard() {
                           <option value="">Select Status</option>
                           <option value="Completed">Completed</option>
                           <option value="Ongoing">Ongoing</option>
-                          <option value="Planned">Planned</option>
-                          <option value="On Hold">On Hold</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Under Construction">Under Construction</option>
                         </select>
                       </div>
                       <div>
@@ -2106,7 +2106,7 @@ export default function AdminDashboard() {
                             }
                           }}
                           className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                        />
+                    />
                         <button
                           type="button"
                           onClick={() => {
