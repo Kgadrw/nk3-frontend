@@ -33,18 +33,32 @@ export default function ContactPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    showToast('Thank you for your message! We will get back to you soon.', 'success');
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: ''
-    });
+    try {
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        showToast('Thank you for your message! We will get back to you soon.', 'success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        const errorData = await res.json();
+        showToast(`Error: ${errorData.error || 'Failed to send message. Please try again.'}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      showToast('Error sending message. Please try again.', 'error');
+    }
   };
 
   return (

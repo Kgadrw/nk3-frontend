@@ -20,12 +20,13 @@ import {
   User,
   X,
   Maximize,
-  Minimize
+  Minimize,
+  Mail
 } from 'lucide-react';
 import Image from 'next/image';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
-type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy' | 'orders';
+type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy' | 'orders' | 'inquiries';
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -186,6 +187,10 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   
+  // Inquiries management state
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [selectedInquiry, setSelectedInquiry] = useState<string | null>(null);
+  
   // Data from database
   const [teams, setTeams] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -302,16 +307,17 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes] = await Promise.all([
-        fetch('/api/team'),
-        fetch('/api/shop'),
-        fetch('/api/academic'),
-        fetch('/api/portfolio'),
-        fetch('/api/social'),
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes, inquiriesRes] = await Promise.all([
+          fetch('/api/team'),
+          fetch('/api/shop'),
+          fetch('/api/academic'),
+          fetch('/api/portfolio'),
+          fetch('/api/social'),
           fetch('/api/partners'),
           fetch('/api/payment'),
-          fetch('/api/order')
-      ]);
+          fetch('/api/order'),
+          fetch('/api/inquiry')
+        ]);
       
       const teamsData = await teamsRes.json();
       const productsData = await productsRes.json();
@@ -321,6 +327,7 @@ export default function AdminDashboard() {
       const partnersData = await partnersRes.json();
       const paymentData = await paymentRes.json();
       const ordersData = await ordersRes.json();
+      const inquiriesData = await inquiriesRes.json();
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -353,6 +360,7 @@ export default function AdminDashboard() {
       setPortfolios(portfoliosData || []);
       setPaymentMethods(paymentData || []);
       setOrders(ordersData || []);
+      setInquiries(inquiriesData || []);
       
       // Extract unique categories from portfolios
       const uniqueCategories = new Set<string>();
@@ -1327,6 +1335,7 @@ export default function AdminDashboard() {
     { id: 'shop' as ActiveTab, label: 'Shop', icon: ShoppingCart },
     { id: 'academy' as ActiveTab, label: 'Academic', icon: GraduationCap },
     { id: 'orders' as ActiveTab, label: 'Orders', icon: Package },
+    { id: 'inquiries' as ActiveTab, label: 'Inquiries', icon: Mail },
   ];
 
   return (
@@ -3429,6 +3438,149 @@ export default function AdminDashboard() {
                         >
                           Delete Order
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Inquiries Management */}
+        {activeTab === 'inquiries' && (
+          <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Inquiries Management</h2>
+              <div className="text-sm text-gray-600">
+                Total Inquiries: <span className="font-bold text-[#009f3b]">{inquiries.length}</span>
+              </div>
+            </div>
+
+            {inquiries.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <Mail className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No inquiries yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {inquiries.map((inquiry) => (
+                  <div
+                    key={inquiry._id || inquiry.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+                  >
+                    <div className="p-4 md:p-6">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
+                            <h3 className="text-base md:text-lg font-bold text-gray-900">
+                              {inquiry.subject}
+                            </h3>
+                            <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
+                              inquiry.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                              inquiry.status === 'read' ? 'bg-gray-100 text-gray-800' :
+                              inquiry.status === 'replied' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-200 text-gray-700'
+                            }`}>
+                              {inquiry.status?.charAt(0).toUpperCase() + inquiry.status?.slice(1) || 'New'}
+                            </span>
+                          </div>
+                          <p className="text-xs md:text-sm text-gray-500">
+                            {new Date(inquiry.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Contact Information</h4>
+                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Name:</span> {inquiry.name}</p>
+                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Email:</span> {inquiry.email}</p>
+                          {inquiry.phone && (
+                            <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Phone:</span> {inquiry.phone}</p>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Subject</h4>
+                          <p className="text-xs md:text-sm text-gray-700 capitalize">{inquiry.subject}</p>
+                        </div>
+                      </div>
+
+                      {/* Message */}
+                      <div className="mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                        <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Message</h4>
+                        <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          {inquiry.message}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                        <div className="flex-1 sm:flex-initial">
+                          <select
+                            value={inquiry.status || 'new'}
+                            onChange={async (e) => {
+                              try {
+                                const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ 
+                                    status: e.target.value,
+                                    readAt: e.target.value === 'read' ? new Date() : inquiry.readAt,
+                                    repliedAt: e.target.value === 'replied' ? new Date() : inquiry.repliedAt
+                                  }),
+                                });
+                                if (res.ok) {
+                                  await fetchAllData();
+                                  showToast('Inquiry status updated successfully!', 'success');
+                                } else {
+                                  showToast('Error updating inquiry status', 'error');
+                                }
+                              } catch (error) {
+                                showToast('Error updating inquiry status', 'error');
+                              }
+                            }}
+                            className="w-full sm:w-auto px-3 md:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                          >
+                            <option value="new">New</option>
+                            <option value="read">Read</option>
+                            <option value="replied">Replied</option>
+                            <option value="archived">Archived</option>
+                          </select>
+                        </div>
+                        <div className="flex gap-2">
+                          {inquiry.email && (
+                            <a
+                              href={`mailto:${inquiry.email}?subject=Re: ${inquiry.subject}`}
+                              className="w-full sm:w-auto px-4 py-2 bg-[#009f3b] text-white rounded-lg hover:bg-[#00782d] transition-colors text-xs md:text-sm font-semibold text-center"
+                            >
+                              Reply via Email
+                            </a>
+                          )}
+                          <button
+                            onClick={async () => {
+                              if (confirm('Are you sure you want to delete this inquiry?')) {
+                                try {
+                                  const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
+                                    method: 'DELETE',
+                                  });
+                                  if (res.ok) {
+                                    await fetchAllData();
+                                    showToast('Inquiry deleted successfully!', 'success');
+                                  } else {
+                                    showToast('Error deleting inquiry', 'error');
+                                  }
+                                } catch (error) {
+                                  showToast('Error deleting inquiry', 'error');
+                                }
+                              }
+                            }}
+                            className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm font-semibold"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

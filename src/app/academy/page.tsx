@@ -108,15 +108,6 @@ export default function AcademyPage() {
                 Publishing academic research in architecture, engineering, and construction. Advancing knowledge and innovation in the built environment.
               </p>
             </div>
-            <div className="relative w-24 md:w-32 lg:w-40 h-24 md:h-32 lg:h-40 flex-shrink-0">
-              <Image
-                src="/academy.png"
-                alt="NK 3D Academy"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
           </div>
         </div>
       </div>
