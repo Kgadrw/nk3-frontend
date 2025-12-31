@@ -15,14 +15,20 @@ export default function AboutPage() {
     aim: 'Our aim is to give the most in sync design for our projects in relation to cost, time & quality while respecting environmental, cultural and technical concerns all through while both preserving sustainability & context, and follow where innovations leads us.',
   });
   const [partners, setPartners] = useState<any[]>([]);
-  const [expandedValues, setExpandedValues] = useState<{ [key: string]: boolean }>({});
-  const [loading, setLoading] = useState(true);
-
   const values = [
     { id: 'integrity', label: 'INTEGRITY', description: 'We maintain the highest standards of honesty, transparency, and ethical conduct in all our professional relationships and project deliveries.' },
     { id: 'passionate', label: 'PASSIONATE', description: 'Our team is driven by a genuine passion for architecture and design, bringing enthusiasm and dedication to every project we undertake.' },
     { id: 'adaptability', label: 'ADAPTABILITY', description: 'We embrace change and innovation, adapting our approaches to meet evolving client needs, technological advancements, and industry best practices.' },
   ];
+  // Initialize all values as expanded by default
+  const [expandedValues, setExpandedValues] = useState<{ [key: string]: boolean }>(() => {
+    const initial: { [key: string]: boolean } = {};
+    values.forEach(value => {
+      initial[value.id] = true;
+    });
+    return initial;
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAboutContent = async () => {
@@ -99,6 +105,8 @@ export default function AboutPage() {
               className="object-cover"
               priority
             />
+            {/* Green opacity overlay */}
+            <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
           </div>
 
           {/* Two Column Layout */}

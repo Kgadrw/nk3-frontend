@@ -189,7 +189,7 @@ export default function AdminDashboard() {
   
   // Inquiries management state
   const [inquiries, setInquiries] = useState<any[]>([]);
-  const [selectedInquiry, setSelectedInquiry] = useState<string | null>(null);
+  const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
   
   // Data from database
   const [teams, setTeams] = useState<any[]>([]);
@@ -308,16 +308,16 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
         const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes, inquiriesRes] = await Promise.all([
-          fetch('/api/team'),
-          fetch('/api/shop'),
-          fetch('/api/academic'),
-          fetch('/api/portfolio'),
-          fetch('/api/social'),
+        fetch('/api/team'),
+        fetch('/api/shop'),
+        fetch('/api/academic'),
+        fetch('/api/portfolio'),
+        fetch('/api/social'),
           fetch('/api/partners'),
           fetch('/api/payment'),
           fetch('/api/order'),
           fetch('/api/inquiry')
-        ]);
+      ]);
       
       const teamsData = await teamsRes.json();
       const productsData = await productsRes.json();
@@ -3463,130 +3463,206 @@ export default function AdminDashboard() {
                 <p className="text-gray-500 text-lg">No inquiries yet.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {inquiries.map((inquiry) => (
-                  <div
-                    key={inquiry._id || inquiry.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-                  >
-                    <div className="p-4 md:p-6">
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
-                            <h3 className="text-base md:text-lg font-bold text-gray-900">
-                              {inquiry.subject}
-                            </h3>
-                            <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
-                              inquiry.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                              inquiry.status === 'read' ? 'bg-gray-100 text-gray-800' :
-                              inquiry.status === 'replied' ? 'bg-green-100 text-green-800' :
-                              'bg-gray-200 text-gray-700'
-                            }`}>
-                              {inquiry.status?.charAt(0).toUpperCase() + inquiry.status?.slice(1) || 'New'}
-                            </span>
-                          </div>
-                          <p className="text-xs md:text-sm text-gray-500">
-                            {new Date(inquiry.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Contact Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
-                        <div>
-                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Contact Information</h4>
-                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Name:</span> {inquiry.name}</p>
-                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Email:</span> {inquiry.email}</p>
-                          {inquiry.phone && (
-                            <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Phone:</span> {inquiry.phone}</p>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Subject</h4>
-                          <p className="text-xs md:text-sm text-gray-700 capitalize">{inquiry.subject}</p>
-                        </div>
-                      </div>
-
-                      {/* Message */}
-                      <div className="mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
-                        <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Message</h4>
-                        <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {inquiry.message}
-                        </p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
-                        <div className="flex-1 sm:flex-initial">
-                          <select
-                            value={inquiry.status || 'new'}
-                            onChange={async (e) => {
-                              try {
-                                const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ 
-                                    status: e.target.value,
-                                    readAt: e.target.value === 'read' ? new Date() : inquiry.readAt,
-                                    repliedAt: e.target.value === 'replied' ? new Date() : inquiry.repliedAt
-                                  }),
-                                });
-                                if (res.ok) {
-                                  await fetchAllData();
-                                  showToast('Inquiry status updated successfully!', 'success');
-                                } else {
-                                  showToast('Error updating inquiry status', 'error');
-                                }
-                              } catch (error) {
-                                showToast('Error updating inquiry status', 'error');
-                              }
-                            }}
-                            className="w-full sm:w-auto px-3 md:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-                          >
-                            <option value="new">New</option>
-                            <option value="read">Read</option>
-                            <option value="replied">Replied</option>
-                            <option value="archived">Archived</option>
-                          </select>
-                        </div>
-                        <div className="flex gap-2">
-                          {inquiry.email && (
-                            <a
-                              href={`mailto:${inquiry.email}?subject=Re: ${inquiry.subject}`}
-                              className="w-full sm:w-auto px-4 py-2 bg-[#009f3b] text-white rounded-lg hover:bg-[#00782d] transition-colors text-xs md:text-sm font-semibold text-center"
-                            >
-                              Reply via Email
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Date</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Name</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Email</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700 hidden md:table-cell">Phone</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Subject</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700 hidden lg:table-cell">Message</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Status</th>
+                        <th className="px-3 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-gray-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inquiries.map((inquiry) => (
+                        <tr key={inquiry._id || inquiry.id} className="border-b border-gray-200 hover:bg-gray-50">
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-600 whitespace-nowrap">
+                            {new Date(inquiry.createdAt).toLocaleDateString()}
+                            <br />
+                            <span className="text-gray-400">{new Date(inquiry.createdAt).toLocaleTimeString()}</span>
+                          </td>
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-900 font-medium">{inquiry.name}</td>
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-600">
+                            <a href={`mailto:${inquiry.email}`} className="text-[#009f3b] hover:underline break-all">
+                              {inquiry.email}
                             </a>
-                          )}
-                          <button
-                            onClick={async () => {
-                              if (confirm('Are you sure you want to delete this inquiry?')) {
+                          </td>
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-600 hidden md:table-cell">
+                            {inquiry.phone || '-'}
+                          </td>
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-900 capitalize">{inquiry.subject}</td>
+                          <td className="px-3 md:px-4 py-3 text-xs md:text-sm text-gray-600 max-w-xs hidden lg:table-cell">
+                            <div className="line-clamp-2" title={inquiry.message}>
+                              {inquiry.message}
+                            </div>
+                          </td>
+                          <td className="px-3 md:px-4 py-3">
+                            <select
+                              value={inquiry.status || 'new'}
+                              onChange={async (e) => {
                                 try {
                                   const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
-                                    method: 'DELETE',
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ 
+                                      status: e.target.value,
+                                      readAt: e.target.value === 'read' ? new Date() : inquiry.readAt,
+                                      repliedAt: e.target.value === 'replied' ? new Date() : inquiry.repliedAt
+                                    }),
                                   });
                                   if (res.ok) {
                                     await fetchAllData();
-                                    showToast('Inquiry deleted successfully!', 'success');
+                                    showToast('Inquiry status updated successfully!', 'success');
                                   } else {
-                                    showToast('Error deleting inquiry', 'error');
+                                    showToast('Error updating inquiry status', 'error');
                                   }
                                 } catch (error) {
-                                  showToast('Error deleting inquiry', 'error');
+                                  showToast('Error updating inquiry status', 'error');
                                 }
-                              }
-                            }}
-                            className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm font-semibold"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                              }}
+                              className={`px-2 py-1 text-xs font-semibold rounded border-0 focus:outline-none focus:ring-2 focus:ring-[#009f3b] ${
+                                inquiry.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                                inquiry.status === 'read' ? 'bg-gray-100 text-gray-800' :
+                                inquiry.status === 'replied' ? 'bg-green-100 text-green-800' :
+                                'bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              <option value="new">New</option>
+                              <option value="read">Read</option>
+                              <option value="replied">Replied</option>
+                              <option value="archived">Archived</option>
+                            </select>
+                          </td>
+                          <td className="px-3 md:px-4 py-3">
+                            <div className="flex flex-col sm:flex-row gap-1 md:gap-2">
+                              {inquiry.email && (
+                                <a
+                                  href={`mailto:${inquiry.email}?subject=Re: ${inquiry.subject}`}
+                                  className="px-2 md:px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors text-center"
+                                  title="Reply via Email"
+                                >
+                                  Reply
+                                </a>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setSelectedInquiry(inquiry);
+                                }}
+                                className="px-2 md:px-3 py-1 bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors"
+                                title="View Details"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('Are you sure you want to delete this inquiry?')) {
+                                    try {
+                                      const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
+                                        method: 'DELETE',
+                                      });
+                                      if (res.ok) {
+                                        await fetchAllData();
+                                        showToast('Inquiry deleted successfully!', 'success');
+                                      } else {
+                                        showToast('Error deleting inquiry', 'error');
+                                      }
+                                    } catch (error) {
+                                      showToast('Error deleting inquiry', 'error');
+                                    }
+                                  }
+                                }}
+                                className="px-2 md:px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
+                                title="Delete"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Inquiry Detail Modal */}
+        {selectedInquiry && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedInquiry(null);
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 md:p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl md:text-2xl font-bold text-[#009f3b]">Inquiry Details</h3>
+                  <button
+                    onClick={() => {
+                      setSelectedInquiry(null);
+                    }}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact Information</h4>
+                      <p className="text-sm text-gray-700"><span className="font-medium">Name:</span> {selectedInquiry.name}</p>
+                      <p className="text-sm text-gray-700"><span className="font-medium">Email:</span> {selectedInquiry.email}</p>
+                      {selectedInquiry.phone && (
+                        <p className="text-sm text-gray-700"><span className="font-medium">Phone:</span> {selectedInquiry.phone}</p>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Details</h4>
+                      <p className="text-sm text-gray-700"><span className="font-medium">Subject:</span> <span className="capitalize">{selectedInquiry.subject}</span></p>
+                      <p className="text-sm text-gray-700"><span className="font-medium">Date:</span> {new Date(selectedInquiry.createdAt).toLocaleString()}</p>
+                      <p className="text-sm text-gray-700"><span className="font-medium">Status:</span> <span className="capitalize">{selectedInquiry.status || 'new'}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Message</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      {selectedInquiry.message}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 pt-4 border-t">
+                    {selectedInquiry.email && (
+                      <a
+                        href={`mailto:${selectedInquiry.email}?subject=Re: ${selectedInquiry.subject}`}
+                        className="px-4 py-2 bg-[#009f3b] text-white rounded-lg hover:bg-[#00782d] transition-colors text-sm font-semibold"
+                      >
+                        Reply via Email
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedInquiry(null);
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-semibold"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
