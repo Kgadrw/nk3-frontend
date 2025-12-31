@@ -21,7 +21,9 @@ import {
   X,
   Maximize,
   Minimize,
-  Mail
+  Mail,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import Image from 'next/image';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
@@ -1343,32 +1345,34 @@ export default function AdminDashboard() {
       <div className="flex relative">
         {/* Sidebar - Primary Green */}
         <aside className={`fixed left-0 top-0 ${isSidebarMinimized ? 'lg:w-20 w-64' : 'w-64'} ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-[#009f3b] shadow-lg h-screen overflow-y-auto flex flex-col transition-all duration-300 z-50`}>
-          {/* Toggle Button - At Top */}
-          <div className="p-4">
-            <button
-              onClick={() => {
-                setIsSidebarMinimized(!isSidebarMinimized);
-                setIsMobileSidebarOpen(false);
-              }}
-              className="w-full flex items-center justify-center p-2 text-white hover:bg-[#00782d] transition-colors"
-              title={isSidebarMinimized ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* User Profile Section */}
-          <div className={`p-6 ${isSidebarMinimized ? 'px-4' : ''}`}>
-            <div className="flex flex-col items-center">
-              <div className={`${isSidebarMinimized ? 'w-12 h-12' : 'w-20 h-20'} bg-white rounded-full flex items-center justify-center ${isSidebarMinimized ? 'mb-2' : 'mb-4'} transition-all`}>
-                <User className={`${isSidebarMinimized ? 'w-6 h-6' : 'w-10 h-10'} text-[#009f3b]`} />
-        </div>
-              {!isSidebarMinimized && (
-                <>
-                  <h3 className="text-white font-semibold text-lg mb-1">Admin User</h3>
-                  <p className="text-white/80 text-sm">admin@nk3dstudio.rw</p>
-                </>
-              )}
+          {/* User Profile Section with Toggle Button */}
+          <div className={`p-4 md:p-6 ${isSidebarMinimized ? 'px-4' : ''}`}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`${isSidebarMinimized ? 'w-12 h-12' : 'w-16 h-16'} bg-white rounded-full flex items-center justify-center flex-shrink-0 transition-all`}>
+                  <User className={`${isSidebarMinimized ? 'w-6 h-6' : 'w-8 h-8'} text-[#009f3b]`} />
+                </div>
+                {!isSidebarMinimized && (
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-semibold text-base md:text-lg mb-0.5 truncate">Admin User</h3>
+                    <p className="text-white/80 text-xs md:text-sm truncate">admin@nk3dstudio.rw</p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  setIsSidebarMinimized(!isSidebarMinimized);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="flex items-center justify-center p-1.5 md:p-2 text-white hover:bg-[#00782d] rounded transition-colors flex-shrink-0"
+                title={isSidebarMinimized ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {isSidebarMinimized ? (
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -1454,8 +1458,8 @@ export default function AdminDashboard() {
                   <p className="text-xl md:text-2xl font-bold">{portfolios.length}</p>
                 </div>
                 <FolderOpen className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-                </div>
-                </div>
+              </div>
+            </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
@@ -1463,27 +1467,26 @@ export default function AdminDashboard() {
                   <p className="text-xl md:text-2xl font-bold">{teams.length}</p>
                 </div>
                 <Users className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-                    </div>
-                    </div>
+              </div>
+            </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
-                    <div>
+                <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Products</p>
                   <p className="text-xl md:text-2xl font-bold">{products.length}</p>
-                    </div>
+                </div>
                 <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-                    </div>
-                  </div>
+              </div>
+            </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
-                    <div>
+                <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Publications</p>
                   <p className="text-xl md:text-2xl font-bold">{publications.length}</p>
-                    </div>
+                </div>
                 <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-                    </div>
-                    </div>
-                    </div>
+              </div>
+            </div>
           </div>
           )}
 
@@ -1972,9 +1975,10 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Are you sure you want to remove all ${portfolioGallery.length} gallery images?`)) {
-                                setPortfolioGallery([]);
-                              }
+                              showDeleteConfirmation(
+                                `Are you sure you want to remove all ${portfolioGallery.length} gallery images?`,
+                                () => setPortfolioGallery([])
+                              );
                             }}
                             className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
                           >
@@ -3512,21 +3516,24 @@ export default function AdminDashboard() {
                         </div>
                         <button
                           onClick={async () => {
-                            if (confirm('Are you sure you want to delete this order?')) {
-                              try {
-                                const res = await fetch(`/api/order/${order._id || order.id}`, {
-                                  method: 'DELETE',
-                                });
-                                if (res.ok) {
-                                  await fetchAllData();
-                                  showToast('Order deleted successfully!', 'success');
-                                } else {
+                            showDeleteConfirmation(
+                              'Are you sure you want to delete this order?',
+                              async () => {
+                                try {
+                                  const res = await fetch(`/api/order/${order._id || order.id}`, {
+                                    method: 'DELETE',
+                                  });
+                                  if (res.ok) {
+                                    await fetchAllData();
+                                    showToast('Order deleted successfully!', 'success');
+                                  } else {
+                                    showToast('Error deleting order', 'error');
+                                  }
+                                } catch (error) {
                                   showToast('Error deleting order', 'error');
                                 }
-                              } catch (error) {
-                                showToast('Error deleting order', 'error');
                               }
-                            }
+                            );
                           }}
                           className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm font-semibold"
                         >
@@ -3654,21 +3661,24 @@ export default function AdminDashboard() {
                               </button>
                               <button
                                 onClick={async () => {
-                                  if (confirm('Are you sure you want to delete this inquiry?')) {
-                                    try {
-                                      const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
-                                        method: 'DELETE',
-                                      });
-                                      if (res.ok) {
-                                        await fetchAllData();
-                                        showToast('Inquiry deleted successfully!', 'success');
-                                      } else {
+                                  showDeleteConfirmation(
+                                    'Are you sure you want to delete this inquiry?',
+                                    async () => {
+                                      try {
+                                        const res = await fetch(`/api/inquiry/${inquiry._id || inquiry.id}`, {
+                                          method: 'DELETE',
+                                        });
+                                        if (res.ok) {
+                                          await fetchAllData();
+                                          showToast('Inquiry deleted successfully!', 'success');
+                                        } else {
+                                          showToast('Error deleting inquiry', 'error');
+                                        }
+                                      } catch (error) {
                                         showToast('Error deleting inquiry', 'error');
                                       }
-                                    } catch (error) {
-                                      showToast('Error deleting inquiry', 'error');
                                     }
-                                  }
+                                  );
                                 }}
                                 className="px-2 md:px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
                                 title="Delete"
@@ -3690,7 +3700,7 @@ export default function AdminDashboard() {
         {/* Inquiry Detail Modal */}
         {selectedInquiry && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 backdrop-blur-md bg-white/10 z-50 flex items-center justify-center p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setSelectedInquiry(null);
@@ -3767,7 +3777,7 @@ export default function AdminDashboard() {
       {showPdfViewer && (
         <div 
           ref={pdfViewerRef}
-          className={`fixed bg-black bg-opacity-75 z-50 flex items-center justify-center transition-all ${
+          className={`fixed backdrop-blur-md bg-white/10 z-50 flex items-center justify-center transition-all ${
             isFullscreen ? 'inset-0 p-0' : 'inset-0 p-4'
           }`}
         >
@@ -3850,7 +3860,7 @@ export default function AdminDashboard() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-md bg-white/10 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">

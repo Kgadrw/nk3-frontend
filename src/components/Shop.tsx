@@ -232,7 +232,7 @@ const Shop = () => {
 
           {/* Mobile Sidebar Overlay */}
           {sidebarOpen && (
-            <div className="lg:hidden fixed inset-0 bg-black/50 z-50" onClick={() => setSidebarOpen(false)}>
+            <div className="lg:hidden fixed inset-0 backdrop-blur-md bg-white/10 z-50" onClick={() => setSidebarOpen(false)}>
               <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-900">Categories</h2>
@@ -365,7 +365,7 @@ const Shop = () => {
 
       {/* Mobile Cart Overlay */}
       {cartOpen && cart.length > 0 && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-50" onClick={() => setCartOpen(false)}>
+        <div className="lg:hidden fixed inset-0 backdrop-blur-md bg-white/10 z-50" onClick={() => setCartOpen(false)}>
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#009f3b]">Cart ({getTotalItems()})</h2>

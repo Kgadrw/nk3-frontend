@@ -531,7 +531,7 @@ const Navbar = () => {
       {/* Search Modal */}
       {searchOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-[100] flex items-start justify-center pt-16 md:pt-20 px-4"
+          className="fixed inset-0 backdrop-blur-md bg-white/10 z-[100] flex items-start justify-center pt-16 md:pt-20 px-4"
           onClick={() => {
             setSearchOpen(false);
             setSearchQuery('');

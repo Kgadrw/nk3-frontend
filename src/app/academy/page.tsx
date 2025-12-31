@@ -219,7 +219,7 @@ export default function AcademyPage() {
       {showPdfViewer && (
         <div 
           ref={pdfViewerRef}
-          className={`fixed bg-black bg-opacity-75 z-50 flex items-center justify-center transition-all ${
+          className={`fixed backdrop-blur-md bg-white/10 z-50 flex items-center justify-center transition-all ${
             isFullscreen ? 'inset-0 p-0' : 'inset-0 p-4'
           }`}
         >

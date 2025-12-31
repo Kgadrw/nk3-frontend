@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ShoppingCart, ArrowLeft, Trash2, Plus, Minus, X } from 'lucide-react';
 import Footer from '@/components/Footer';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 type Product = {
   id: number | string;
@@ -24,6 +25,7 @@ type CartItem = {
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     // Load cart from localStorage
@@ -103,10 +105,13 @@ export default function CartPage() {
   };
 
   const clearCart = () => {
-    if (confirm('Are you sure you want to clear your cart?')) {
-      setCart([]);
-      saveCart([]);
-    }
+    setShowClearConfirm(true);
+  };
+
+  const handleClearConfirm = () => {
+    setCart([]);
+    saveCart([]);
+    setShowClearConfirm(false);
   };
 
   if (loading) {
@@ -321,6 +326,16 @@ export default function CartPage() {
         )}
       </div>
       <Footer />
+      <ConfirmationModal
+        isOpen={showClearConfirm}
+        title="Clear Cart"
+        message="Are you sure you want to clear your cart? This action cannot be undone."
+        confirmText="Clear Cart"
+        cancelText="Cancel"
+        onConfirm={handleClearConfirm}
+        onCancel={() => setShowClearConfirm(false)}
+        type="warning"
+      />
     </main>
   );
 }

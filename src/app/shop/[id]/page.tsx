@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -13,6 +14,19 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  
+  // Toast notifications
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  
+  const showToast = (message: string, type: ToastType = 'info', duration: number = 5000) => {
+    const id = Math.random().toString(36).substring(7);
+    const newToast: Toast = { id, message, type, duration };
+    setToasts((prev) => [...prev, newToast]);
+  };
+  
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -72,7 +86,7 @@ export default function ProductDetailPage() {
     localStorage.setItem('cartCount', totalItems.toString());
     window.dispatchEvent(new Event('cartUpdated'));
     
-    alert('Product added to cart!');
+    showToast('Product added to cart!', 'success');
   };
 
   if (loading) {
@@ -194,6 +208,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
       <Footer />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </main>
   );
 }

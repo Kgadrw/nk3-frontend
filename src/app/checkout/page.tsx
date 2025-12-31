@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, Lock, CheckCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
 type Product = {
   id: number | string;
@@ -48,6 +49,19 @@ export default function CheckoutPage() {
     notes: ''
   });
   const [orderPlaced, setOrderPlaced] = useState(false);
+  
+  // Toast notifications
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  
+  const showToast = (message: string, type: ToastType = 'info', duration: number = 5000) => {
+    const id = Math.random().toString(36).substring(7);
+    const newToast: Toast = { id, message, type, duration };
+    setToasts((prev) => [...prev, newToast]);
+  };
+  
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   useEffect(() => {
     // Load cart from localStorage
@@ -111,17 +125,17 @@ export default function CheckoutPage() {
     e.preventDefault();
     
     if (!selectedPayment) {
-      alert('Please select a payment method');
+      showToast('Please select a payment method', 'warning');
       return;
     }
 
     if (!formData.fullName || !formData.email || !formData.phone || !formData.address) {
-      alert('Please fill in all required fields');
+      showToast('Please fill in all required fields', 'warning');
       return;
     }
 
     if (cart.length === 0) {
-      alert('Your cart is empty');
+      showToast('Your cart is empty', 'warning');
       return;
     }
 
@@ -172,11 +186,11 @@ export default function CheckoutPage() {
         }, 3000);
       } else {
         const errorData = await res.json();
-        alert(`Error placing order: ${errorData.error || 'Please try again'}`);
+        showToast(`Error placing order: ${errorData.error || 'Please try again'}`, 'error');
       }
     } catch (error: any) {
       console.error('Error placing order:', error);
-      alert('Error placing order. Please try again.');
+      showToast('Error placing order. Please try again.', 'error');
     }
   };
 
@@ -501,6 +515,7 @@ export default function CheckoutPage() {
         </div>
       </div>
       <Footer />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </main>
   );
 }
