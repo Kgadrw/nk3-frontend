@@ -112,7 +112,8 @@ export default function AdminDashboard() {
   const [portfolioClient, setPortfolioClient] = useState('');
   const [portfolioStatus, setPortfolioStatus] = useState('');
   const [portfolioLocation, setPortfolioLocation] = useState('');
-  const [portfolioKeyFeatures, setPortfolioKeyFeatures] = useState('');
+  const [portfolioKeyFeatures, setPortfolioKeyFeatures] = useState<string[]>([]);
+  const [newKeyFeature, setNewKeyFeature] = useState('');
   const [portfolioGallery, setPortfolioGallery] = useState<string[]>([]);
   
   // Team management state
@@ -209,7 +210,12 @@ export default function AdminDashboard() {
         setPortfolioClient(portfolio.client || '');
         setPortfolioStatus(portfolio.status || '');
         setPortfolioLocation(portfolio.location || '');
-        setPortfolioKeyFeatures(portfolio.keyFeatures || '');
+        // Parse key features from string to array
+        const keyFeaturesStr = portfolio.keyFeatures || '';
+        const keyFeaturesArray = keyFeaturesStr
+          ? keyFeaturesStr.split(/[\n,]+/).map(f => f.trim()).filter(f => f)
+          : [];
+        setPortfolioKeyFeatures(keyFeaturesArray);
         setPortfolioImage(portfolio.image || '');
         setPortfolioGallery(Array.isArray(portfolio.gallery) ? portfolio.gallery : []);
       }
@@ -223,7 +229,8 @@ export default function AdminDashboard() {
       setPortfolioClient('');
       setPortfolioStatus('');
       setPortfolioLocation('');
-      setPortfolioKeyFeatures('');
+      setPortfolioKeyFeatures([]);
+      setNewKeyFeature('');
       setPortfolioImage('');
       setPortfolioGallery([]);
     }
@@ -377,7 +384,7 @@ export default function AdminDashboard() {
         area: portfolioArea,
         client: portfolioClient,
         status: portfolioStatus || 'Completed',
-        keyFeatures: portfolioKeyFeatures
+        keyFeatures: portfolioKeyFeatures.join('\n')
       };
       const url = editingPortfolio ? `/api/portfolio/${editingPortfolio}` : '/api/portfolio';
       const method = editingPortfolio ? 'PUT' : 'POST';
@@ -399,7 +406,8 @@ export default function AdminDashboard() {
         setPortfolioClient('');
         setPortfolioStatus('');
         setPortfolioLocation('');
-        setPortfolioKeyFeatures('');
+        setPortfolioKeyFeatures([]);
+      setNewKeyFeature('');
         setPortfolioImage('');
         setPortfolioGallery([]);
       } else {
@@ -1669,7 +1677,8 @@ export default function AdminDashboard() {
                       setPortfolioClient('');
                       setPortfolioStatus('');
                       setPortfolioLocation('');
-                      setPortfolioKeyFeatures('');
+                      setPortfolioKeyFeatures([]);
+      setNewKeyFeature('');
                       setPortfolioImage('');
                       setPortfolioGallery([]);
                       setShowPortfolioForm(true);
@@ -2012,14 +2021,84 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Key Features</label>
-                    <textarea 
-                      rows={4} 
-                      placeholder="Enter key features, one per line or separated by commas"
-                      value={portfolioKeyFeatures}
-                      onChange={(e) => setPortfolioKeyFeatures(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
-                    />
-                    <p className="text-xs text-gray-500 mt-1">List the key features of this project</p>
+                    <div className="space-y-3">
+                      {/* Add New Feature */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Enter a key feature"
+                          value={newKeyFeature}
+                          onChange={(e) => setNewKeyFeature(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newKeyFeature.trim()) {
+                                setPortfolioKeyFeatures([...portfolioKeyFeatures, newKeyFeature.trim()]);
+                                setNewKeyFeature('');
+                              }
+                            }
+                          }}
+                          className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newKeyFeature.trim()) {
+                              setPortfolioKeyFeatures([...portfolioKeyFeatures, newKeyFeature.trim()]);
+                              setNewKeyFeature('');
+                            }
+                          }}
+                          className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors whitespace-nowrap"
+                        >
+                          Add Feature
+                        </button>
+                      </div>
+                      
+                      {/* Features List */}
+                      {portfolioKeyFeatures.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500">
+                            {portfolioKeyFeatures.length} feature{portfolioKeyFeatures.length !== 1 ? 's' : ''} added
+                          </p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                            {portfolioKeyFeatures.map((feature, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors group"
+                              >
+                                <span className="flex-1 text-sm text-gray-700">{feature}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPortfolioKeyFeatures(portfolioKeyFeatures.filter((_, i) => i !== index));
+                                  }}
+                                  className="text-red-600 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Remove feature"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          {portfolioKeyFeatures.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to remove all ${portfolioKeyFeatures.length} key features?`)) {
+                                  setPortfolioKeyFeatures([]);
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-700 underline"
+                            >
+                              Clear All Features
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {portfolioKeyFeatures.length === 0 && (
+                        <p className="text-xs text-gray-500">No key features added yet. Add features above.</p>
+                      )}
+                    </div>
                   </div>
                     <div className="flex gap-3">
                       <button 
