@@ -106,7 +106,7 @@ const Partners = () => {
             {partners.map((partner) => (
               <div
                 key={partner._id || partner.id}
-                className="flex items-center justify-center p-4 md:p-6"
+                className="flex items-center justify-center p-4 md:p-6 bg-transparent"
               >
                 <div className="relative w-full h-20 md:h-24">
                   <Image

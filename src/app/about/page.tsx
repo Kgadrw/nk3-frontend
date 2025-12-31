@@ -187,7 +187,7 @@ export default function AboutPage() {
                 {partners.map((partner) => (
                   <div
                     key={partner._id || partner.id}
-                    className="flex items-center justify-center p-4 md:p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-center p-4 md:p-6"
                   >
                     <div className="relative w-full h-20 md:h-24">
                       <Image
