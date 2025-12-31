@@ -2229,9 +2229,9 @@ export default function AdminDashboard() {
 
           {/* Team Management */}
           {activeTab === 'team' && (
-            <div className="p-6 space-y-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#009f3b]">Team Management</h2>
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Team Management</h2>
                 <div className="flex gap-3">
                   <button 
                     onClick={() => {
@@ -2245,7 +2245,7 @@ export default function AdminDashboard() {
                       setTeamImage('');
                       setShowTeamForm(true);
                     }}
-                    className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                    className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors"
                   >
                   + Add Team Member
                 </button>
@@ -2255,7 +2255,7 @@ export default function AdminDashboard() {
               {/* Team List/Grid */}
               {!showTeamForm && (
                   <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Team Members ({teams.length})</h3>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-4">Team Members ({teams.length})</h3>
                   
                   {/* Group teams by category */}
                   {(() => {
@@ -2271,14 +2271,120 @@ export default function AdminDashboard() {
                     const categories = Object.keys(groupedTeams);
 
                     return (
-                      <div className="space-y-8">
+                      <div className="space-y-6 md:space-y-8">
                         {categories.map((category) => (
                           <div key={category} className="space-y-4">
-                            <h4 className="text-xl font-bold text-[#009f3b] border-b-2 border-[#009f3b] pb-2 mb-4">
+                            <h4 className="text-lg md:text-xl font-bold text-[#009f3b] border-b-2 border-[#009f3b] pb-2 mb-4">
                               {category} ({groupedTeams[category].length})
                             </h4>
                             
-                            <div className="overflow-x-auto">
+                            {/* Mobile Card Layout */}
+                            <div className="block md:hidden space-y-3">
+                              {groupedTeams[category].map((member: any) => (
+                                <div key={member._id || member.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                                  <div className="flex items-start gap-3">
+                                    <div className="relative w-16 h-16 flex-shrink-0">
+                                      <Image
+                                        src={member.image}
+                                        alt={member.name}
+                                        fill
+                                        className="object-cover rounded-full"
+                                      />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="text-base font-semibold text-gray-900 mb-1">{member.name}</h5>
+                                      <p className="text-sm text-gray-600 mb-2">{member.position}</p>
+                                      {member.phone && (
+                                        <p className="text-xs text-gray-600 mb-1">
+                                          <span className="font-medium">Phone:</span> {member.phone}
+                                        </p>
+                                      )}
+                                      {member.linkedin && (
+                                        <a 
+                                          href={member.linkedin} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-[#009f3b] hover:text-[#00782d] hover:underline block"
+                                        >
+                                          View LinkedIn Profile
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 pt-2 border-t border-gray-200">
+                                    <button
+                                      onClick={() => {
+                                        const id = member._id || member.id;
+                                        if (!id) {
+                                          showToast('Error: Team member ID is missing', 'error');
+                                          console.error('Team member missing ID:', member);
+                                          return;
+                                        }
+                                        const teamId = String(id).trim();
+                                        if (!teamId || teamId === 'undefined' || teamId === 'null') {
+                                          showToast('Error: Invalid team member ID', 'error');
+                                          console.error('Invalid team ID:', id, 'Stringified:', teamId);
+                                          return;
+                                        }
+                                        console.log('Setting editingTeam to:', teamId);
+                                        setEditingTeam(teamId);
+                                        setTeamName(member.name || '');
+                                        setTeamPosition(member.position || '');
+                                        setTeamCategory(member.category || '');
+                                        setTeamPhone(member.phone || '');
+                                        setTeamLinkedin(member.linkedin || '');
+                                        setTeamDescription(member.description || '');
+                                        setTeamImage(member.image || '');
+                                        setShowTeamForm(true);
+                                      }}
+                                      className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => {
+                                        let id = member._id || member.id;
+                                        if (id && typeof id === 'object') {
+                                          id = id.toString ? id.toString() : String(id);
+                                        } else if (id) {
+                                          id = String(id);
+                                        }
+                                        console.log('Delete button clicked - Member:', member.name, 'Raw ID:', member._id || member.id, 'Processed ID:', id, 'Full member:', member);
+                                        if (!id || id === 'undefined' || id === 'null') {
+                                          showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
+                                          console.error('Team member missing ID for deletion:', member);
+                                          return;
+                                        }
+                                        const teamId = id.trim();
+                                        if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
+                                          showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
+                                          console.error('Invalid team ID for deletion:', id, 'Stringified:', teamId, 'Member object:', member);
+                                          return;
+                                        }
+                                        if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
+                                          showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
+                                          console.error('Invalid ID format for deletion:', teamId, 'Length:', teamId.length, 'Member:', member);
+                                          return;
+                                        }
+                                        showDeleteConfirmation(
+                                          `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
+                                          () => {
+                                            console.log('Confirmed deletion for team member:', member.name, 'ID:', teamId);
+                                            deleteTeam(teamId);
+                                          }
+                                        );
+                                      }}
+                                      className="flex-1 px-3 py-2 bg-[#00782d] text-white text-xs hover:bg-[#009f3b] transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Desktop Table Layout */}
+                            <div className="hidden md:block overflow-x-auto">
                               <table className="w-full border-collapse">
                                 <thead>
                                   <tr className="bg-gray-50 border-b border-gray-200">
@@ -2330,7 +2436,6 @@ export default function AdminDashboard() {
                                                 console.error('Team member missing ID:', member);
                                                 return;
                                               }
-                                              // Ensure ID is a string and valid
                                               const teamId = String(id).trim();
                                               if (!teamId || teamId === 'undefined' || teamId === 'null') {
                                                 showToast('Error: Invalid team member ID', 'error');
@@ -2354,39 +2459,29 @@ export default function AdminDashboard() {
                                           </button>
                                           <button 
                                             onClick={() => {
-                                              // Extract ID - handle various formats
                                               let id = member._id || member.id;
-                                              
-                                              // If ID is an object, convert it to string
                                               if (id && typeof id === 'object') {
                                                 id = id.toString ? id.toString() : String(id);
                                               } else if (id) {
                                                 id = String(id);
                                               }
-                                              
                                               console.log('Delete button clicked - Member:', member.name, 'Raw ID:', member._id || member.id, 'Processed ID:', id, 'Full member:', member);
-                                              
                                               if (!id || id === 'undefined' || id === 'null') {
                                                 showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
                                                 console.error('Team member missing ID for deletion:', member);
                                                 return;
                                               }
-                                              
                                               const teamId = id.trim();
-                                              
                                               if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
                                                 showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
                                                 console.error('Invalid team ID for deletion:', id, 'Stringified:', teamId, 'Member object:', member);
                                                 return;
                                               }
-                                              
-                                              // More lenient validation - just check it's not too short and has valid characters
                                               if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
                                                 showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
                                                 console.error('Invalid ID format for deletion:', teamId, 'Length:', teamId.length, 'Member:', member);
                                                 return;
                                               }
-                                              
                                               showDeleteConfirmation(
                                                 `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
                                                 () => {
@@ -2951,9 +3046,9 @@ export default function AdminDashboard() {
 
         {/* Orders Management */}
         {activeTab === 'orders' && (
-          <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#009f3b]">Orders Management</h2>
+          <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Orders Management</h2>
               <div className="text-sm text-gray-600">
                 Total Orders: <span className="font-bold text-[#009f3b]">{orders.length}</span>
               </div>
@@ -2971,14 +3066,14 @@ export default function AdminDashboard() {
                     key={order._id || order.id}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
                   >
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-bold text-gray-900">
+                    <div className="p-4 md:p-6">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
+                            <h3 className="text-base md:text-lg font-bold text-gray-900">
                               Order #{order.orderNumber}
                             </h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
                               order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                               order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
                               order.status === 'processing' ? 'bg-purple-100 text-purple-800' :
@@ -2989,12 +3084,12 @@ export default function AdminDashboard() {
                               {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Pending'}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs md:text-sm text-gray-500">
                             {new Date(order.orderDate || order.createdAt).toLocaleString()}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-[#009f3b]">
+                        <div className="text-left sm:text-right">
+                          <p className="text-xl md:text-2xl font-bold text-[#009f3b]">
                             {new Intl.NumberFormat('en-RW', {
                               style: 'currency',
                               currency: 'RWF',
@@ -3006,39 +3101,39 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Customer Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Customer Information</h4>
-                          <p className="text-sm text-gray-700"><span className="font-medium">Name:</span> {order.customer?.fullName}</p>
-                          <p className="text-sm text-gray-700"><span className="font-medium">Email:</span> {order.customer?.email}</p>
-                          <p className="text-sm text-gray-700"><span className="font-medium">Phone:</span> {order.customer?.phone}</p>
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Customer Information</h4>
+                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Name:</span> {order.customer?.fullName}</p>
+                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Email:</span> {order.customer?.email}</p>
+                          <p className="text-xs md:text-sm text-gray-700"><span className="font-medium">Phone:</span> {order.customer?.phone}</p>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2">Shipping Address</h4>
-                          <p className="text-sm text-gray-700">{order.customer?.address}</p>
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Shipping Address</h4>
+                          <p className="text-xs md:text-sm text-gray-700">{order.customer?.address}</p>
                           {order.customer?.city && (
-                            <p className="text-sm text-gray-700">{order.customer.city}</p>
+                            <p className="text-xs md:text-sm text-gray-700">{order.customer.city}</p>
                           )}
                           {order.customer?.country && (
-                            <p className="text-sm text-gray-700">{order.customer.country}</p>
+                            <p className="text-xs md:text-sm text-gray-700">{order.customer.country}</p>
                           )}
                         </div>
                       </div>
 
                       {/* Payment Method */}
                       {order.paymentMethod && (
-                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-2">Payment Method</h4>
-                          <p className="text-sm text-gray-700">{order.paymentMethod.methodName}</p>
+                        <div className="mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Payment Method</h4>
+                          <p className="text-xs md:text-sm text-gray-700">{order.paymentMethod.methodName}</p>
                         </div>
                       )}
 
                       {/* Order Items */}
                       <div className="mb-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Order Items ({order.items?.length || 0})</h4>
+                        <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-3">Order Items ({order.items?.length || 0})</h4>
                         <div className="space-y-2">
                           {order.items?.map((item: any, index: number) => (
-                            <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg">
                               <div className="relative w-16 h-16 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                                 <Image
                                   src={item.product?.image || '/placeholder.png'}
@@ -3047,12 +3142,12 @@ export default function AdminDashboard() {
                                   className="object-cover"
                                 />
                               </div>
-                              <div className="flex-1">
-                                <p className="font-semibold text-gray-900">{item.product?.name}</p>
-                                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm md:text-base font-semibold text-gray-900 truncate">{item.product?.name}</p>
+                                <p className="text-xs md:text-sm text-gray-600">Quantity: {item.quantity}</p>
                               </div>
-                              <div className="text-right">
-                                <p className="font-bold text-[#009f3b]">
+                              <div className="text-left sm:text-right w-full sm:w-auto">
+                                <p className="text-sm md:text-base font-bold text-[#009f3b]">
                                   {new Intl.NumberFormat('en-RW', {
                                     style: 'currency',
                                     currency: 'RWF',
@@ -3068,15 +3163,15 @@ export default function AdminDashboard() {
 
                       {/* Notes */}
                       {order.notes && (
-                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-2">Order Notes</h4>
-                          <p className="text-sm text-gray-700">{order.notes}</p>
+                        <div className="mb-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                          <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-2">Order Notes</h4>
+                          <p className="text-xs md:text-sm text-gray-700">{order.notes}</p>
                         </div>
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                        <div className="flex-1 sm:flex-initial">
                           <select
                             value={order.status || 'pending'}
                             onChange={async (e) => {
@@ -3096,7 +3191,7 @@ export default function AdminDashboard() {
                                 showToast('Error updating order status', 'error');
                               }
                             }}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
+                            className="w-full sm:w-auto px-3 md:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b]"
                           >
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
@@ -3124,7 +3219,7 @@ export default function AdminDashboard() {
                               }
                             }
                           }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
+                          className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm font-semibold"
                         >
                           Delete Order
                         </button>
