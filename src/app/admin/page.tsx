@@ -2481,11 +2481,21 @@ export default function AdminDashboard() {
                   {/* Group teams by category */}
                   {(() => {
                     const groupedTeams = teams.reduce((acc, member) => {
-                      const category = member.category && member.category.trim() ? member.category : 'Uncategorized';
-                      if (!acc[category]) {
-                        acc[category] = [];
-                      }
-                      acc[category].push(member);
+                      // Handle both array and string categories
+                      const categories = Array.isArray(member.category) 
+                        ? member.category 
+                        : (member.category && typeof member.category === 'string' ? [member.category] : ['Uncategorized']);
+                      
+                      categories.forEach((cat: string) => {
+                        const category = (cat && typeof cat === 'string' ? cat.trim() : 'Uncategorized') || 'Uncategorized';
+                        if (!acc[category]) {
+                          acc[category] = [];
+                        }
+                        // Only add if not already in this category (avoid duplicates)
+                        if (!acc[category].some((m: any) => (m._id || m.id) === (member._id || member.id))) {
+                          acc[category].push(member);
+                        }
+                      });
                       return acc;
                     }, {} as Record<string, typeof teams>);
 
