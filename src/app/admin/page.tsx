@@ -526,7 +526,10 @@ export default function AdminDashboard() {
         image: teamImage.trim(),
         phone: teamPhone?.trim() || '',
         linkedin: teamLinkedin?.trim() || '',
-        description: teamDescription?.trim() || ''
+        description: teamDescription?.trim() || '',
+        experience: teamExperience?.trim() || '',
+        education: teamEducation?.trim() || '',
+        certification: teamCertification?.trim() || ''
       };
       const teamId = editingTeam ? String(editingTeam).trim() : null;
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
