@@ -220,18 +220,18 @@ const Navbar = () => {
       </div>
 
       {/* Main Navigation Bar - White */}
-      <div className={`bg-white border-b border-gray-200 transition-all duration-300 ${
+      <div className={`bg-white border-b border-gray-200 transition-all duration-300 overflow-hidden ${
         isPastHero ? 'fixed top-0 left-0 right-0 z-50 shadow-md' : isScrolled ? 'sticky top-0 z-50 shadow-md' : ''
       }`}>
-        <div className="max-w-7xl mx-auto px-4 py-2 transition-all duration-300">
-          <div className="flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-2 transition-all duration-300 flex items-center min-h-[80px]">
+          <div className="flex items-center justify-between gap-4 w-full">
             {/* Left: Logo */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 overflow-hidden">
               {/* Logo */}
               <div className="relative flex-shrink-0 transition-all duration-300">
                 <Link href="/">
                   <div className={`relative transition-all duration-300 ${
-                    isPastHero ? 'w-16 h-16' : isScrolled ? 'w-16 h-16' : 'w-28 h-28'
+                    isPastHero ? 'w-20 h-20' : isScrolled ? 'w-20 h-20' : 'w-40 h-40'
                   }`}>
                     <Image
                       src="/logo.png"
