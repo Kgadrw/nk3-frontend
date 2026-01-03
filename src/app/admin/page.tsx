@@ -531,6 +531,15 @@ export default function AdminDashboard() {
         education: teamEducation?.trim() || '',
         certification: teamCertification?.trim() || ''
       };
+      
+      // Debug: Log the data being sent
+      console.log('Saving team member with data:', {
+        ...data,
+        experience: data.experience || '(empty)',
+        education: data.education || '(empty)',
+        certification: data.certification || '(empty)'
+      });
+      
       const teamId = editingTeam ? String(editingTeam).trim() : null;
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
       const method = teamId ? 'PUT' : 'POST';
