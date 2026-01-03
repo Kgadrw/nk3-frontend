@@ -147,6 +147,7 @@ export default function AdminDashboard() {
   const [academicAuthor, setAcademicAuthor] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [academicDescription, setAcademicDescription] = useState('');
+  const [academicLink, setAcademicLink] = useState('');
   
   // PDF Viewer state
   const [showPdfViewer, setShowPdfViewer] = useState(false);
@@ -812,8 +813,9 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Title, Author, Year, Description)', 'warning');
       return;
     }
-    if (!pdfLink && !pdfFile) {
-      showToast('Please provide either a PDF link or upload a PDF file', 'warning');
+    // Either link or PDF is required
+    if (!academicLink && !pdfLink && !pdfFile) {
+      showToast('Please provide either a publication link or a PDF document', 'warning');
       return;
     }
     try {
@@ -835,9 +837,9 @@ export default function AdminDashboard() {
         }
       }
       
-      // Validate that we have a PDF link
-      if (!finalPdfLink || finalPdfLink.trim() === '') {
-        showToast('Please provide either a PDF link or upload a PDF file', 'warning');
+      // Only validate PDF if no link is provided
+      if (!academicLink && (!finalPdfLink || finalPdfLink.trim() === '')) {
+        showToast('Please provide either a publication link or a PDF document', 'warning');
         return;
       }
       
@@ -846,7 +848,8 @@ export default function AdminDashboard() {
         author: academicAuthor.trim(),
         year: academicYear.trim(),
         description: academicDescription.trim(),
-        pdfLink: finalPdfLink
+        pdfLink: finalPdfLink || '',
+        link: academicLink.trim() || ''
       };
       
       
@@ -868,6 +871,7 @@ export default function AdminDashboard() {
         setAcademicYear('');
         setAcademicDescription('');
         setPdfLink('');
+        setAcademicLink('');
         setPdfFile(null);
       } else {
         // Try to get error message from response
@@ -1320,20 +1324,20 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => {
-                  setIsSidebarMinimized(!isSidebarMinimized);
-                  setIsMobileSidebarOpen(false);
-                }}
+            <button
+              onClick={() => {
+                setIsSidebarMinimized(!isSidebarMinimized);
+                setIsMobileSidebarOpen(false);
+              }}
                 className="flex items-center justify-center p-1.5 md:p-2 text-white hover:bg-[#00782d] rounded transition-colors flex-shrink-0"
-                title={isSidebarMinimized ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
+              title={isSidebarMinimized ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
                 {isSidebarMinimized ? (
                   <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                 ) : (
                   <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                 )}
-              </button>
+            </button>
             </div>
           </div>
 
@@ -1419,8 +1423,8 @@ export default function AdminDashboard() {
                   <p className="text-xl md:text-2xl font-bold">{portfolios.length}</p>
                 </div>
                 <FolderOpen className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-              </div>
-            </div>
+                </div>
+                </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
@@ -1428,27 +1432,27 @@ export default function AdminDashboard() {
                   <p className="text-xl md:text-2xl font-bold">{teams.length}</p>
                 </div>
                 <Users className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-              </div>
-            </div>
+                    </div>
+                    </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
-                <div>
+                    <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Products</p>
                   <p className="text-xl md:text-2xl font-bold">{products.length}</p>
-                </div>
+                    </div>
                 <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-              </div>
-            </div>
+                    </div>
+                  </div>
             <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
               <div className="flex items-center justify-between">
-                <div>
+                    <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Publications</p>
                   <p className="text-xl md:text-2xl font-bold">{publications.length}</p>
-                </div>
+                    </div>
                 <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
-              </div>
-            </div>
-          </div>
+                    </div>
+                    </div>
+                    </div>
           )}
 
           {/* Dashboard View */}
@@ -2183,6 +2187,7 @@ export default function AdminDashboard() {
                       setAcademicYear('');
                       setAcademicDescription('');
                       setPdfLink('');
+                      setAcademicLink('');
                       setPdfFile(null);
                     }}
                     className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
@@ -2205,7 +2210,17 @@ export default function AdminDashboard() {
                             <p className="text-sm text-gray-600 mb-1">Author: {publication.author}</p>
                             <p className="text-xs text-gray-500 mb-3">Year: {publication.year}</p>
                             <p className="text-sm text-gray-700 mb-4 line-clamp-3">{publication.description}</p>
-                            {publication.pdfLink && (
+                            {publication.link && publication.link.trim() ? (
+                              <a
+                                href={publication.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mb-3 inline-flex items-center gap-2 px-3 py-2 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] transition-colors"
+                              >
+                                <FileText className="w-4 h-4" />
+                                View Link
+                              </a>
+                            ) : publication.pdfLink ? (
                               <button
                                 onClick={() => {
                                   const publicationId = publication._id || publication.id;
@@ -2217,7 +2232,7 @@ export default function AdminDashboard() {
                                 <FileText className="w-4 h-4" />
                                 View PDF
                               </button>
-                            )}
+                            ) : null}
                     <div className="flex gap-2">
                               <button 
                                 onClick={() => {
@@ -2228,6 +2243,7 @@ export default function AdminDashboard() {
                                   setAcademicYear(publication.year || '');
                                   setAcademicDescription(publication.description || '');
                                   setPdfLink(publication.pdfLink || '');
+                                  setAcademicLink(publication.link || '');
                                   setPdfFile(null);
                                 }}
                                 className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] rounded transition-colors"
@@ -2267,6 +2283,7 @@ export default function AdminDashboard() {
                         setShowAcademyForm(false);
                         setEditingAcademy(null);
                         setPdfLink('');
+                        setAcademicLink('');
                         setPdfFile(null);
                       }}
                       className="text-gray-600 hover:text-gray-800 text-sm"
@@ -2319,7 +2336,17 @@ export default function AdminDashboard() {
                       />
                   </div>
                     <div className="border-t pt-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">PDF Document</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Publication Link (Optional)</label>
+                      <input 
+                        type="url" 
+                        value={academicLink}
+                        onChange={(e) => setAcademicLink(e.target.value)}
+                        placeholder="https://example.com/publication"
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black mb-4" 
+                      />
+                      <p className="text-xs text-gray-500 mb-4">If a link is provided, users will be able to follow it instead of viewing/downloading PDF</p>
+                      
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">PDF Document (Optional)</label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs text-gray-600 mb-1">PDF Link (URL)</label>
@@ -3064,60 +3091,60 @@ export default function AdminDashboard() {
                     <>
                       {/* Desktop Table View */}
                       <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Provider</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Account Number</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Provider</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Account Number</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentMethods.map((method) => (
+                            <tr key={method._id || method.id} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">{method.name}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600 capitalize">{method.type}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{method.provider || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{method.accountNumber || '-'}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 text-xs rounded ${method.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                  {method.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => {
+                                      setShowPaymentForm(true);
+                                      setEditingPayment(method._id || method.id);
+                                      setPaymentName(method.name || '');
+                                      setPaymentType(method.type || '');
+                                      setPaymentAccountName(method.accountName || '');
+                                      setPaymentAccountNumber(method.accountNumber || '');
+                                      setPaymentProvider(method.provider || '');
+                                      setPaymentInstructions(method.instructions || '');
+                                      setPaymentIsActive(method.isActive !== false);
+                                    }}
+                                    className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => deletePayment(method._id || method.id)}
+                                    className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {paymentMethods.map((method) => (
-                              <tr key={method._id || method.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900 font-medium">{method.name}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600 capitalize">{method.type}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{method.provider || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{method.accountNumber || '-'}</td>
-                                <td className="px-4 py-3">
-                                  <span className={`px-2 py-1 text-xs rounded ${method.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                    {method.isActive ? 'Active' : 'Inactive'}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex gap-2">
-                                    <button 
-                                      onClick={() => {
-                                        setShowPaymentForm(true);
-                                        setEditingPayment(method._id || method.id);
-                                        setPaymentName(method.name || '');
-                                        setPaymentType(method.type || '');
-                                        setPaymentAccountName(method.accountName || '');
-                                        setPaymentAccountNumber(method.accountNumber || '');
-                                        setPaymentProvider(method.provider || '');
-                                        setPaymentInstructions(method.instructions || '');
-                                        setPaymentIsActive(method.isActive !== false);
-                                      }}
-                                      className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button 
-                                      onClick={() => deletePayment(method._id || method.id)}
-                                      className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
                       {/* Mobile Card View */}
                       <div className="md:hidden space-y-4">
@@ -3474,20 +3501,20 @@ export default function AdminDashboard() {
                             showDeleteConfirmation(
                               'Are you sure you want to delete this order?',
                               async () => {
-                                try {
-                                  const res = await fetch(`/api/order/${order._id || order.id}`, {
-                                    method: 'DELETE',
-                                  });
-                                  if (res.ok) {
-                                    await fetchAllData();
-                                    showToast('Order deleted successfully!', 'success');
-                                  } else {
-                                    showToast('Error deleting order', 'error');
-                                  }
-                                } catch (error) {
+                              try {
+                                const res = await fetch(`/api/order/${order._id || order.id}`, {
+                                  method: 'DELETE',
+                                });
+                                if (res.ok) {
+                                  await fetchAllData();
+                                  showToast('Order deleted successfully!', 'success');
+                                } else {
                                   showToast('Error deleting order', 'error');
                                 }
+                              } catch (error) {
+                                showToast('Error deleting order', 'error');
                               }
+                            }
                             );
                           }}
                           className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs md:text-sm font-semibold"

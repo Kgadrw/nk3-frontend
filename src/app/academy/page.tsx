@@ -38,6 +38,7 @@ export default function AcademyPage() {
           date: p.year || p.date,
           abstract: p.description || p.abstract,
           pdf: p.pdfLink || p.pdf || '#',
+          link: p.link || '',
           citation: `${p.author}. (${p.year || 'N/A'}). ${p.title}. NK 3D Academy Research Journal.`
         }));
         setAllPublications(publications);
@@ -177,7 +178,19 @@ export default function AcademyPage() {
                 </p>
                 
                 <div className="flex gap-3 flex-wrap">
-                  {publication.pdf && publication.pdf !== '#' && (
+                  {publication.link && publication.link.trim() ? (
+                    <a
+                      href={publication.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Follow Link
+                    </a>
+                  ) : publication.pdf && publication.pdf !== '#' ? (
                     <>
                       <button
                         onClick={() => {
@@ -206,7 +219,7 @@ export default function AcademyPage() {
                         Download PDF
                       </a>
                     </>
-                  )}
+                  ) : null}
                 </div>
               </div>
               ))}

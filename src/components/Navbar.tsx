@@ -223,8 +223,8 @@ const Navbar = () => {
       <div className={`bg-white border-b border-gray-200 transition-all duration-300 ${
         isPastHero ? 'fixed top-0 left-0 right-0 z-50 shadow-md' : isScrolled ? 'sticky top-0 z-50 shadow-md' : ''
       }`}>
-        <div className="max-w-7xl mx-auto px-4 transition-all duration-300">
-          <div className="flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-4 py-2 transition-all duration-300">
+          <div className="flex items-center justify-between gap-4">
             {/* Left: Logo */}
             <div className="flex items-center gap-4">
               {/* Logo */}
@@ -246,12 +246,12 @@ const Navbar = () => {
             </div>
 
             {/* Center: Navigation Links */}
-            <nav className={`hidden md:flex items-center gap-6 transition-all duration-300 ${
+            <nav className={`hidden md:flex items-center gap-4 transition-all duration-300 ${
               isPastHero ? 'hidden' : ''
             }`}>
               <Link 
                 href="/" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
@@ -262,7 +262,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 href="/about" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/about' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
@@ -273,7 +273,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 href="/portfolio" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/portfolio' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
@@ -338,7 +338,7 @@ const Navbar = () => {
 
               <Link 
                 href="/academy" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/academy' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
@@ -349,7 +349,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 href="/shop" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/shop' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
@@ -360,7 +360,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 href="/contact" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 group ${
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname === '/contact' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >

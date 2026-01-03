@@ -90,15 +90,20 @@ export default function TeamDetailPage() {
         </div>
       </div>
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-[#009f3b] to-[#00782d] py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
-            {/* Member Image */}
-            <div className="relative w-64 h-80 md:w-80 md:h-96 flex-shrink-0">
-              <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-lg"></div>
-              {!imageError ? (
-                <div className="relative w-full h-full rounded-lg overflow-hidden border-4 border-white shadow-2xl">
+      {/* Main Content - Two Column Layout */}
+      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {/* Left Column - Image */}
+          <div className="md:col-span-1">
+            <div className="sticky top-24">
+              <div className="relative w-full aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden">
+                {imageError ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <span className="text-gray-400 text-6xl md:text-8xl font-bold">
+                      {member.name.charAt(0)}
+                    </span>
+                  </div>
+                ) : (
                   <Image
                     src={member.image}
                     alt={member.name}
@@ -107,95 +112,52 @@ export default function TeamDetailPage() {
                     onError={() => setImageError(true)}
                     unoptimized
                   />
-                </div>
-              ) : (
-                <div className="relative w-full h-full rounded-lg overflow-hidden border-4 border-white shadow-2xl bg-[#009f3b] flex items-center justify-center">
-                  <span className="text-white text-8xl font-bold">
-                    {member.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Member Info */}
-            <div className="flex-1 text-center md:text-left text-white">
-              <span className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 text-sm font-semibold uppercase mb-4 rounded">
-                {member.category || 'Team Member'}
-              </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                {member.name}
-              </h1>
-              <p className="text-xl md:text-2xl text-white/90 mb-6">
-                {member.role || member.position}
-              </p>
-              
-              {/* Contact Information */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                {member.phone && (
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Phone className="w-5 h-5" />
-                    <span className="text-sm md:text-base">{member.phone}</span>
-                  </a>
-                )}
-                {member.email && (
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Mail className="w-5 h-5" />
-                    <span className="text-sm md:text-base">Email</span>
-                  </a>
-                )}
-                {member.linkedin && (
-                  <a
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Linkedin className="w-5 h-5" />
-                    <span className="text-sm md:text-base">LinkedIn</span>
-                  </a>
                 )}
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
+          {/* Right Column - Bio, Experience, and Contact Info */}
+          <div className="md:col-span-2 space-y-8">
+            {/* Name and Role */}
+            <div className="space-y-2">
+              <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
+                {member.category || 'Team Member'}
+              </span>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+                {member.name}
+              </h1>
+              <p className="text-xl md:text-2xl text-[#009f3b] font-medium">
+                {member.role || member.position}
+              </p>
+            </div>
+
+            {/* Bio Section */}
             {member.description && (
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-4 flex items-center gap-2">
+              <div className="space-y-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] flex items-center gap-2">
                   <User className="w-6 h-6" />
-                  About
+                  Bio
                 </h2>
                 <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
+                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
                     {member.description}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Contact Details Card */}
-            <div className="bg-gray-50 rounded-lg p-6 md:p-8">
+            {/* Contact Information */}
+            <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">Contact Information</h2>
+              
               <div className="space-y-4">
                 {member.phone && (
-                  <div className="flex items-start gap-4">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
                       <Phone className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1">Phone</p>
                       <a
                         href={`tel:${member.phone}`}
@@ -206,12 +168,13 @@ export default function TeamDetailPage() {
                     </div>
                   </div>
                 )}
+                
                 {member.email && (
-                  <div className="flex items-start gap-4">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
                       <Mail className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1">Email</p>
                       <a
                         href={`mailto:${member.email}`}
@@ -222,12 +185,13 @@ export default function TeamDetailPage() {
                     </div>
                   </div>
                 )}
+                
                 {member.linkedin && (
-                  <div className="flex items-start gap-4">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
                       <Linkedin className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1">LinkedIn</p>
                       <a
                         href={member.linkedin}
@@ -241,34 +205,13 @@ export default function TeamDetailPage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-50 p-6 rounded-lg sticky top-24 space-y-6">
-              <h3 className="text-xl font-bold text-[#009f3b] mb-4">Member Details</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Position</p>
-                  <p className="text-base font-semibold text-gray-900">{member.role || member.position}</p>
-                </div>
-                
-                {member.category && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Category</p>
-                    <p className="text-base font-semibold text-gray-900 capitalize">{member.category}</p>
-                  </div>
-                )}
-              </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-gray-200 space-y-3">
+              <div className="flex flex-wrap gap-3 pt-4">
                 {member.phone && (
                   <a
                     href={`tel:${member.phone}`}
-                    className="w-full flex items-center justify-center gap-2 bg-[#009f3b] text-white px-4 py-3 rounded-lg font-semibold hover:bg-[#00782d] transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#00782d] transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Call Now
@@ -277,7 +220,7 @@ export default function TeamDetailPage() {
                 {member.email && (
                   <a
                     href={`mailto:${member.email}`}
-                    className="w-full flex items-center justify-center gap-2 bg-white border-2 border-[#009f3b] text-[#009f3b] px-4 py-3 rounded-lg font-semibold hover:bg-[#009f3b] hover:text-white transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-white border-2 border-[#009f3b] text-[#009f3b] px-6 py-3 rounded-lg font-semibold hover:bg-[#009f3b] hover:text-white transition-colors"
                   >
                     <Mail className="w-5 h-5" />
                     Send Email
@@ -288,7 +231,7 @@ export default function TeamDetailPage() {
                     href={member.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 bg-[#0077b5] text-white px-4 py-3 rounded-lg font-semibold hover:bg-[#005885] transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-[#0077b5] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#005885] transition-colors"
                   >
                     <Linkedin className="w-5 h-5" />
                     View LinkedIn
