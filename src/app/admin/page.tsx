@@ -131,6 +131,9 @@ export default function AdminDashboard() {
   const [teamPhone, setTeamPhone] = useState('');
   const [teamLinkedin, setTeamLinkedin] = useState('');
   const [teamDescription, setTeamDescription] = useState('');
+  const [teamExperience, setTeamExperience] = useState('');
+  const [teamEducation, setTeamEducation] = useState('');
+  const [teamCertification, setTeamCertification] = useState('');
   
   // Shop management state
   const [showShopForm, setShowShopForm] = useState(false);
@@ -530,6 +533,9 @@ export default function AdminDashboard() {
         setTeamPhone('');
         setTeamLinkedin('');
         setTeamDescription('');
+        setTeamExperience('');
+        setTeamEducation('');
+        setTeamCertification('');
         setTeamImage('');
       } else {
         // Try to get error message from response
@@ -2439,6 +2445,9 @@ export default function AdminDashboard() {
                       setTeamPhone('');
                       setTeamLinkedin('');
                       setTeamDescription('');
+                      setTeamExperience('');
+                      setTeamEducation('');
+                      setTeamCertification('');
                       setTeamImage('');
                       setShowTeamForm(true);
                     }}
@@ -2530,6 +2539,9 @@ export default function AdminDashboard() {
                                         setTeamPhone(member.phone || '');
                                         setTeamLinkedin(member.linkedin || '');
                                         setTeamDescription(member.description || '');
+                                        setTeamExperience(member.experience || '');
+                                        setTeamEducation(member.education || '');
+                                        setTeamCertification(member.certification || '');
                                         setTeamImage(member.image || '');
                                         setShowTeamForm(true);
                                       }}
@@ -2711,6 +2723,16 @@ export default function AdminDashboard() {
                       onClick={() => {
                         setShowTeamForm(false);
                         setEditingTeam(null);
+                        setTeamName('');
+                        setTeamPosition('');
+                        setTeamCategory('');
+                        setTeamPhone('');
+                        setTeamLinkedin('');
+                        setTeamDescription('');
+                        setTeamExperience('');
+                        setTeamEducation('');
+                        setTeamCertification('');
+                        setTeamImage('');
                       }}
                       className="text-gray-600 hover:text-gray-800 text-sm"
                     >
@@ -2796,6 +2818,46 @@ export default function AdminDashboard() {
                         onChange={(e) => setTeamDescription(e.target.value)}
                         rows={4}
                           className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Experience, Education, and Certification */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Experience <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <textarea
+                        placeholder="List professional experience, previous roles, projects, etc..."
+                        value={teamExperience}
+                        onChange={(e) => setTeamExperience(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Education <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <textarea
+                        placeholder="List educational background, degrees, institutions, etc..."
+                        value={teamEducation}
+                        onChange={(e) => setTeamEducation(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Certification <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <textarea
+                        placeholder="List professional certifications, licenses, awards, etc..."
+                        value={teamCertification}
+                        onChange={(e) => setTeamCertification(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
                       />
                     </div>
                   </div>

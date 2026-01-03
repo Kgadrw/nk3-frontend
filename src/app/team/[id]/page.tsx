@@ -147,6 +147,42 @@ export default function TeamDetailPage() {
               </div>
             )}
 
+            {/* Experience Section */}
+            {member.experience && (
+              <div className="space-y-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Experience</h2>
+                <div className="prose prose-lg max-w-none">
+                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                    {member.experience}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Education Section */}
+            {member.education && (
+              <div className="space-y-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Education</h2>
+                <div className="prose prose-lg max-w-none">
+                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                    {member.education}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Certification Section */}
+            {member.certification && (
+              <div className="space-y-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Certification</h2>
+                <div className="prose prose-lg max-w-none">
+                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                    {member.certification}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Contact Information */}
             <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">Contact Information</h2>
