@@ -121,9 +121,23 @@ export default function TeamDetailPage() {
           <div className="md:col-span-2 space-y-8">
             {/* Name and Role */}
             <div className="space-y-2">
-              <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
-                {member.category || 'Team Member'}
-              </span>
+              {Array.isArray(member.category) && member.category.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {member.category.map((cat: string, index: number) => (
+                    <span key={index} className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              ) : member.category ? (
+                <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
+                  {member.category}
+                </span>
+              ) : (
+                <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
+                  Team Member
+                </span>
+              )}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
                 {member.name}
               </h1>

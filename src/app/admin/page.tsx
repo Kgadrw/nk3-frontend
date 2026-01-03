@@ -127,7 +127,9 @@ export default function AdminDashboard() {
   const [editingTeam, setEditingTeam] = useState<string | null>(null);
   const [teamName, setTeamName] = useState('');
   const [teamPosition, setTeamPosition] = useState('');
-  const [teamCategory, setTeamCategory] = useState('');
+  const [teamCategory, setTeamCategory] = useState<string[]>([]);
+  const [teamCategories, setTeamCategories] = useState<string[]>([]);
+  const [copyFromMember, setCopyFromMember] = useState<string>('');
   const [teamPhone, setTeamPhone] = useState('');
   const [teamLinkedin, setTeamLinkedin] = useState('');
   const [teamDescription, setTeamDescription] = useState('');
@@ -359,6 +361,18 @@ export default function AdminDashboard() {
       }).filter((team: any) => team && team.id); // Filter out teams without IDs
       // Teams loaded successfully
       setTeams(teamsWithIds);
+      
+      // Extract unique categories from teams for multi-select
+      const teamCategoriesSet = new Set<string>();
+      teamsWithIds.forEach((team: any) => {
+        const categories = Array.isArray(team.category) ? team.category : (team.category ? [team.category] : ['Uncategorized']);
+        categories.forEach((cat: string) => {
+          if (cat && cat.trim()) {
+            teamCategoriesSet.add(cat.trim());
+          }
+        });
+      });
+      setTeamCategories(Array.from(teamCategoriesSet).sort());
       setProducts(productsData || []);
       setPublications(publicationsData || []);
       setPortfolios(portfoliosData || []);
@@ -508,7 +522,7 @@ export default function AdminDashboard() {
       const data = {
         name: teamName.trim(),
         position: teamPosition.trim(),
-        category: teamCategory?.trim() || 'Uncategorized',
+        category: Array.isArray(teamCategory) && teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
         image: teamImage.trim(),
         phone: teamPhone?.trim() || '',
         linkedin: teamLinkedin?.trim() || '',
@@ -529,7 +543,7 @@ export default function AdminDashboard() {
         // Reset form
         setTeamName('');
         setTeamPosition('');
-        setTeamCategory('');
+        setTeamCategory([]);
         setTeamPhone('');
         setTeamLinkedin('');
         setTeamDescription('');
@@ -2441,7 +2455,7 @@ export default function AdminDashboard() {
                       setEditingTeam(null);
                       setTeamName('');
                       setTeamPosition('');
-                      setTeamCategory('');
+                      setTeamCategory([]);
                       setTeamPhone('');
                       setTeamLinkedin('');
                       setTeamDescription('');
@@ -2449,6 +2463,7 @@ export default function AdminDashboard() {
                       setTeamEducation('');
                       setTeamCertification('');
                       setTeamImage('');
+                      setCopyFromMember('');
                       setShowTeamForm(true);
                     }}
                     className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors"
@@ -2535,7 +2550,10 @@ export default function AdminDashboard() {
                                         setEditingTeam(teamId);
                                         setTeamName(member.name || '');
                                         setTeamPosition(member.position || '');
-                                        setTeamCategory(member.category || '');
+                                        const memberCategories = Array.isArray(member.category) 
+                                          ? member.category 
+                                          : (member.category ? [member.category] : []);
+                                        setTeamCategory(memberCategories);
                                         setTeamPhone(member.phone || '');
                                         setTeamLinkedin(member.linkedin || '');
                                         setTeamDescription(member.description || '');
@@ -2651,7 +2669,10 @@ export default function AdminDashboard() {
                                               setEditingTeam(teamId);
                                               setTeamName(member.name || '');
                                               setTeamPosition(member.position || '');
-                                              setTeamCategory(member.category || '');
+                                              const memberCategories = Array.isArray(member.category) 
+                                          ? member.category 
+                                          : (member.category ? [member.category] : []);
+                                        setTeamCategory(memberCategories);
                                               setTeamPhone(member.phone || '');
                                               setTeamLinkedin(member.linkedin || '');
                                               setTeamDescription(member.description || '');
@@ -2725,7 +2746,7 @@ export default function AdminDashboard() {
                         setEditingTeam(null);
                         setTeamName('');
                         setTeamPosition('');
-                        setTeamCategory('');
+                        setTeamCategory([]);
                         setTeamPhone('');
                         setTeamLinkedin('');
                         setTeamDescription('');
@@ -2733,12 +2754,57 @@ export default function AdminDashboard() {
                         setTeamEducation('');
                         setTeamCertification('');
                         setTeamImage('');
+                        setCopyFromMember('');
                       }}
                       className="text-gray-600 hover:text-gray-800 text-sm"
                     >
                       Cancel
                 </button>
               </div>
+              
+              {/* Copy from Existing Member */}
+              {!editingTeam && (
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Copy from Existing Member <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                  </label>
+                  <select
+                    value={copyFromMember}
+                    onChange={(e) => {
+                      const memberId = e.target.value;
+                      setCopyFromMember(memberId);
+                      if (memberId) {
+                        const member = teams.find((t: any) => (t._id || t.id) === memberId);
+                        if (member) {
+                          setTeamName(member.name || '');
+                          setTeamPosition(member.position || '');
+                          setTeamImage(member.image || '');
+                          setTeamPhone(member.phone || '');
+                          setTeamLinkedin(member.linkedin || '');
+                          setTeamDescription(member.description || '');
+                          setTeamExperience(member.experience || '');
+                          setTeamEducation(member.education || '');
+                          setTeamCertification(member.certification || '');
+                          // Set categories as array
+                          const memberCategories = Array.isArray(member.category) 
+                            ? member.category 
+                            : (member.category ? [member.category] : []);
+                          setTeamCategory(memberCategories);
+                        }
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                  >
+                    <option value="">Select a member to copy from...</option>
+                    {teams.map((member: any) => (
+                      <option key={member._id || member.id} value={member._id || member.id}>
+                        {member.name} - {member.position}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
                 <form onSubmit={handleSaveTeam} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -2772,15 +2838,51 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Category <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                        Categories <span className="text-gray-400 text-xs font-normal">(Select multiple)</span>
                       </label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g., Founder, Technical Team, Management"
-                        value={teamCategory}
-                        onChange={(e) => setTeamCategory(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
-                      />
+                      <div className="border border-gray-300 rounded p-3 max-h-40 overflow-y-auto">
+                        {teamCategories.length > 0 ? (
+                          <div className="space-y-2">
+                            {teamCategories.map((cat) => (
+                              <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={teamCategory.includes(cat)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setTeamCategory([...teamCategory, cat]);
+                                    } else {
+                                      setTeamCategory(teamCategory.filter((c) => c !== cat));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
+                                />
+                                <span className="text-sm text-gray-700">{cat}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No categories available. Add a new category below.</p>
+                        )}
+                        <div className="mt-3 pt-3 border-t">
+                          <input
+                            type="text"
+                            placeholder="Add new category"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const newCat = (e.target as HTMLInputElement).value.trim();
+                                if (newCat && !teamCategories.includes(newCat)) {
+                                  setTeamCategories([...teamCategories, newCat].sort());
+                                  setTeamCategory([...teamCategory, newCat]);
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }
+                            }}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -113,14 +113,23 @@ const Team = () => {
           email: member.linkedin
         }));
 
-        // Group by category
+        // Group by category - handle both array and string categories
         const grouped: any = {};
         processedMembers.forEach((member: any) => {
-          const category = (member.category || 'Uncategorized').toLowerCase();
-          if (!grouped[category]) {
-            grouped[category] = [];
-          }
-          grouped[category].push(member);
+          const categories = Array.isArray(member.category) 
+            ? member.category 
+            : (member.category ? [member.category] : ['Uncategorized']);
+          
+          categories.forEach((cat: string) => {
+            const category = (cat || 'Uncategorized').toLowerCase();
+            if (!grouped[category]) {
+              grouped[category] = [];
+            }
+            // Only add if not already in this category (avoid duplicates)
+            if (!grouped[category].some((m: any) => m.id === member.id)) {
+              grouped[category].push(member);
+            }
+          });
         });
 
         // Sort categories by hierarchy
