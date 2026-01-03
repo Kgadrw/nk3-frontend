@@ -39,10 +39,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Company Info */}
           <div>
-            <Link href="/" className="block -mt-8 md:-mt-12 lg:-mt-16">
-              <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64">
+            <Link href="/" className="block -mt-4 md:-mt-6 lg:-mt-8">
+              <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48">
                 <Image
-                  src="/logo.png"
+                  src="/footer.JPG"
                   alt="NK 3D Architecture Studio Logo"
                   fill
                   className="object-contain"
