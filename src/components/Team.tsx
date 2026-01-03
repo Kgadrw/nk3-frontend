@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -58,22 +57,18 @@ const TeamMemberCard = ({ member, category }: { member: { id: number | string; n
   );
 };
 
-type TeamCategory = string | null;
-
 const Team = () => {
-  const searchParams = useSearchParams();
-  const categoryParam = searchParams.get('category');
-  const [activeCategory, setActiveCategory] = useState<TeamCategory>(categoryParam || null);
-  const [teamData, setTeamData] = useState<any>({});
-  const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
+  const [teamData, setTeamData] = useState<any[]>([]);
+  const [groupedTeams, setGroupedTeams] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   // Helper function to format category name
   const formatCategoryLabel = (category: string): string => {
-    // Handle common cases
     const categoryLower = category.toLowerCase();
     const labelMap: { [key: string]: string } = {
       'founder': 'Company Founder',
+      'co-founder': 'Co-Founder',
+      'cofounder': 'Co-Founder',
       'technical': 'Technical Team',
       'advisors': 'Company Advisors',
       'uncategorized': 'Uncategorized',
@@ -90,38 +85,57 @@ const Team = () => {
       .join(' ');
   };
 
-  useEffect(() => {
-    setActiveCategory(categoryParam || null);
-  }, [categoryParam]);
+  // Define hierarchical order for categories
+  const getCategoryOrder = (category: string): number => {
+    const categoryLower = category.toLowerCase();
+    const orderMap: { [key: string]: number } = {
+      'founder': 1,
+      'co-founder': 2,
+      'cofounder': 2,
+      'technical': 3,
+      'advisors': 4,
+      'uncategorized': 999,
+    };
+    return orderMap[categoryLower] || 5;
+  };
 
   useEffect(() => {
     const fetchTeams = async () => {
       try {
         const res = await fetch('/api/team');
         const data = await res.json();
+        
+        // Process team members
+        const processedMembers = (data || []).map((member: any) => ({
+          ...member,
+          id: member._id || member.id,
+          role: member.position,
+          email: member.linkedin
+        }));
+
         // Group by category
         const grouped: any = {};
-        (data || []).forEach((member: any) => {
+        processedMembers.forEach((member: any) => {
           const category = (member.category || 'Uncategorized').toLowerCase();
           if (!grouped[category]) {
             grouped[category] = [];
           }
-          grouped[category].push({
-            ...member,
-            id: member._id || member.id,
-            role: member.position,
-            email: member.linkedin // Using linkedin as email placeholder, adjust if needed
-          });
+          grouped[category].push(member);
         });
-        setTeamData(grouped);
 
-        // Generate categories dynamically from backend data
-        const uniqueCategories = Object.keys(grouped).sort();
-        const dynamicCategories = uniqueCategories.map(cat => ({
-          id: cat,
-          label: formatCategoryLabel(cat)
-        }));
-        setCategories(dynamicCategories);
+        // Sort categories by hierarchy
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+          return getCategoryOrder(a) - getCategoryOrder(b);
+        });
+
+        // Create ordered grouped object
+        const orderedGrouped: any = {};
+        sortedCategories.forEach(category => {
+          orderedGrouped[category] = grouped[category];
+        });
+
+        setGroupedTeams(orderedGrouped);
+        setTeamData(processedMembers);
       } catch (error) {
         console.error('Error fetching team:', error);
       } finally {
@@ -130,15 +144,6 @@ const Team = () => {
     };
     fetchTeams();
   }, []);
-
-  // Map activeCategory to the data key (handle case differences)
-  const getCurrentTeam = () => {
-    if (!activeCategory) return [];
-    const categoryKey = activeCategory.toLowerCase();
-    return teamData[categoryKey] || [];
-  };
-
-  const currentTeam = getCurrentTeam();
 
   if (loading) {
     return (
@@ -162,66 +167,33 @@ const Team = () => {
   return (
     <section className="py-8 md:py-16 px-4 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-left mb-6 md:mb-8">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#009f3b] mb-2">
-            OUR TEAM
-          </h2>
-          <p className="text-gray-600 text-xs md:text-sm">
-            Meet the talented individuals behind NK-3D Architecture Studio
-          </p>
-        </div>
+        {/* Display all team members hierarchically */}
+        {Object.keys(groupedTeams).length > 0 ? (
+          <div className="space-y-12">
+            {Object.entries(groupedTeams).map(([category, members]: [string, any]) => (
+              <div key={category} className="space-y-6">
+                {/* Category Header */}
+                <div className="pb-2">
+                  <h3 className="text-xl md:text-2xl font-bold text-[#009f3b]">
+                    {formatCategoryLabel(category)}
+                  </h3>
+                </div>
 
-        {/* Category Selection - Show when no category is selected */}
-        {!activeCategory && (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <p className="text-xl text-gray-700 mb-8 font-semibold">
-              Please select a team category from the navigation menu
+                {/* Team Members Grid for this category */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                  {members.map((member: any) => (
+                    <TeamMemberCard key={member.id} member={member} category={category} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              No team members available yet.
             </p>
           </div>
-        )}
-
-        {/* Category Selected - Show team members */}
-        {activeCategory && (
-          <>
-            {/* Category Toggle Buttons */}
-            <div className="mb-6">
-              <div className="flex flex-wrap justify-start gap-2">
-                {categories.map((category) => {
-                  const isActive = activeCategory?.toLowerCase() === category.id.toLowerCase();
-                  return (
-                    <Link
-                      key={category.id}
-                      href={`/team?category=${category.id}`}
-                      className={`px-4 py-2 text-sm font-semibold uppercase transition-all duration-300 ${
-                        isActive
-                          ? 'bg-[#009f3b] text-white'
-                          : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
-                      }`}
-                    >
-                      {category.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Team Members Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-              {currentTeam.map((member: any) => (
-                <TeamMemberCard key={member.id} member={member} category={activeCategory} />
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {currentTeam.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  No team members available in this category yet.
-                </p>
-              </div>
-            )}
-          </>
         )}
       </div>
     </section>

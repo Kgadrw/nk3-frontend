@@ -9,7 +9,6 @@ const Navbar = () => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isPastHero, setIsPastHero] = useState(false);
-  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -70,19 +69,6 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleMouseEnter = () => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-      dropdownTimeoutRef.current = null;
-    }
-    setTeamDropdownOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setTeamDropdownOpen(false);
-    }, 200); // Small delay before closing
-  };
 
   useEffect(() => {
     if (searchOpen && searchInputRef.current) {
@@ -144,11 +130,6 @@ const Navbar = () => {
     });
   }, [searchQuery, allSearchItems]);
 
-  const teamCategories = [
-    { id: 'founder', label: 'Company Founder', path: '/team?category=founder' },
-    { id: 'technical', label: 'Technical Team', path: '/team?category=technical' },
-    { id: 'advisors', label: 'Company Advisors', path: '/team?category=advisors' },
-  ];
 
   return (
     <header className="w-full">
@@ -283,58 +264,18 @@ const Navbar = () => {
                 }`}></span>
               </Link>
               
-              {/* Team Dropdown */}
-              <div 
-                className="relative"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
+              {/* Team Link */}
+              <Link 
+                href="/team" 
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
+                  pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
+                }`}
               >
-                <button 
-                  onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
-                  className={`relative text-[#009f3b] font-medium transition-all duration-300 py-2 flex items-center gap-1 cursor-pointer group ${
-                    pathname?.startsWith('/team') ? 'font-semibold' : ''
-                  }`}
-                >
-                  Team
-                  <svg 
-                    className={`w-4 h-4 transition-transform duration-300 ${teamDropdownOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
-                    pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
-                  }`}></span>
-                </button>
-                
-                {/* Dropdown Menu */}
-                {teamDropdownOpen && (
-                  <div 
-                    className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 shadow-lg z-50 rounded-sm"
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    {teamCategories.map((category) => (
-                      <Link
-                        key={category.id}
-                        href={category.path}
-                        className="block px-4 py-3 text-[#009f3b] hover:bg-[#009f3b] hover:text-white transition-colors first:rounded-t-sm last:rounded-b-sm"
-                        onClick={() => {
-                          setTeamDropdownOpen(false);
-                          if (dropdownTimeoutRef.current) {
-                            clearTimeout(dropdownTimeoutRef.current);
-                            dropdownTimeoutRef.current = null;
-                          }
-                        }}
-                      >
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+                Team
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
+                  pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
+                }`}></span>
+              </Link>
 
               <Link 
                 href="/academy" 
@@ -453,41 +394,15 @@ const Navbar = () => {
                 </Link>
                 
                 {/* Team Mobile */}
-                <div className="space-y-1">
-                  <button
-                    onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-[#009f3b] font-medium transition-colors ${
-                      pathname?.startsWith('/team') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <span>Team</span>
-                    <svg 
-                      className={`w-4 h-4 transition-transform ${teamDropdownOpen ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {teamDropdownOpen && (
-                    <div className="pl-4 space-y-1">
-                      {teamCategories.map((category) => (
-                        <Link
-                          key={category.id}
-                          href={category.path}
-                          onClick={() => {
-                            setTeamDropdownOpen(false);
-                            setMobileMenuOpen(false);
-                          }}
-                          className="block px-4 py-2 text-sm text-[#009f3b] hover:bg-gray-50 transition-colors"
-                        >
-                          {category.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href="/team"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                    pathname?.startsWith('/team') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  Team
+                </Link>
 
                 <Link 
                   href="/academy" 
