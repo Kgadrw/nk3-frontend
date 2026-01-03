@@ -202,7 +202,7 @@ const Navbar = () => {
 
       {/* Main Navigation Bar - White */}
       <div className={`bg-white border-b border-gray-200 transition-all duration-300 overflow-hidden ${
-        isPastHero ? 'fixed top-0 left-0 right-0 z-50 shadow-md' : isScrolled ? 'sticky top-0 z-50 shadow-md' : ''
+        isPastHero ? 'fixed top-0 left-0 right-0 z-50' : isScrolled ? 'sticky top-0 z-50' : ''
       }`}>
         <div className="max-w-7xl mx-auto px-4 transition-all duration-300 flex items-center">
           <div className="flex items-center justify-between gap-4 w-full">
