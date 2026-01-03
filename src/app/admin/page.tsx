@@ -559,24 +559,11 @@ export default function AdminDashboard() {
     
     if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
       showToast('Error: Invalid team member ID', 'error');
-      // Invalid team ID for deletion
       return;
     }
     
-    // Log the ID format for debugging
-    // Team ID format check
-      id: teamId,
-      length: teamId.length,
-      isObjectIdFormat: /^[0-9a-fA-F]{24}$/.test(teamId),
-      isAlphanumeric: /^[a-zA-Z0-9]+$/.test(teamId),
-      firstChars: teamId.substring(0, 10)
-    });
-    
-    // Very minimal validation - just check it's not empty
-    // Let the API and MongoDB handle format validation
     if (teamId.length < 1) {
       showToast('Error: Invalid team member ID format - ID is too short', 'error');
-      // Invalid ID format for deletion
       return;
     }
     
