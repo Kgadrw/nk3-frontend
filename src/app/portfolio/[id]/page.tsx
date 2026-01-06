@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, MapPin, Calendar, Tag, Building2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Tag, Building2, Users } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 
@@ -218,6 +218,22 @@ export default function PortfolioDetailPage() {
                   <div>
                     <p className="text-sm text-gray-600">Location</p>
                     <p className="font-semibold text-gray-900">{portfolio.location}</p>
+                  </div>
+                </div>
+              )}
+
+              {portfolio.designTeam && Array.isArray(portfolio.designTeam) && portfolio.designTeam.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <Users className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-2">Design Team</p>
+                    <div className="space-y-1">
+                      {portfolio.designTeam.map((member: string, index: number) => (
+                        <p key={index} className="font-semibold text-gray-900 text-sm">
+                          {member}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

@@ -121,6 +121,8 @@ export default function AdminDashboard() {
   const [portfolioKeyFeatures, setPortfolioKeyFeatures] = useState<string[]>([]);
   const [newKeyFeature, setNewKeyFeature] = useState('');
   const [portfolioGallery, setPortfolioGallery] = useState<string[]>([]);
+  const [portfolioDesignTeam, setPortfolioDesignTeam] = useState<string[]>([]);
+  const [newDesignTeamMember, setNewDesignTeamMember] = useState('');
   
   // Team management state
   const [showTeamForm, setShowTeamForm] = useState(false);
@@ -246,6 +248,7 @@ export default function AdminDashboard() {
         setPortfolioKeyFeatures(keyFeaturesArray);
         setPortfolioImage(portfolio.image || '');
         setPortfolioGallery(Array.isArray(portfolio.gallery) ? portfolio.gallery : []);
+        setPortfolioDesignTeam(Array.isArray(portfolio.designTeam) ? portfolio.designTeam : []);
       }
     } else if (!editingPortfolio) {
       // Reset form when not editing
@@ -263,6 +266,8 @@ export default function AdminDashboard() {
       setNewKeyFeature('');
       setPortfolioImage('');
       setPortfolioGallery([]);
+      setPortfolioDesignTeam([]);
+      setNewDesignTeamMember('');
     }
   }, [editingPortfolio, portfolios, availableCategories]);
 
@@ -437,7 +442,8 @@ export default function AdminDashboard() {
         area: portfolioArea,
         client: portfolioClient,
         status: portfolioStatus || 'Completed',
-        keyFeatures: portfolioKeyFeatures.join('\n')
+        keyFeatures: portfolioKeyFeatures.join('\n'),
+        designTeam: portfolioDesignTeam
       };
       const url = editingPortfolio ? `/api/portfolio/${editingPortfolio}` : '/api/portfolio';
       const method = editingPortfolio ? 'PUT' : 'POST';
@@ -469,6 +475,8 @@ export default function AdminDashboard() {
         setNewKeyFeature('');
         setPortfolioImage('');
         setPortfolioGallery([]);
+        setPortfolioDesignTeam([]);
+        setNewDesignTeamMember('');
       } else {
         const errorData = await res.json();
         showToast(`Error: ${errorData.error || 'Failed to save portfolio'}`, 'error');
@@ -2164,6 +2172,87 @@ export default function AdminDashboard() {
                       )}
                       {portfolioKeyFeatures.length === 0 && (
                         <p className="text-xs text-gray-500">No key features added yet. Add features above.</p>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Design Team</label>
+                    <div className="space-y-3">
+                      {/* Add New Team Member */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Enter team member name"
+                          value={newDesignTeamMember}
+                          onChange={(e) => setNewDesignTeamMember(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newDesignTeamMember.trim()) {
+                                setPortfolioDesignTeam([...portfolioDesignTeam, newDesignTeamMember.trim()]);
+                                setNewDesignTeamMember('');
+                              }
+                            }
+                          }}
+                          className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newDesignTeamMember.trim()) {
+                              setPortfolioDesignTeam([...portfolioDesignTeam, newDesignTeamMember.trim()]);
+                              setNewDesignTeamMember('');
+                            }
+                          }}
+                          className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors whitespace-nowrap"
+                        >
+                          Add Member
+                        </button>
+                      </div>
+                      
+                      {/* Design Team List */}
+                      {portfolioDesignTeam.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500">
+                            {portfolioDesignTeam.length} member{portfolioDesignTeam.length !== 1 ? 's' : ''} added
+                          </p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                            {portfolioDesignTeam.map((member, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors group"
+                              >
+                                <span className="flex-1 text-sm text-gray-700">{member}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPortfolioDesignTeam(portfolioDesignTeam.filter((_, i) => i !== index));
+                                  }}
+                                  className="text-red-600 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Remove member"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          {portfolioDesignTeam.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to remove all ${portfolioDesignTeam.length} design team members?`)) {
+                                  setPortfolioDesignTeam([]);
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-700 underline"
+                            >
+                              Clear All Members
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {portfolioDesignTeam.length === 0 && (
+                        <p className="text-xs text-gray-500">No design team members added yet. Add members above.</p>
                       )}
                     </div>
                   </div>

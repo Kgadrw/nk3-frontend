@@ -118,7 +118,7 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-gray-700 leading-relaxed">
                 <p className="text-base md:text-lg">
-                  <strong className="text-[#009f3b]">NK 3D Architecture Studio</strong> is a <strong className="text-[#009f3b]">design and construction</strong> consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.
+                  NK 3D Architecture Studio is a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.
                 </p>
                 <p className="text-base md:text-lg">
                   {aboutContent.description2}
