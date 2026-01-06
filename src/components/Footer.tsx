@@ -11,6 +11,12 @@ const Footer = () => {
     linkedin: '',
     instagram: ''
   });
+  const [contactInfo, setContactInfo] = useState({
+    phoneNumbers: [] as string[],
+    email: '',
+    address: ''
+  });
+  const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchSocialLinks = async () => {
@@ -30,7 +36,41 @@ const Footer = () => {
       }
     };
 
+    const fetchContactInfo = async () => {
+      try {
+        const res = await fetch('/api/contact');
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          setContactInfo({
+            phoneNumbers: data.phoneNumbers || [],
+            email: data.email || 'info@nk3darchitecture.com',
+            address: data.address || 'Kigali, Rwanda'
+          });
+        }
+      } catch (error) {
+        // Silently handle error
+      }
+    };
+
+    const fetchServices = async () => {
+      try {
+        const res = await fetch('/api/services');
+        const data = await res.json();
+        if (data && Array.isArray(data)) {
+          // Get top 5 services sorted by order
+          const topServices = data
+            .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+            .slice(0, 5);
+          setServices(topServices);
+        }
+      } catch (error) {
+        // Silently handle error
+      }
+    };
+
     fetchSocialLinks();
+    fetchContactInfo();
+    fetchServices();
   }, []);
 
   return (
@@ -39,8 +79,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Company Info */}
           <div>
-            <Link href="/" className="block -mt-4 md:-mt-6 lg:-mt-8">
-              <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48">
+            <Link href="/" className="block">
+              <div className="relative w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28">
                 <Image
                   src="/footer.JPG"
                   alt="NK 3D Architecture Studio Logo"
@@ -71,11 +111,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Services
-                </Link>
-              </li>
-              <li>
                 <Link href="/team" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                   Team
                 </Link>
@@ -92,31 +127,43 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg md:text-xl font-semibold mb-4">Services</h4>
             <ul className="space-y-2">
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Architectural Design
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Engineering
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Interior Design
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Construction Management
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                  Quantity Surveying
-                </Link>
-              </li>
+              {services.length > 0 ? (
+                services.map((service: any) => (
+                  <li key={service._id || service.id}>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      {service.title}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      Architectural Design
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      Engineering
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      Interior Design
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      Construction Management
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/contact" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
+                      Quantity Surveying
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -129,26 +176,39 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Kigali, Rwanda</span>
+                <span>{contactInfo.address || 'Kigali, Rwanda'}</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span>info@nk3darchitecture.com</span>
+                <span>{contactInfo.email || 'info@nk3darchitecture.com'}</span>
               </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                <span>+250 788 123 456</span>
-              </li>
+              {contactInfo.phoneNumbers.length > 0 ? (
+                contactInfo.phoneNumbers.map((phone, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-white transition-colors">
+                      {phone}
+                    </a>
+                  </li>
+                ))
+              ) : (
+                <li className="flex items-start gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>+250 788 123 456</span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white mt-12 pt-8">
+        <div className="mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm md:text-base text-gray-300 text-center md:text-left">
               © {new Date().getFullYear()} NK 3D Architecture Studio. All rights reserved.

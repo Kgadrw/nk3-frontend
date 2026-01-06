@@ -6,12 +6,12 @@ import { useState, useEffect } from 'react';
 
 const About = () => {
   const [aboutContent, setAboutContent] = useState({
-    homeHeading: 'ABOUT US',
-    homeSubheading: 'NK 3D ARCHITECTURE STUDIO.',
-    homeSince: 'we are here since 2016',
-    homeDescription1: 'We are a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.',
-    homeDescription2: 'The firm has a skilled team consisting of architects, engineers, quantity surveyors, technicians, designers, specialist consultants and support staff that are able to offer quality consultancy services on all types of construction work.',
-    homeImage: '/about.jpg',
+    homeHeading: '',
+    homeSubheading: '',
+    homeSince: '',
+    homeDescription1: '',
+    homeDescription2: '',
+    homeImage: '',
   });
 
   useEffect(() => {
@@ -19,18 +19,35 @@ const About = () => {
       try {
         const res = await fetch('/api/about');
         const data = await res.json();
-        if (data) {
+        if (data && Object.keys(data).length > 0) {
           setAboutContent({
-            homeHeading: data.homeHeading || aboutContent.homeHeading,
-            homeSubheading: data.homeSubheading || aboutContent.homeSubheading,
-            homeSince: data.homeSince || aboutContent.homeSince,
-            homeDescription1: data.homeDescription1 || aboutContent.homeDescription1,
-            homeDescription2: data.homeDescription2 || aboutContent.homeDescription2,
-            homeImage: data.homeImage || aboutContent.homeImage,
+            homeHeading: data.homeHeading || '',
+            homeSubheading: data.homeSubheading || '',
+            homeSince: data.homeSince || '',
+            homeDescription1: data.homeDescription1 || '',
+            homeDescription2: data.homeDescription2 || '',
+            homeImage: data.homeImage || '',
+          });
+        } else {
+          setAboutContent({
+            homeHeading: '',
+            homeSubheading: '',
+            homeSince: '',
+            homeDescription1: '',
+            homeDescription2: '',
+            homeImage: '',
           });
         }
       } catch (error) {
         console.error('Error fetching about content:', error);
+        setAboutContent({
+          homeHeading: '',
+          homeSubheading: '',
+          homeSince: '',
+          homeDescription1: '',
+          homeDescription2: '',
+          homeImage: '',
+        });
       }
     };
 
@@ -58,21 +75,32 @@ const About = () => {
           {/* Left Section - Text Content */}
           <div className="space-y-6">
             {/* Small heading */}
-            <p className="text-[#00782d] text-sm md:text-base font-medium uppercase tracking-wide">
-              {aboutContent.homeSince}
-            </p>
+            {aboutContent.homeSince && (
+              <p className="text-[#00782d] text-sm md:text-base font-medium uppercase tracking-wide">
+                {aboutContent.homeSince}
+              </p>
+            )}
 
             {/* Main heading */}
-            <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight">
-              <span className="text-[#009f3b]">{aboutContent.homeHeading}</span>{' '}
-              <span className="text-[#009f3b]/60">{aboutContent.homeSubheading}</span>
-            </h2>
+            {(aboutContent.homeHeading || aboutContent.homeSubheading) && (
+              <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight">
+                {aboutContent.homeHeading && (
+                  <span className="text-[#009f3b]">{aboutContent.homeHeading}</span>
+                )}
+                {aboutContent.homeHeading && aboutContent.homeSubheading && ' '}
+                {aboutContent.homeSubheading && (
+                  <span className="text-[#009f3b]/60">{aboutContent.homeSubheading}</span>
+                )}
+              </h2>
+            )}
 
             {/* Description paragraphs */}
-            <div className="space-y-4 text-[#00782d] text-sm md:text-base leading-relaxed">
-              <p>{aboutContent.homeDescription1}</p>
-              <p>{aboutContent.homeDescription2}</p>
-            </div>
+            {(aboutContent.homeDescription1 || aboutContent.homeDescription2) && (
+              <div className="space-y-4 text-[#00782d] text-sm md:text-base leading-relaxed">
+                {aboutContent.homeDescription1 && <p>{aboutContent.homeDescription1}</p>}
+                {aboutContent.homeDescription2 && <p>{aboutContent.homeDescription2}</p>}
+              </div>
+            )}
 
             {/* CTA Button */}
             <Link 
@@ -84,17 +112,19 @@ const About = () => {
           </div>
 
           {/* Right Section - Image */}
-          <div className="relative h-[300px] md:h-[350px] lg:h-[400px]">
-            {/* Photo */}
-            <div className="absolute inset-0 rounded-none overflow-hidden">
-              <Image
-                src={aboutContent.homeImage || '/about.jpg'}
-                alt="About Us"
-                fill
-                className="object-cover grayscale"
-              />
+          {aboutContent.homeImage && (
+            <div className="relative h-[300px] md:h-[350px] lg:h-[400px]">
+              {/* Photo */}
+              <div className="absolute inset-0 rounded-none overflow-hidden">
+                <Image
+                  src={aboutContent.homeImage}
+                  alt="About Us"
+                  fill
+                  className="object-cover grayscale"
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </section>

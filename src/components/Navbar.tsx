@@ -21,12 +21,19 @@ const Navbar = () => {
     linkedin: '',
     instagram: ''
   });
+  const [contactInfo, setContactInfo] = useState({
+    phoneNumbers: [] as string[],
+    email: ''
+  });
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      // Hero section is approximately 70vh or min 500px, so check if scrolled past that
-      const heroHeight = Math.max(window.innerHeight * 0.7, 500);
+      // Hero section is 50vh on mobile (min 300px) or 70vh on desktop (min 500px)
+      const isMobile = window.innerWidth < 768;
+      const heroHeight = isMobile 
+        ? Math.max(window.innerHeight * 0.5, 300)
+        : Math.max(window.innerHeight * 0.7, 500);
       setIsPastHero(window.scrollY > heroHeight);
     };
 
@@ -52,6 +59,21 @@ const Navbar = () => {
       }
     };
 
+    const fetchContactInfo = async () => {
+      try {
+        const res = await fetch('/api/contact');
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          setContactInfo({
+            phoneNumbers: data.phoneNumbers || [],
+            email: data.email || ''
+          });
+        }
+      } catch (error) {
+        // Error fetching contact info
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('cartUpdated', handleCartUpdate);
     
@@ -59,6 +81,8 @@ const Navbar = () => {
     handleCartUpdate();
     // Fetch social links
     fetchSocialLinks();
+    // Fetch contact info
+    fetchContactInfo();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -147,24 +171,40 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:gap-6 flex-wrap text-xs md:text-sm">
             {/* Contact Information */}
             <div className="flex items-center gap-2 md:gap-4">
-              <div className="flex items-center gap-1 md:gap-2">
-                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                <span className="text-xs md:text-sm">PH: +(250) 783 206 660</span>
-              </div>
-              <div className="flex items-center gap-1 md:gap-2">
-                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                <span className="text-xs md:text-sm">+86 13259839600</span>
-              </div>
+              {contactInfo.phoneNumbers.slice(0, 2).map((phone, index) => (
+                <div key={index} className="flex items-center gap-1 md:gap-2">
+                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  <span className="text-xs md:text-sm">
+                    {index === 0 ? 'PH: ' : ''}{phone}
+                  </span>
+                </div>
+              ))}
+              {contactInfo.phoneNumbers.length === 0 && (
+                <>
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                    <span className="text-xs md:text-sm">PH: +(250) 783 206 660</span>
+                  </div>
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                    <span className="text-xs md:text-sm">+86 13259839600</span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center gap-1 md:gap-2">
                 <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                <span className="text-xs md:text-sm hidden lg:inline">Email: Info@Nk3dstudio.Rw</span>
+                <span className="text-xs md:text-sm hidden lg:inline">
+                  Email: {contactInfo.email || 'Info@Nk3dstudio.Rw'}
+                </span>
               </div>
             </div>
 
@@ -367,10 +407,31 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - Slide from Right */}
           {mobileMenuOpen && (
-            <div className="md:hidden bg-white border-t border-gray-200">
-              <nav className="px-4 py-4 space-y-2">
+            <>
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+              ></div>
+              {/* Menu Drawer */}
+              <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${
+                mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+              }`}>
+                <nav className="px-4 py-6 space-y-2 h-full overflow-y-auto">
+                  {/* Close Button */}
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-10 h-10 bg-[#009f3b] flex items-center justify-center hover:bg-[#00782d] transition-colors"
+                      aria-label="Close Menu"
+                    >
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 <Link 
                   href="/" 
                   onClick={() => setMobileMenuOpen(false)}
@@ -435,8 +496,9 @@ const Navbar = () => {
                 >
                   Contact Us
                 </Link>
-              </nav>
-            </div>
+                </nav>
+              </div>
+            </>
           )}
         </div>
       </div>

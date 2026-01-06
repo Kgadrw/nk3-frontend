@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
@@ -13,8 +13,45 @@ export default function ContactPage() {
     message: ''
   });
 
+  const [contactInfo, setContactInfo] = useState({
+    phoneNumbers: [] as string[],
+    email: '',
+    address: '',
+    website: '',
+    businessHours: {
+      weekdays: '',
+      saturday: '',
+      sunday: ''
+    }
+  });
+
   // Toast notifications
   const [toasts, setToasts] = useState<Toast[]>([]);
+  
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const res = await fetch('/api/contact');
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          setContactInfo({
+            phoneNumbers: data.phoneNumbers || [],
+            email: data.email || 'Info@Nk3dstudio.Rw',
+            address: data.address || 'Kigali, Rwanda',
+            website: data.website || 'www.nk3dstudio.rw',
+            businessHours: data.businessHours || {
+              weekdays: '8:00 AM - 5:00 PM',
+              saturday: '9:00 AM - 1:00 PM',
+              sunday: 'Closed'
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching contact info:', error);
+      }
+    };
+    fetchContactInfo();
+  }, []);
   
   const showToast = (message: string, type: ToastType = 'info', duration: number = 5000) => {
     const id = Math.random().toString(36).substring(7);
@@ -97,7 +134,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#009f3b] mb-1">Address</h3>
-                  <p className="text-gray-700">Kigali, Rwanda</p>
+                  <p className="text-gray-700">{contactInfo.address || 'Kigali, Rwanda'}</p>
                 </div>
               </div>
 
@@ -110,8 +147,20 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#009f3b] mb-1">Phone</h3>
-                  <p className="text-gray-700">+(250) 783 206 660</p>
-                  <p className="text-gray-700">+250 789 140 125</p>
+                  {contactInfo.phoneNumbers.length > 0 ? (
+                    contactInfo.phoneNumbers.map((phone, index) => (
+                      <p key={index} className="text-gray-700">
+                        <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-[#009f3b] transition-colors">
+                          {phone}
+                        </a>
+                      </p>
+                    ))
+                  ) : (
+                    <>
+                      <p className="text-gray-700">+(250) 783 206 660</p>
+                      <p className="text-gray-700">+250 789 140 125</p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -124,7 +173,11 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#009f3b] mb-1">Email</h3>
-                  <p className="text-gray-700">Info@Nk3dstudio.Rw</p>
+                  <p className="text-gray-700">
+                    <a href={`mailto:${contactInfo.email || 'Info@Nk3dstudio.Rw'}`} className="hover:text-[#009f3b] transition-colors">
+                      {contactInfo.email || 'Info@Nk3dstudio.Rw'}
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -137,7 +190,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#009f3b] mb-1">Website</h3>
-                  <p className="text-gray-700">www.nk3dstudio.rw</p>
+                  <p className="text-gray-700">{contactInfo.website || 'www.nk3dstudio.rw'}</p>
                 </div>
               </div>
             </div>
@@ -148,15 +201,15 @@ export default function ContactPage() {
               <div className="space-y-2 text-gray-700">
                 <div className="flex justify-between">
                   <span className="font-semibold">Monday - Friday:</span>
-                  <span>8:00 AM - 5:00 PM</span>
+                  <span>{contactInfo.businessHours.weekdays || '8:00 AM - 5:00 PM'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Saturday:</span>
-                  <span>9:00 AM - 1:00 PM</span>
+                  <span>{contactInfo.businessHours.saturday || '9:00 AM - 1:00 PM'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Sunday:</span>
-                  <span>Closed</span>
+                  <span>{contactInfo.businessHours.sunday || 'Closed'}</span>
                 </div>
               </div>
             </div>

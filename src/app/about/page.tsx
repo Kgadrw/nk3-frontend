@@ -4,56 +4,72 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, ArrowRight } from 'lucide-react';
 
 export default function AboutPage() {
   const [aboutContent, setAboutContent] = useState({
-    title: 'ABOUT NK 3D ARCHITECTURE STUDIO',
-    description1: 'We are a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.',
-    description2: 'The firm has a skilled team consisting of architects, engineers, quantity surveyors, technicians, designers, specialist consultants and support staff that are able to offer quality consultancy services on all types of construction work.',
-    aboutImage: '/about.jpg',
-    aim: 'Our aim is to give the most in sync design for our projects in relation to cost, time & quality while respecting environmental, cultural and technical concerns all through while both preserving sustainability & context, and follow where innovations leads us.',
+    title: '',
+    description1: '',
+    description2: '',
+    aboutImage: '',
+    aim: '',
   });
   const [partners, setPartners] = useState<any[]>([]);
-  const values = [
-    { id: 'integrity', label: 'INTEGRITY', description: 'We maintain the highest standards of honesty, transparency, and ethical conduct in all our professional relationships and project deliveries.' },
-    { id: 'passionate', label: 'PASSIONATE', description: 'Our team is driven by a genuine passion for architecture and design, bringing enthusiasm and dedication to every project we undertake.' },
-    { id: 'adaptability', label: 'ADAPTABILITY', description: 'We embrace change and innovation, adapting our approaches to meet evolving client needs, technological advancements, and industry best practices.' },
-  ];
+  const [services, setServices] = useState<any[]>([]);
+  const [values, setValues] = useState<any[]>([]);
+  
+  
   // Initialize all values as expanded by default
-  const [expandedValues, setExpandedValues] = useState<{ [key: string]: boolean }>(() => {
-    const initial: { [key: string]: boolean } = {};
-    values.forEach(value => {
-      initial[value.id] = true;
-    });
-    return initial;
-  });
+  const [expandedValues, setExpandedValues] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAboutContent = async () => {
       try {
         setLoading(true);
-        const [aboutRes, partnersRes] = await Promise.all([
+        const [aboutRes, partnersRes, servicesRes, valuesRes] = await Promise.all([
           fetch('/api/about'),
-          fetch('/api/partners')
+          fetch('/api/partners'),
+          fetch('/api/services'),
+          fetch('/api/values')
         ]);
         
         const aboutData = await aboutRes.json();
         const partnersData = await partnersRes.json();
+        const servicesData = await servicesRes.json();
+        const valuesData = await valuesRes.json();
         
-        // Check if data exists and has properties
+        // Only use data from API, no fallbacks or defaults
         if (aboutData && Object.keys(aboutData).length > 0) {
+          // Only set values that actually exist in the API response
           setAboutContent({
-            title: aboutData.title || aboutData.homeHeading || 'ABOUT NK 3D ARCHITECTURE STUDIO',
-            description1: aboutData.description1 || aboutData.homeDescription1 || aboutData.paragraph1 || 'We are a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.',
-            description2: aboutData.description2 || aboutData.homeDescription2 || aboutData.paragraph2 || 'The firm has a skilled team consisting of architects, engineers, quantity surveyors, technicians, designers, specialist consultants and support staff that are able to offer quality consultancy services on all types of construction work.',
-            aboutImage: aboutData.aboutImage || aboutData.homeImage || '/about.jpg',
-            aim: aboutData.aim || aboutData.paragraph3 || 'Our aim is to give the most in sync design for our projects in relation to cost, time & quality while respecting environmental, cultural and technical concerns all through while both preserving sustainability & context, and follow where innovations leads us.',
+            title: aboutData.title || aboutData.homeHeading || '',
+            description1: aboutData.description1 || aboutData.homeDescription1 || aboutData.paragraph1 || '',
+            description2: aboutData.description2 || aboutData.homeDescription2 || aboutData.paragraph2 || '',
+            aboutImage: aboutData.aboutImage || aboutData.homeImage || '',
+            aim: aboutData.aim || aboutData.paragraph3 || '',
+          });
+        } else {
+          // Ensure empty state if no data
+          setAboutContent({
+            title: '',
+            description1: '',
+            description2: '',
+            aboutImage: '',
+            aim: '',
           });
         }
         
         setPartners(partnersData || []);
+        setServices(servicesData || []);
+        setValues(valuesData || []);
+        
+        // Initialize expanded values state
+        const initialExpanded: { [key: string]: boolean } = {};
+        (valuesData || []).forEach((value: any) => {
+          initialExpanded[value._id || value.id] = true;
+        });
+        setExpandedValues(initialExpanded);
       } catch (error) {
         console.error('Error fetching about content:', error);
       } finally {
@@ -97,47 +113,59 @@ export default function AboutPage() {
       <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8 py-8 md:py-12">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Image at the top */}
-          <div className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden">
-            <Image
-              src={aboutContent.aboutImage || '/about.jpg'}
-              alt="About Us"
-              fill
-              className="object-cover"
-              priority
-            />
-            {/* Green opacity overlay */}
-            <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
-          </div>
+          {aboutContent.aboutImage && (
+            <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+              <Image
+                src={aboutContent.aboutImage}
+                alt="About Us"
+                fill
+                className="object-cover"
+                priority
+              />
+              {/* Green opacity overlay */}
+              <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
+            </div>
+          )}
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Left Column - About Section */}
             <div className="space-y-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">
-                {aboutContent.title}
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p className="text-base md:text-lg">
-                  NK 3D Architecture Studio is a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.
-                </p>
-                <p className="text-base md:text-lg">
-                  {aboutContent.description2}
-                </p>
-              </div>
+              {aboutContent.title && (
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">
+                  {aboutContent.title}
+                </h2>
+              )}
+              {(aboutContent.description1 || aboutContent.description2) && (
+                <div className="space-y-4 text-gray-700 leading-relaxed">
+                  {aboutContent.description1 && (
+                    <p className="text-base md:text-lg">
+                      {aboutContent.description1}
+                    </p>
+                  )}
+                  {aboutContent.description2 && (
+                    <p className="text-base md:text-lg">
+                      {aboutContent.description2}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Our Aim Section - Below About */}
-              <div className="pt-6 mt-6 border-t border-gray-200">
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <div className="flex-1 h-px bg-[#009f3b]"></div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
-                    OUR AIM
-                  </h3>
-                  <div className="flex-1 h-px bg-[#009f3b]"></div>
+              {aboutContent.aim && (
+                <div className="pt-6 mt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-center gap-4 mb-6">
+                    <div className="flex-1 h-px bg-[#009f3b]"></div>
+                    <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
+                      OUR AIM
+                    </h3>
+                    <div className="flex-1 h-px bg-[#009f3b]"></div>
+                  </div>
+                  <p className="text-gray-700 text-base md:text-lg leading-relaxed">
+                    {aboutContent.aim}
+                  </p>
                 </div>
-                <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-                  {aboutContent.aim}
-                </p>
-              </div>
+              )}
             </div>
 
             {/* Right Column - Values and Traits */}
@@ -152,36 +180,87 @@ export default function AboutPage() {
                   <div className="flex-1 h-px bg-[#009f3b]"></div>
                 </div>
                 
-                <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
-                  {values.map((value, index) => (
-                    <div key={value.id}>
-                      <button
-                        onClick={() => toggleValue(value.id)}
-                        className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-colors text-left"
-                      >
-                        <span className="text-base md:text-lg font-bold text-[#009f3b] uppercase">
-                          {value.label}
-                        </span>
-                        <span className="text-[#009f3b] flex-shrink-0 ml-4">
-                          {expandedValues[value.id] ? (
-                            <Minus className="w-5 h-5" />
-                          ) : (
-                            <Plus className="w-5 h-5" />
-                          )}
-                        </span>
-                      </button>
-                      {expandedValues[value.id] && (
-                        <div className="px-4 md:px-5 pb-4 md:pb-5 text-gray-700 text-sm md:text-base leading-relaxed">
-                          {value.description}
-                        </div>
-                      )}
-                      {index < values.length - 1 && (
-                        <div className="h-px bg-gray-200"></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                {values.length > 0 ? (
+                  <div className="space-y-0 border border-gray-200">
+                    {values.map((value: any, index: number) => (
+                      <div key={value._id || value.id}>
+                        <button
+                          onClick={() => toggleValue(value._id || value.id)}
+                          className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-colors text-left"
+                        >
+                          <span className="text-base md:text-lg font-bold text-[#009f3b] uppercase">
+                            {value.label}
+                          </span>
+                          <span className="text-[#009f3b] flex-shrink-0 ml-4">
+                            {expandedValues[value._id || value.id] ? (
+                              <Minus className="w-5 h-5" />
+                            ) : (
+                              <Plus className="w-5 h-5" />
+                            )}
+                          </span>
+                        </button>
+                        {expandedValues[value._id || value.id] && (
+                          <div className="px-4 md:px-5 pb-4 md:pb-5 text-gray-700 text-sm md:text-base leading-relaxed">
+                            {value.description}
+                          </div>
+                        )}
+                        {index < values.length - 1 && (
+                          <div className="h-px bg-gray-200"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No values and traits available yet.</p>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* Services Section */}
+          <div className="pt-8 border-t border-gray-200">
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="flex-1 h-px bg-[#009f3b]"></div>
+              <h3 className="text-2xl md:text-3xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
+                Our Services
+              </h3>
+              <div className="flex-1 h-px bg-[#009f3b]"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {services.length > 0 ? services.map((service: any) => {
+                return (
+                  <div
+                    key={service._id || service.id}
+                    className="bg-white border border-gray-200 p-6 flex flex-col h-full"
+                  >
+                    <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-3">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
+                      {service.description}
+                    </p>
+                    {service.features && service.features.length > 0 && (
+                      <ul className="space-y-2 mb-4 flex-grow">
+                        {service.features.map((feature: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2 text-gray-600 text-sm">
+                            <span className="text-[#009f3b] mt-1">•</span>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors mt-auto"
+                    >
+                      Get a Quote
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                );
+              }) : (
+                <p className="col-span-full text-center text-gray-500 py-8">No services available yet.</p>
+              )}
             </div>
           </div>
 

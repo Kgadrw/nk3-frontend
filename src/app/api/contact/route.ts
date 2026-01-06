@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender
 
 export async function GET() {
   try {
-    const res = await fetch(`${API_URL}/api/about`);
+    const res = await fetch(`${API_URL}/api/contact`);
     
     if (!res.ok) {
       return NextResponse.json({});
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const res = await fetch(`${API_URL}/api/about`, {
+    const res = await fetch(`${API_URL}/api/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const res = await fetch(`${API_URL}/api/about`, {
+    const res = await fetch(`${API_URL}/api/contact`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE() {
   try {
-    const res = await fetch(`${API_URL}/api/about`, {
+    const res = await fetch(`${API_URL}/api/contact`, {
       method: 'DELETE',
     });
     
