@@ -123,6 +123,8 @@ export default function AdminDashboard() {
   const [portfolioGallery, setPortfolioGallery] = useState<string[]>([]);
   const [portfolioDesignTeam, setPortfolioDesignTeam] = useState<string[]>([]);
   const [newDesignTeamMember, setNewDesignTeamMember] = useState('');
+  const [selectedTeamMemberId, setSelectedTeamMemberId] = useState('');
+  const [designTeamInputMode, setDesignTeamInputMode] = useState<'existing' | 'new'>('existing');
   
   // Team management state
   const [showTeamForm, setShowTeamForm] = useState(false);
@@ -268,6 +270,8 @@ export default function AdminDashboard() {
       setPortfolioGallery([]);
       setPortfolioDesignTeam([]);
       setNewDesignTeamMember('');
+      setSelectedTeamMemberId('');
+      setDesignTeamInputMode('existing');
     }
   }, [editingPortfolio, portfolios, availableCategories]);
 
@@ -477,6 +481,8 @@ export default function AdminDashboard() {
         setPortfolioGallery([]);
         setPortfolioDesignTeam([]);
         setNewDesignTeamMember('');
+        setSelectedTeamMemberId('');
+        setDesignTeamInputMode('existing');
       } else {
         const errorData = await res.json();
         showToast(`Error: ${errorData.error || 'Failed to save portfolio'}`, 'error');
@@ -2178,37 +2184,109 @@ export default function AdminDashboard() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Design Team</label>
                     <div className="space-y-3">
-                      {/* Add New Team Member */}
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Enter team member name"
-                          value={newDesignTeamMember}
-                          onChange={(e) => setNewDesignTeamMember(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (newDesignTeamMember.trim()) {
+                      {/* Input Mode Toggle */}
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setDesignTeamInputMode('existing')}
+                          className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                            designTeamInputMode === 'existing'
+                              ? 'bg-[#009f3b] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Select from Team
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDesignTeamInputMode('new')}
+                          className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                            designTeamInputMode === 'new'
+                              ? 'bg-[#009f3b] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Add New Name
+                        </button>
+                      </div>
+
+                      {/* Select from Existing Team Members */}
+                      {designTeamInputMode === 'existing' && (
+                        <div className="flex gap-2">
+                          <select
+                            value={selectedTeamMemberId}
+                            onChange={(e) => setSelectedTeamMemberId(e.target.value)}
+                            className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                          >
+                            <option value="">Select a team member</option>
+                            {teams.map((team) => {
+                              const memberName = `${team.name}${team.position ? ` - ${team.position}` : ''}`;
+                              // Check if this member is already in the design team
+                              const isAlreadyAdded = portfolioDesignTeam.includes(team.name);
+                              return (
+                                <option
+                                  key={team.id || team._id}
+                                  value={team.id || team._id}
+                                  disabled={isAlreadyAdded}
+                                >
+                                  {memberName}{isAlreadyAdded ? ' (Already added)' : ''}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (selectedTeamMemberId) {
+                                const selectedTeam = teams.find(t => (t.id || t._id) === selectedTeamMemberId);
+                                if (selectedTeam && !portfolioDesignTeam.includes(selectedTeam.name)) {
+                                  setPortfolioDesignTeam([...portfolioDesignTeam, selectedTeam.name]);
+                                  setSelectedTeamMemberId('');
+                                }
+                              }
+                            }}
+                            disabled={!selectedTeamMemberId}
+                            className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors whitespace-nowrap disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          >
+                            Add Member
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Add New Team Member Name */}
+                      {designTeamInputMode === 'new' && (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Enter team member name"
+                            value={newDesignTeamMember}
+                            onChange={(e) => setNewDesignTeamMember(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (newDesignTeamMember.trim() && !portfolioDesignTeam.includes(newDesignTeamMember.trim())) {
+                                  setPortfolioDesignTeam([...portfolioDesignTeam, newDesignTeamMember.trim()]);
+                                  setNewDesignTeamMember('');
+                                }
+                              }
+                            }}
+                            className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (newDesignTeamMember.trim() && !portfolioDesignTeam.includes(newDesignTeamMember.trim())) {
                                 setPortfolioDesignTeam([...portfolioDesignTeam, newDesignTeamMember.trim()]);
                                 setNewDesignTeamMember('');
                               }
-                            }
-                          }}
-                          className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (newDesignTeamMember.trim()) {
-                              setPortfolioDesignTeam([...portfolioDesignTeam, newDesignTeamMember.trim()]);
-                              setNewDesignTeamMember('');
-                            }
-                          }}
-                          className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors whitespace-nowrap"
-                        >
-                          Add Member
-                        </button>
-                      </div>
+                            }}
+                            disabled={!newDesignTeamMember.trim() || portfolioDesignTeam.includes(newDesignTeamMember.trim())}
+                            className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors whitespace-nowrap disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          >
+                            Add Member
+                          </button>
+                        </div>
+                      )}
                       
                       {/* Design Team List */}
                       {portfolioDesignTeam.length > 0 && (
