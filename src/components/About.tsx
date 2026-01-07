@@ -2,57 +2,17 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
 const About = () => {
-  const [aboutContent, setAboutContent] = useState({
-    homeHeading: '',
+  // Hardcoded data - no backend fetch
+  const aboutContent = {
+    homeSince: 'Since 2016',
+    homeHeading: 'Our Story, Vision, and Values',
     homeSubheading: '',
-    homeSince: '',
-    homeDescription1: '',
-    homeDescription2: '',
-    homeImage: '',
-  });
-
-  useEffect(() => {
-    const fetchAboutContent = async () => {
-      try {
-        const res = await fetch('/api/about');
-        const data = await res.json();
-        if (data && Object.keys(data).length > 0) {
-          setAboutContent({
-            homeHeading: data.homeHeading || '',
-            homeSubheading: data.homeSubheading || '',
-            homeSince: data.homeSince || '',
-            homeDescription1: data.homeDescription1 || '',
-            homeDescription2: data.homeDescription2 || '',
-            homeImage: data.homeImage || '',
-          });
-        } else {
-          setAboutContent({
-            homeHeading: '',
-            homeSubheading: '',
-            homeSince: '',
-            homeDescription1: '',
-            homeDescription2: '',
-            homeImage: '',
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching about content:', error);
-        setAboutContent({
-          homeHeading: '',
-          homeSubheading: '',
-          homeSince: '',
-          homeDescription1: '',
-          homeDescription2: '',
-          homeImage: '',
-        });
-      }
-    };
-
-    fetchAboutContent();
-  }, []);
+    homeDescription1: 'We are a design and construction consultancy company established in 2016, specializing in planning, design and management of architectural, engineering and interior design projects practicing in Kigali Rwanda.',
+    homeDescription2: 'The firm has a skilled team consisting of architects, engineers, quantity surveyors, technicians, designers, specialist consultants and support staff that are able to offer quality consultancy services on all types of construction work.',
+    homeImage: '/about.jpg',
+  };
 
   return (
     <section className="relative w-full min-h-[400px] overflow-hidden">

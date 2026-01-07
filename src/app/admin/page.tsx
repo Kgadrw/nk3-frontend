@@ -205,11 +205,8 @@ export default function AdminDashboard() {
   
   // About page content state
   const [aboutContent, setAboutContent] = useState({
-    title: '',
-    description1: '',
-    description2: '',
     aboutImage: '',
-    aim: ''
+    description: ''
   });
   const [aboutImage, setAboutImage] = useState('');
   
@@ -221,7 +218,6 @@ export default function AdminDashboard() {
   const [serviceDescription, setServiceDescription] = useState('');
   const [serviceFeatures, setServiceFeatures] = useState<string[]>([]);
   const [newServiceFeature, setNewServiceFeature] = useState('');
-  const [serviceOrder, setServiceOrder] = useState(0);
   
   // Values management state
   const [values, setValues] = useState<any[]>([]);
@@ -383,14 +379,12 @@ export default function AdminDashboard() {
         setServiceTitle(service.title || '');
         setServiceDescription(service.description || '');
         setServiceFeatures(service.features || []);
-        setServiceOrder(service.order || 0);
       }
     } else if (!editingService) {
       setServiceTitle('');
       setServiceDescription('');
       setServiceFeatures([]);
       setNewServiceFeature('');
-      setServiceOrder(0);
     }
   }, [editingService, services]);
 
@@ -472,11 +466,8 @@ export default function AdminDashboard() {
       // Set about content
       if (aboutData && Object.keys(aboutData).length > 0) {
         setAboutContent({
-          title: aboutData.title || aboutData.homeHeading || 'ABOUT NK 3D ARCHITECTURE STUDIO',
-          description1: aboutData.description1 || aboutData.homeDescription1 || aboutData.paragraph1 || '',
-          description2: aboutData.description2 || aboutData.homeDescription2 || aboutData.paragraph2 || '',
           aboutImage: aboutData.aboutImage || aboutData.homeImage || '',
-          aim: aboutData.aim || aboutData.paragraph3 || ''
+          description: aboutData.description || aboutData.description1 || aboutData.description2 || ''
         });
         setAboutImage(aboutData.aboutImage || aboutData.homeImage || '');
       }
@@ -1003,8 +994,7 @@ export default function AdminDashboard() {
       const data = {
         title: serviceTitle,
         description: serviceDescription,
-        features: serviceFeatures.filter(f => f.trim() !== ''),
-        order: serviceOrder || 0
+        features: serviceFeatures.filter(f => f.trim() !== '')
       };
       const url = editingService ? `/api/services/${editingService}` : '/api/services';
       const method = editingService ? 'PUT' : 'POST';
@@ -1021,7 +1011,6 @@ export default function AdminDashboard() {
         setServiceDescription('');
         setServiceFeatures([]);
         setNewServiceFeature('');
-        setServiceOrder(0);
         showToast('Service saved successfully!', 'success');
       } else {
         const errorData = await res.json();
@@ -1160,25 +1149,14 @@ export default function AdminDashboard() {
 
   const handleSaveAbout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aboutContent.title || !aboutContent.description1 || !aboutContent.description2 || !aboutContent.aim) {
-      showToast('Please fill in all required fields (Title, Description 1, Description 2, Aim)', 'warning');
+    if (!aboutContent.description) {
+      showToast('Please fill in the description field', 'warning');
       return;
     }
     try {
       const data = {
-        title: aboutContent.title,
-        description1: aboutContent.description1,
-        description2: aboutContent.description2,
         aboutImage: aboutImage || aboutContent.aboutImage,
-        aim: aboutContent.aim,
-        // Also update fields that might be used by homepage
-        homeHeading: aboutContent.title,
-        homeDescription1: aboutContent.description1,
-        homeDescription2: aboutContent.description2,
-        homeImage: aboutImage || aboutContent.aboutImage,
-        paragraph1: aboutContent.description1,
-        paragraph2: aboutContent.description2,
-        paragraph3: aboutContent.aim
+        description: aboutContent.description
       };
       const res = await fetch('/api/about', {
         method: 'PUT',
@@ -4593,70 +4571,6 @@ export default function AdminDashboard() {
                   </div>
                   <div className="p-6">
                     <form onSubmit={handleSaveAbout} className="space-y-5">
-                      {/* Title */}
-                      <div>
-                        <label htmlFor="aboutTitle" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Page Title <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="aboutTitle"
-                          value={aboutContent.title}
-                          onChange={(e) => setAboutContent({ ...aboutContent, title: e.target.value })}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all"
-                          placeholder="ABOUT NK 3D ARCHITECTURE STUDIO"
-                          required
-                        />
-                      </div>
-
-                      {/* Description 1 */}
-                      <div>
-                        <label htmlFor="aboutDescription1" className="block text-sm font-semibold text-gray-700 mb-2">
-                          First Description <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="aboutDescription1"
-                          value={aboutContent.description1}
-                          onChange={(e) => setAboutContent({ ...aboutContent, description1: e.target.value })}
-                          rows={4}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y"
-                          placeholder="We are a design and construction consultancy company established in 2016..."
-                          required
-                        />
-                      </div>
-
-                      {/* Description 2 */}
-                      <div>
-                        <label htmlFor="aboutDescription2" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Second Description <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="aboutDescription2"
-                          value={aboutContent.description2}
-                          onChange={(e) => setAboutContent({ ...aboutContent, description2: e.target.value })}
-                          rows={4}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y"
-                          placeholder="The firm has a skilled team consisting of architects..."
-                          required
-                        />
-                      </div>
-
-                      {/* Aim */}
-                      <div>
-                        <label htmlFor="aboutAim" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Our Aim <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="aboutAim"
-                          value={aboutContent.aim}
-                          onChange={(e) => setAboutContent({ ...aboutContent, aim: e.target.value })}
-                          rows={4}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y"
-                          placeholder="Our aim is to give the most in sync design for our projects..."
-                          required
-                        />
-                      </div>
-
                       {/* About Image Upload */}
                       <div>
                         <label htmlFor="aboutImage" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -4710,6 +4624,22 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
+                      {/* Description */}
+                      <div>
+                        <label htmlFor="aboutDescription" className="block text-sm font-semibold text-gray-700 mb-2">
+                          About Description <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          id="aboutDescription"
+                          value={aboutContent.description}
+                          onChange={(e) => setAboutContent({ ...aboutContent, description: e.target.value })}
+                          rows={8}
+                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y"
+                          placeholder="Enter the about page description..."
+                          required
+                        />
+                      </div>
+
                       {/* Save Button */}
                       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                         <button
@@ -4724,677 +4654,199 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Live Preview */}
+              {/* Right Column - Services Management */}
               <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-[#009f3b]" />
-                    Live Preview
-                  </h3>
-                  <p className="text-xs text-gray-600 mt-1">See how your changes will appear on the frontend</p>
-                </div>
-                  <div className="bg-gray-50 p-4 md:p-6 max-h-[calc(100vh-250px)] overflow-y-auto">
-                <div className="max-w-6xl mx-auto space-y-12">
-                  {/* Image at the top */}
-                  {aboutContent.aboutImage && (
-                    <div className="relative w-full h-[300px] md:h-[400px] overflow-hidden">
-                      <Image
-                        src={aboutContent.aboutImage}
-                        alt="About Us"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                      <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
-                    </div>
-                  )}
-
-                  {/* Two Column Layout */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Left Column */}
-                    <div className="space-y-6">
-                      {aboutContent.title && (
-                        <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">
-                          {aboutContent.title}
-                        </h2>
-                      )}
-                      {(aboutContent.description1 || aboutContent.description2) && (
-                        <div className="space-y-4 text-gray-700 leading-relaxed">
-                          {aboutContent.description1 && (
-                            <p className="text-base md:text-lg">{aboutContent.description1}</p>
-                          )}
-                          {aboutContent.description2 && (
-                            <p className="text-base md:text-lg">{aboutContent.description2}</p>
-                          )}
-                        </div>
-                      )}
-                      {aboutContent.aim && (
-                        <div className="pt-6 mt-6 border-t border-gray-200">
-                          <div className="flex items-center justify-center gap-4 mb-6">
-                            <div className="flex-1 h-px bg-[#009f3b]"></div>
-                            <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
-                              OUR AIM
-                            </h3>
-                            <div className="flex-1 h-px bg-[#009f3b]"></div>
-                          </div>
-                          <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-                            {aboutContent.aim}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Column - Values */}
-                    <div className="space-y-8">
-                      {values.length > 0 && (
-                        <div>
-                          <div className="flex items-center justify-center gap-4 mb-6">
-                            <div className="flex-1 h-px bg-[#009f3b]"></div>
-                            <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
-                              VALUES AND TRAITS
-                            </h3>
-                            <div className="flex-1 h-px bg-[#009f3b]"></div>
-                          </div>
-                          <div className="space-y-0 border border-gray-200">
-                            {values.slice(0, 3).map((value: any, index: number) => (
-                              <div key={value._id || value.id}>
-                                <div className="w-full flex items-center justify-between p-4 md:p-5">
-                                  <span className="text-base md:text-lg font-bold text-[#009f3b] uppercase">
-                                    {value.label}
-                                  </span>
-                                </div>
-                                {index < Math.min(values.length, 3) - 1 && (
-                                  <div className="h-px bg-gray-200"></div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Services Management
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowServiceForm(!showServiceForm);
+                        setEditingService(null);
+                        setServiceTitle('');
+                        setServiceDescription('');
+                        setServiceFeatures([]);
+                        setNewServiceFeature('');
+                      }}
+                      className="bg-white text-[#009f3b] px-4 py-2 hover:bg-gray-100 transition-colors font-semibold text-sm"
+                    >
+                      {showServiceForm ? 'Cancel' : '+ Add Service'}
+                    </button>
                   </div>
-
-                  {/* Services Preview */}
-                  {services.length > 0 && (
-                    <div className="pt-8 border-t border-gray-200">
-                      <div className="flex items-center justify-center gap-4 mb-8">
-                        <div className="flex-1 h-px bg-[#009f3b]"></div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
-                          Our Services
-                        </h3>
-                        <div className="flex-1 h-px bg-[#009f3b]"></div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                        {services.slice(0, 3).map((service: any) => (
-                          <div
-                            key={service._id || service.id}
-                            className="bg-white border border-gray-200 p-6 flex flex-col h-full"
-                          >
-                            <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-3">
-                              {service.title}
-                            </h3>
-                            <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4 line-clamp-3">
-                              {service.description}
-                            </p>
-                            {service.features && service.features.length > 0 && (
-                              <ul className="space-y-2 mb-4 flex-grow">
-                                {service.features.slice(0, 2).map((feature: string, index: number) => (
-                                  <li key={index} className="flex items-start gap-2 text-gray-600 text-sm">
-                                    <span className="text-[#009f3b] mt-1">•</span>
-                                    <span>{feature}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                            <div className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-2 font-semibold mt-auto">
-                              Get a Quote
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
-                </div>
-            </div>
-
-            {/* Services Management */}
-            <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Package className="w-5 h-5" />
-                    Services Management
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowServiceForm(!showServiceForm);
-                      setEditingService(null);
-                      setServiceTitle('');
-                      setServiceDescription('');
-                      setServiceFeatures([]);
-                      setNewServiceFeature('');
-                      setServiceOrder(0);
-                    }}
-                    className="bg-white text-[#009f3b] px-4 py-2 hover:bg-gray-100 transition-colors font-semibold text-sm"
-                  >
-                    {showServiceForm ? 'Cancel' : '+ Add Service'}
-                  </button>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column - Form */}
-                  <div>
-
-                {/* Service Form */}
-                {showServiceForm && (
-                  <form onSubmit={handleSaveService} className="space-y-5 mb-6 p-5 bg-gray-50 border border-gray-200">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Service Title <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={serviceTitle}
-                        onChange={(e) => setServiceTitle(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                        placeholder="Architectural Design"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={serviceDescription}
-                        onChange={(e) => setServiceDescription(e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
-                        placeholder="Service description..."
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Order (for sorting)
-                      </label>
-                      <input
-                        type="number"
-                        value={serviceOrder}
-                        onChange={(e) => setServiceOrder(parseInt(e.target.value) || 0)}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Features
-                      </label>
-                      <div className="space-y-2 mb-3">
-                        {serviceFeatures.map((feature, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={feature}
-                              onChange={(e) => {
-                                const updated = [...serviceFeatures];
-                                updated[index] = e.target.value;
-                                setServiceFeatures(updated);
-                              }}
-                              className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-                              placeholder="Feature description"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setServiceFeatures(serviceFeatures.filter((_, i) => i !== index))}
-                              className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
+                <div className="p-6">
+                  {/* Service Form */}
+                  {showServiceForm && (
+                    <form onSubmit={handleSaveService} className="space-y-5 mb-6 p-5 bg-gray-50 border border-gray-200">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Service Title <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
-                          value={newServiceFeature}
-                          onChange={(e) => setNewServiceFeature(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
+                          value={serviceTitle}
+                          onChange={(e) => setServiceTitle(e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
+                          placeholder="Architectural Design"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Description <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          value={serviceDescription}
+                          onChange={(e) => setServiceDescription(e.target.value)}
+                          rows={4}
+                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
+                          placeholder="Service description..."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Features
+                        </label>
+                        <div className="space-y-2 mb-3">
+                          {serviceFeatures.map((feature, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={feature}
+                                onChange={(e) => {
+                                  const updated = [...serviceFeatures];
+                                  updated[index] = e.target.value;
+                                  setServiceFeatures(updated);
+                                }}
+                                className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                placeholder="Feature description"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setServiceFeatures(serviceFeatures.filter((_, i) => i !== index))}
+                                className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newServiceFeature}
+                            onChange={(e) => setNewServiceFeature(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (newServiceFeature.trim()) {
+                                  setServiceFeatures([...serviceFeatures, newServiceFeature.trim()]);
+                                  setNewServiceFeature('');
+                                }
+                              }
+                            }}
+                            className="flex-1 px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
+                            placeholder="Add new feature"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
                               if (newServiceFeature.trim()) {
                                 setServiceFeatures([...serviceFeatures, newServiceFeature.trim()]);
                                 setNewServiceFeature('');
                               }
-                            }
-                          }}
-                          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
-                          placeholder="Add new feature"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (newServiceFeature.trim()) {
-                              setServiceFeatures([...serviceFeatures, newServiceFeature.trim()]);
-                              setNewServiceFeature('');
-                            }
-                          }}
-                          className="px-4 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-medium"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
-                      >
-                        {editingService ? 'Update Service' : 'Create Service'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-                  </div>
-
-                  {/* Right Column - Services List */}
-                  <div>
-                    <div className="bg-gray-50 border border-gray-200 p-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">All Services ({services.length})</h4>
-                      <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
-                        {services.length === 0 ? (
-                          <div className="text-center py-8 bg-white border-2 border-dashed border-gray-300">
-                            <Package className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                            <p className="text-gray-500 text-sm font-medium">No services yet</p>
-                            <p className="text-xs text-gray-400 mt-1">Click "Add Service" to create your first service</p>
-                          </div>
-                        ) : (
-                          services.map((service: any) => (
-                            <div key={service._id || service.id} className="border border-gray-200 p-3 hover:border-[#009f3b] hover:shadow-sm transition-all bg-white">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1">
-                                  <h3 className="text-base font-bold text-[#009f3b] mb-1">{service.title}</h3>
-                                  <p className="text-gray-600 text-xs line-clamp-2">{service.description}</p>
-                                </div>
-                                <div className="flex gap-1 ml-2">
-                                  <button
-                                    onClick={() => {
-                                      setEditingService(service._id || service.id);
-                                      setServiceTitle(service.title || '');
-                                      setServiceDescription(service.description || '');
-                                      setServiceFeatures(service.features || []);
-                                      setServiceOrder(service.order || 0);
-                                      setShowServiceForm(true);
-                                    }}
-                                    className="px-2 py-1 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      showDeleteConfirmation(
-                                        `Are you sure you want to delete "${service.title}"?`,
-                                        () => deleteService(service._id || service.id)
-                                      );
-                                    }}
-                                    className="px-2 py-1 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                              {service.features && service.features.length > 0 && (
-                                <div className="mt-2">
-                                  <div className="flex flex-wrap gap-1">
-                                    {service.features.slice(0, 2).map((feature: string, index: number) => (
-                                      <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs">
-                                        {feature}
-                                      </span>
-                                    ))}
-                                    {service.features.length > 2 && (
-                                      <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">
-                                        +{service.features.length - 2}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Values and Traits Management */}
-            <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Values and Traits Management
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowValueForm(!showValueForm);
-                      setEditingValue(null);
-                      setValueLabel('');
-                      setValueDescription('');
-                      setValueOrder(0);
-                    }}
-                    className="bg-white text-[#009f3b] px-4 py-2 hover:bg-gray-100 transition-colors font-semibold text-sm"
-                  >
-                    {showValueForm ? 'Cancel' : '+ Add Value'}
-                  </button>
-                </div>
-              </div>
-              <div className="p-6">
-
-                {/* Value Form */}
-                {showValueForm && (
-                  <form onSubmit={handleSaveValue} className="space-y-5 mb-6 p-5 bg-gray-50 border border-gray-200">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Label (Title) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={valueLabel}
-                        onChange={(e) => setValueLabel(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                        placeholder="INTEGRITY"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={valueDescription}
-                        onChange={(e) => setValueDescription(e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
-                        placeholder="Value description..."
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Order (for sorting)
-                      </label>
-                      <input
-                        type="number"
-                        value={valueOrder}
-                        onChange={(e) => setValueOrder(parseInt(e.target.value) || 0)}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
-                      >
-                        {editingValue ? 'Update Value' : 'Create Value'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {/* Values List */}
-                <div className="space-y-3">
-                  {values.length === 0 ? (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                      <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-500 font-medium">No values yet</p>
-                      <p className="text-sm text-gray-400 mt-1">Click "Add Value" to create your first value</p>
-                    </div>
-                  ) : (
-                    values.map((value: any) => (
-                      <div key={value._id || value.id} className="border border-gray-200 rounded-lg p-4 hover:border-[#009f3b] hover:shadow-sm transition-all bg-white">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold text-[#009f3b] uppercase mb-1">{value.label}</h3>
-                            <p className="text-gray-600 text-sm line-clamp-2">{value.description}</p>
-                          </div>
-                          <div className="flex gap-2 ml-4">
-                            <button
-                              onClick={() => {
-                                setEditingValue(value._id || value.id);
-                                setValueLabel(value.label || '');
-                                setValueDescription(value.description || '');
-                                setValueOrder(value.order || 0);
-                                setShowValueForm(true);
-                              }}
-                              className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                showDeleteConfirmation(
-                                  `Are you sure you want to delete "${value.label}"?`,
-                                  () => deleteValue(value._id || value.id)
-                                );
-                              }}
-                              className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
+                            }}
+                            className="px-4 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-medium"
+                          >
+                            Add
+                          </button>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Management */}
-            <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Home className="w-5 h-5" />
-                    Hero Section Management
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowHeroForm(!showHeroForm);
-                      setEditingHero(null);
-                      setHeroTitlePart1('');
-                      setHeroTitlePart2('');
-                      setHeroDescription('');
-                      setHeroButtonText('OUR SERVICES');
-                    setHeroButtonLink('/contact');
-                      setHeroIsActive(true);
-                    }}
-                    className="bg-white text-[#009f3b] px-4 py-2 hover:bg-gray-100 transition-colors font-semibold text-sm"
-                  >
-                    {showHeroForm ? 'Cancel' : '+ Add Hero Text'}
-                  </button>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column - Form */}
-                  <div>
-                {/* Hero Form */}
-                {showHeroForm && (
-                  <form onSubmit={handleSaveHero} className="space-y-5 mb-6 p-5 bg-gray-50 border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Title Part 1 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={heroTitlePart1}
-                          onChange={(e) => setHeroTitlePart1(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                          placeholder="OUR"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Title Part 2 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={heroTitlePart2}
-                          onChange={(e) => setHeroTitlePart2(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                          placeholder="FOCUS"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={heroDescription}
-                        onChange={(e) => setHeroDescription(e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
-                        placeholder="Transforming visions into reality..."
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Button Text
-                        </label>
-                        <input
-                          type="text"
-                          value={heroButtonText}
-                          onChange={(e) => setHeroButtonText(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                          placeholder="OUR SERVICES"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Button Link (Page to navigate)
-                        </label>
-                        <select
-                          value={heroButtonLink}
-                          onChange={(e) => setHeroButtonLink(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
+                      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button
+                          type="submit"
+                          className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
                         >
-                          <option value="/">Home</option>
-                          <option value="/about">About</option>
-                          <option value="/contact">Contact</option>
-                          <option value="/portfolio">Portfolio</option>
-                          <option value="/team">Team</option>
-                          <option value="/shop">Shop</option>
-                          <option value="/academy">Academy</option>
-                          <option value="/cart">Cart</option>
-                        </select>
+                          {editingService ? 'Update Service' : 'Create Service'}
+                        </button>
                       </div>
-                    </div>
+                    </form>
+                  )}
 
-                    <div className="flex items-center gap-3 p-3 bg-white border border-gray-200">
-                      <input
-                        type="checkbox"
-                        id="heroIsActive"
-                        checked={heroIsActive}
-                        onChange={(e) => setHeroIsActive(e.target.checked)}
-                        className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
-                      />
-                      <label htmlFor="heroIsActive" className="text-sm font-semibold text-gray-700 cursor-pointer">
-                        Active (will be displayed on frontend)
-                      </label>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
-                      >
-                        {editingHero ? 'Update Hero Text' : 'Create Hero Text'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-                  </div>
-
-                  {/* Right Column - Hero Texts List */}
-                  <div>
-                    <div className="bg-gray-50 border border-gray-200 p-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">All Hero Texts ({heroTexts.length})</h4>
-                      <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
-                        {heroTexts.length === 0 ? (
-                          <div className="text-center py-8 bg-white border-2 border-dashed border-gray-300">
-                            <Home className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                            <p className="text-gray-500 text-sm font-medium">No hero texts yet</p>
-                            <p className="text-xs text-gray-400 mt-1">Click "Add Hero Text" to create your first hero</p>
-                          </div>
-                        ) : (
-                          heroTexts.map((hero: any) => (
-                            <div key={hero._id || hero.id} className="border border-gray-200 p-3 hover:border-[#009f3b] hover:shadow-sm transition-all bg-white">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1">
-                                  <h3 className="text-base font-bold text-[#009f3b] mb-1">
-                                    {hero.titlePart1} {hero.titlePart2}
-                                  </h3>
-                                  <p className="text-gray-600 text-xs line-clamp-2 mb-2">{hero.description}</p>
-                                  <div className="flex gap-2 text-xs">
-                                    <span className={`px-2 py-1 font-medium ${hero.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                      {hero.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 font-medium">
-                                      Order: {hero.order || 0}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex gap-1 ml-2">
-                                  <button
-                                    onClick={() => {
-                                      setEditingHero(hero._id || hero.id);
-                                      setHeroTitlePart1(hero.titlePart1 || '');
-                                      setHeroTitlePart2(hero.titlePart2 || '');
-                                      setHeroDescription(hero.description || '');
-                                      setHeroButtonText(hero.buttonText || 'OUR SERVICES');
-                                      setHeroButtonLink(hero.buttonLink || '/contact');
-                                      setHeroIsActive(hero.isActive !== false);
-                                      setShowHeroForm(true);
-                                    }}
-                                    className="px-2 py-1 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      showDeleteConfirmation(
-                                        `Are you sure you want to delete this hero text?`,
-                                        () => deleteHero(hero._id || hero.id)
-                                      );
-                                    }}
-                                    className="px-2 py-1 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
+                  {/* Services List */}
+                  <div className="bg-gray-50 border border-gray-200 p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">All Services ({services.length})</h4>
+                    <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
+                      {services.length === 0 ? (
+                        <div className="text-center py-8 bg-white border-2 border-dashed border-gray-300">
+                          <Package className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-500 text-sm font-medium">No services yet</p>
+                          <p className="text-xs text-gray-400 mt-1">Click "Add Service" to create your first service</p>
+                        </div>
+                      ) : (
+                        services.map((service: any) => (
+                          <div key={service._id || service.id} className="border border-gray-200 p-3 hover:border-[#009f3b] hover:shadow-sm transition-all bg-white">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h3 className="text-base font-bold text-[#009f3b] mb-1">{service.title}</h3>
+                                <p className="text-gray-600 text-xs line-clamp-2 mb-2">{service.description}</p>
+                              </div>
+                              <div className="flex gap-1 ml-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingService(service._id || service.id);
+                                    setServiceTitle(service.title || '');
+                                    setServiceDescription(service.description || '');
+                                    setServiceFeatures(service.features || []);
+                                    setShowServiceForm(true);
+                                  }}
+                                  className="px-2 py-1 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    showDeleteConfirmation(
+                                      `Are you sure you want to delete "${service.title}"?`,
+                                      () => deleteService(service._id || service.id)
+                                    );
+                                  }}
+                                  className="px-2 py-1 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
+                                >
+                                  Delete
+                                </button>
                               </div>
                             </div>
-                          ))
-                        )}
-                      </div>
+                            {service.features && service.features.length > 0 && (
+                              <div className="mt-2">
+                                <div className="flex flex-wrap gap-1">
+                                  {service.features.slice(0, 2).map((feature: string, index: number) => (
+                                    <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs">
+                                      {feature}
+                                    </span>
+                                  ))}
+                                  {service.features.length > 2 && (
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">
+                                      +{service.features.length - 2}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
+
           </div>
         )}
 

@@ -44,71 +44,97 @@ const useTypingEffect = (text: string, speed: number = 50, delay: number = 0) =>
 };
 
 const Hero = () => {
-  const [heroTexts, setHeroTexts] = useState<any[]>([]);
+  // Hardcoded hero data - no backend fetch
+  const heroTexts = [
+    {
+      titlePart1: 'OUR',
+      titlePart2: 'FOCUS',
+      description: 'Transforming visions into reality through innovative architectural design and construction excellence.',
+      buttonText: 'OUR SERVICES',
+      buttonLink: '/contact',
+      image: '/hero1.webp'
+    },
+    {
+      titlePart1: 'OUR',
+      titlePart2: 'EXPERTISE',
+      description: 'Sustainable construction in action building with local materials to create strong foundation for our community\'s future.',
+      buttonText: 'OUR SERVICES',
+      buttonLink: '/contact',
+      image: '/hero1.webp'
+    },
+    {
+      titlePart1: 'INTERIOR',
+      titlePart2: 'DESIGN',
+      description: 'Where elegance meet the nature -- nature designs create harmoniuos spaces that invites the beauty of surroundings indoors, enhancing every moment with breathtaking views.',
+      buttonText: 'OUR SERVICES',
+      buttonLink: '/contact',
+      image: '/hero1.webp'
+    },
+    {
+      titlePart1: 'REDEFINING',
+      titlePart2: 'SKYLINES',
+      description: 'Clacking landmark design, that redefines skylines, our innovative approach merges creativity with sustainability.',
+      buttonText: 'OUR SERVICES',
+      buttonLink: '/contact',
+      image: '/hero1.webp'
+    }
+  ];
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  useEffect(() => {
-    const fetchHeroTexts = async () => {
-      try {
-        const res = await fetch('/api/hero');
-        const data = await res.json();
-        if (data && Array.isArray(data) && data.length > 0) {
-          setHeroTexts(data);
-        }
-      } catch (error) {
-        console.error('Error fetching hero texts:', error);
-      }
-    };
-
-    fetchHeroTexts();
-  }, []);
-
-  // Auto-rotate hero texts every 5 seconds
+  // Auto-rotate hero texts - wait for typing to complete + reading time
   useEffect(() => {
     if (heroTexts.length <= 1) return;
 
-    const interval = setInterval(() => {
+    const currentHero = heroTexts[currentIndex];
+    
+    // Calculate total typing time: title1 + title2 + description + delays
+    const title1Time = currentHero.titlePart1.length * 100;
+    const title2Delay = title1Time + 200;
+    const title2Time = title2Delay + (currentHero.titlePart2.length * 100);
+    const descDelay = title2Time + 400;
+    const descTime = descDelay + (currentHero.description.length * 30);
+    const totalTypingTime = descTime + 1000; // Add 1 second buffer for completion
+    
+    // After typing completes, wait 6 seconds for reading, then transition
+    const transitionTimeout = setTimeout(() => {
       setIsTransitioning(true);
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % heroTexts.length);
         setIsTransitioning(false);
-      }, 500); // Half of transition duration
-    }, 5000); // Change every 5 seconds
+      }, 500); // Transition duration
+    }, totalTypingTime + 6000); // 6 seconds reading time after typing completes
 
-    return () => clearInterval(interval);
-  }, [heroTexts.length]);
+    return () => clearTimeout(transitionTimeout);
+  }, [currentIndex, heroTexts]);
 
-  // Use first hero text if available, or fallback to empty
-  const currentHero = heroTexts[currentIndex] || null;
+  // Use current hero text
+  const currentHero = heroTexts[currentIndex];
 
   const { displayedText: displayedTitle1, isTyping: isTypingTitle1 } = useTypingEffect(
-    currentHero?.titlePart1 || '', 
+    currentHero.titlePart1, 
     100,
     isTransitioning ? 1000 : 0
   );
   const { displayedText: displayedTitle2, isTyping: isTypingTitle2 } = useTypingEffect(
-    currentHero?.titlePart2 || '', 
+    currentHero.titlePart2, 
     100, 
-    (currentHero?.titlePart1?.length || 0) * 100 + 200
+    currentHero.titlePart1.length * 100 + 200
   );
   const { displayedText: displayedDescription, isTyping: isTypingDesc } = useTypingEffect(
-    currentHero?.description || '', 
+    currentHero.description, 
     30,
-    ((currentHero?.titlePart1?.length || 0) + (currentHero?.titlePart2?.length || 0)) * 100 + 400
+    (currentHero.titlePart1.length + currentHero.titlePart2.length) * 100 + 400
   );
-
-  if (!currentHero) {
-    return null; // Don't render if no hero data
-  }
 
   return (
     <section className="relative w-full h-[50vh] md:h-[70vh] min-h-[300px] md:min-h-[500px] overflow-hidden">
       {/* Background Image with Green Overlay */}
       <div className="absolute inset-0">
         <Image
-          src={currentHero.image || '/hero1.webp'}
-          alt={currentHero.titlePart2 || 'Hero'}
+          src={currentHero.image}
+          alt={currentHero.titlePart2}
           fill
           className="object-cover"
           priority
@@ -143,10 +169,10 @@ const Hero = () => {
 
             {/* CTA Button */}
             <Link 
-              href={currentHero.buttonLink || '/contact'}
+              href={currentHero.buttonLink}
               className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
             >
-              {currentHero.buttonText || 'OUR SERVICES'}
+              {currentHero.buttonText}
             </Link>
           </div>
         </div>
