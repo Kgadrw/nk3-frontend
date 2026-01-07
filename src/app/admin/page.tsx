@@ -467,7 +467,7 @@ export default function AdminDashboard() {
       if (aboutData && Object.keys(aboutData).length > 0) {
         setAboutContent({
           aboutImage: aboutData.aboutImage || aboutData.homeImage || '',
-          description: aboutData.description || aboutData.description1 || aboutData.description2 || ''
+          description: aboutData.description || aboutData.description1 || aboutData.description2 || aboutData.paragraph1 || ''
         });
         setAboutImage(aboutData.aboutImage || aboutData.homeImage || '');
       }
@@ -1155,19 +1155,27 @@ export default function AdminDashboard() {
     }
     try {
       const data = {
-        aboutImage: aboutImage || aboutContent.aboutImage,
-        description: aboutContent.description
+        aboutImage: aboutImage || aboutContent.aboutImage || '',
+        description: aboutContent.description || ''
       };
+      
+      // Log the data being sent for debugging
+      console.log('Saving about data:', data);
+      
       const res = await fetch('/api/about', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      
       if (res.ok) {
+        const savedData = await res.json();
+        console.log('About data saved successfully:', savedData);
         await fetchAllData();
         showToast('About page content saved successfully!', 'success');
       } else {
         const errorData = await res.json();
+        console.error('Error saving about content:', errorData);
         showToast(`Error: ${errorData.error || 'Failed to save about content'}`, 'error');
       }
     } catch (error) {

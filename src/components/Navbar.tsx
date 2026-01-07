@@ -25,6 +25,9 @@ const Navbar = () => {
     phoneNumbers: [] as string[],
     email: ''
   });
+  const [teamCategories, setTeamCategories] = useState<string[]>([]);
+  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
+  const teamDropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,6 +77,46 @@ const Navbar = () => {
       }
     };
 
+    const fetchTeamCategories = async () => {
+      try {
+        const res = await fetch('/api/team');
+        const data = await res.json();
+        if (data && Array.isArray(data)) {
+          // Extract unique categories from teams
+          const categoriesSet = new Set<string>();
+          data.forEach((member: any) => {
+            const categories = Array.isArray(member.category) 
+              ? member.category 
+              : (member.category ? [member.category] : ['Uncategorized']);
+            categories.forEach((cat: string) => {
+              if (cat && cat.trim()) {
+                categoriesSet.add(cat.trim());
+              }
+            });
+          });
+          // Format category labels
+          const formattedCategories = Array.from(categoriesSet).map(cat => {
+            const categoryLower = cat.toLowerCase();
+            const labelMap: { [key: string]: string } = {
+              'founder': 'Company Founder',
+              'co-founder': 'Co-Founder',
+              'cofounder': 'Co-Founder',
+              'technical': 'Technical Team',
+              'advisors': 'Company Advisors',
+              'uncategorized': 'Uncategorized',
+            };
+            return labelMap[categoryLower] || cat
+              .split(/[\s_-]+/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+          });
+          setTeamCategories(formattedCategories.sort());
+        }
+      } catch (error) {
+        // Error fetching team categories
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('cartUpdated', handleCartUpdate);
     
@@ -83,6 +126,8 @@ const Navbar = () => {
     fetchSocialLinks();
     // Fetch contact info
     fetchContactInfo();
+    // Fetch team categories
+    fetchTeamCategories();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -310,18 +355,82 @@ const Navbar = () => {
                 }`}></span>
               </Link>
               
-              {/* Team Link */}
-              <Link 
-                href="/team" 
-                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
-                  pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
-                }`}
+              {/* Team Link with Dropdown */}
+              <div 
+                className="relative"
+                onMouseEnter={() => {
+                  if (teamDropdownTimeoutRef.current) {
+                    clearTimeout(teamDropdownTimeoutRef.current);
+                  }
+                  setTeamDropdownOpen(true);
+                }}
+                onMouseLeave={() => {
+                  teamDropdownTimeoutRef.current = setTimeout(() => {
+                    setTeamDropdownOpen(false);
+                  }, 200);
+                }}
               >
-                Team
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
-                  pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
-                }`}></span>
-              </Link>
+                <Link 
+                  href="/team" 
+                  className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
+                    pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
+                  }`}
+                  onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
+                >
+                  Team
+                  <svg 
+                    className={`w-4 h-4 inline-block ml-1 transition-transform duration-300 ${
+                      teamDropdownOpen ? 'rotate-180' : ''
+                    }`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
+                    pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
+                  }`}></span>
+                </Link>
+                
+                {/* Dropdown Menu */}
+                {teamDropdownOpen && teamCategories.length > 0 && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md z-50 py-2">
+                    <Link
+                      href="/team"
+                      onClick={() => setTeamDropdownOpen(false)}
+                      className={`block px-4 py-2 text-sm text-gray-700 hover:bg-[#009f3b] hover:text-white transition-colors ${
+                        pathname === '/team' ? 'bg-gray-100 text-[#009f3b] font-semibold' : ''
+                      }`}
+                    >
+                      All Team Members
+                    </Link>
+                    <div className="border-t border-gray-200 my-1"></div>
+                    {teamCategories.map((category, index) => {
+                      const categoryLower = category.toLowerCase();
+                      const categoryMap: { [key: string]: string } = {
+                        'company founder': 'founder',
+                        'co-founder': 'co-founder',
+                        'technical team': 'technical',
+                        'company advisors': 'advisors',
+                        'uncategorized': 'uncategorized',
+                      };
+                      const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
+                      
+                      return (
+                        <Link
+                          key={index}
+                          href={`/team?category=${encodeURIComponent(categoryParam)}`}
+                          onClick={() => setTeamDropdownOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#009f3b] hover:text-white transition-colors"
+                        >
+                          {category}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               <Link 
                 href="/academy" 
@@ -460,16 +569,46 @@ const Navbar = () => {
                   Portfolio
                 </Link>
                 
-                {/* Team Mobile */}
-                <Link
-                  href="/team"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
-                    pathname?.startsWith('/team') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  Team
-                </Link>
+                {/* Team Mobile with Categories */}
+                <div>
+                  <Link
+                    href="/team"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                      pathname === '/team' ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    Team
+                  </Link>
+                  {teamCategories.length > 0 && (
+                    <div className="pl-6 space-y-1">
+                      {teamCategories.map((category, index) => {
+                        const categoryLower = category.toLowerCase();
+                        const categoryMap: { [key: string]: string } = {
+                          'company founder': 'founder',
+                          'co-founder': 'co-founder',
+                          'technical team': 'technical',
+                          'company advisors': 'advisors',
+                          'uncategorized': 'uncategorized',
+                        };
+                        const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
+                        
+                        return (
+                          <Link
+                            key={index}
+                            href={`/team?category=${encodeURIComponent(categoryParam)}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`block px-4 py-2 text-sm text-gray-600 transition-colors ${
+                              pathname?.includes(`category=${categoryParam}`) ? 'bg-gray-100 text-[#009f3b] font-semibold' : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            {category}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
 
                 <Link 
                   href="/academy" 
