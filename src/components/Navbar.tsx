@@ -292,8 +292,8 @@ const Navbar = () => {
       </div>
 
       {/* Main Navigation Bar - White */}
-      <div className={`bg-white border-b border-gray-200 transition-all duration-300 overflow-hidden ${
-        isPastHero ? 'fixed top-0 left-0 right-0 z-50' : isScrolled ? 'sticky top-0 z-50' : ''
+      <div className={`bg-white border-b border-gray-200 transition-all duration-300 overflow-visible ${
+        isPastHero ? 'fixed top-0 left-0 right-0 z-[100]' : isScrolled ? 'sticky top-0 z-[100]' : 'relative z-[100]'
       }`}>
         <div className="max-w-7xl mx-auto px-4 transition-all duration-300 flex items-center">
           <div className="flex items-center justify-between gap-4 w-full">
@@ -318,7 +318,7 @@ const Navbar = () => {
             </div>
 
             {/* Center: Navigation Links */}
-            <nav className={`hidden md:flex items-center gap-4 transition-all duration-300 ${
+            <nav className={`hidden md:flex items-center gap-4 transition-all duration-300 relative z-[101] ${
               isPastHero ? 'hidden' : ''
             }`}>
               <Link 
@@ -357,7 +357,7 @@ const Navbar = () => {
               
               {/* Team Link with Dropdown */}
               <div 
-                className="relative"
+                className="relative z-[110]"
                 onMouseEnter={() => {
                   if (teamDropdownTimeoutRef.current) {
                     clearTimeout(teamDropdownTimeoutRef.current);
@@ -395,7 +395,7 @@ const Navbar = () => {
                 
                 {/* Dropdown Menu */}
                 {teamDropdownOpen && teamCategories.length > 0 && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md z-50 py-2">
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md z-[110] py-2">
                     <Link
                       href="/team"
                       onClick={() => setTeamDropdownOpen(false)}

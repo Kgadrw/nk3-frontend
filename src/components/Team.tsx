@@ -75,6 +75,11 @@ const Team = () => {
       'cofounder': 'Co-Founder',
       'technical': 'Technical Team',
       'advisors': 'Company Advisors',
+      'company-advisors': 'Company Advisors',
+      'company advisors': 'Company Advisors',
+      'advisory': 'Company Advisors',
+      'advisory-board': 'Company Advisors',
+      'advisory board': 'Company Advisors',
       'uncategorized': 'Uncategorized',
     };
 
@@ -98,6 +103,11 @@ const Team = () => {
       'cofounder': 2,
       'technical': 3,
       'advisors': 4,
+      'company-advisors': 4,
+      'company advisors': 4,
+      'advisory': 4,
+      'advisory-board': 4,
+      'advisory board': 4,
       'uncategorized': 999,
     };
     return orderMap[categoryLower] || 5;
@@ -212,25 +222,55 @@ const Team = () => {
       return groupedTeams;
     }
     
-    // Normalize the selected category
-    const normalizedSelected = selectedCategory.toLowerCase().replace(/\s+/g, '-');
-    const categoryMap: { [key: string]: string[] } = {
+    // Normalize the selected category from URL
+    const normalizedSelected = selectedCategory.toLowerCase().trim().replace(/\s+/g, '-');
+    
+    // Map URL parameters to actual category keys in groupedTeams
+    const categoryMapping: { [key: string]: string[] } = {
       'founder': ['founder'],
       'co-founder': ['co-founder', 'cofounder'],
       'cofounder': ['co-founder', 'cofounder'],
-      'technical': ['technical', 'technical-team'],
-      'technical-team': ['technical', 'technical-team'],
-      'advisors': ['advisors', 'company-advisors'],
-      'company-advisors': ['advisors', 'company-advisors'],
+      'technical': ['technical', 'technical-team', 'technical team'],
+      'technical-team': ['technical', 'technical-team', 'technical team'],
+      'advisors': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+      'company-advisors': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+      'advisory': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+      'advisory-board': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+      'advisory board': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
       'uncategorized': ['uncategorized'],
     };
     
-    const matchingCategories = categoryMap[normalizedSelected] || [normalizedSelected];
+    // Get possible category matches
+    const possibleMatches = categoryMapping[normalizedSelected] || [normalizedSelected];
     
     const filtered: any = {};
     Object.keys(groupedTeams).forEach(category => {
-      const categoryLower = category.toLowerCase();
-      if (matchingCategories.some(match => categoryLower === match || categoryLower.includes(match))) {
+      const categoryLower = category.toLowerCase().trim();
+      const categoryNormalized = categoryLower.replace(/\s+/g, '-');
+      
+      // Check if this category matches any of the possible matches
+      const matches = possibleMatches.some(match => {
+        const matchLower = match.toLowerCase().trim();
+        const matchNormalized = matchLower.replace(/\s+/g, '-');
+        
+        // Exact match (normalized)
+        if (categoryNormalized === matchNormalized) return true;
+        
+        // Check if category contains match or vice versa
+        if (categoryNormalized.includes(matchNormalized) || matchNormalized.includes(categoryNormalized)) {
+          return true;
+        }
+        
+        // Also check original formats
+        if (categoryLower === matchLower) return true;
+        if (categoryLower.includes(matchLower) || matchLower.includes(categoryLower)) {
+          return true;
+        }
+        
+        return false;
+      });
+      
+      if (matches) {
         filtered[category] = groupedTeams[category];
       }
     });
@@ -240,93 +280,177 @@ const Team = () => {
 
   const filteredTeams = getFilteredCategories();
 
+  // Get all available categories
+  const allCategories = Object.keys(groupedTeams).sort((a, b) => {
+    return getCategoryOrder(a) - getCategoryOrder(b);
+  });
+
+  // Get the active category from URL or default to showing all
+  const activeCategory = selectedCategory 
+    ? allCategories.find(cat => {
+        const normalizedSelected = selectedCategory.toLowerCase().replace(/\s+/g, '-');
+        const categoryLower = cat.toLowerCase();
+        return categoryLower === normalizedSelected || categoryLower.includes(normalizedSelected);
+      })
+    : null;
+
   return (
     <section className="py-8 md:py-16 px-4 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Show filter info if category is selected */}
-        {selectedCategory && (
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-2">
-                {formatCategoryLabel(selectedCategory)}
-              </h2>
-              <p className="text-gray-600">
-                Showing {Object.values(filteredTeams).flat().length} team member(s)
-              </p>
-            </div>
-            <Link
-              href="/team"
-              className="text-[#009f3b] hover:text-[#00782d] font-medium underline"
-            >
-              View All Team Members
-            </Link>
-          </div>
-        )}
-
-        {/* Display team members */}
-        {Object.keys(filteredTeams).length > 0 ? (
-          <div className="space-y-4">
-            {Object.entries(filteredTeams).map(([category, members]: [string, any]) => {
-              const isExpanded = expandedCategories[category] !== false; // Default to true if not set
-              
-              return (
-                <div key={category} className="border border-gray-200">
-                  {/* Category Header with Toggle Button */}
-                  <button
-                    onClick={() => toggleCategory(category)}
-                    className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xl md:text-2xl font-bold text-[#009f3b]">
-                        {formatCategoryLabel(category)}
-                      </h3>
-                      <span className="text-sm text-gray-500 font-normal">
-                        ({members.length} {members.length === 1 ? 'member' : 'members'})
-                      </span>
-                    </div>
-                    <svg
-                      className={`w-5 h-5 text-[#009f3b] transition-transform duration-300 ${
-                        isExpanded ? 'rotate-180' : ''
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {/* Team Members Grid - Collapsible */}
-                  {isExpanded && (
-                    <div className="px-4 md:px-5 pb-4 md:pb-5">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 pt-4">
-                        {members.map((member: any) => (
-                          <TeamMemberCard key={member.id} member={member} category={category} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Sidebar - Categories */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-4">
+              <div className="bg-white border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-200 bg-[#009f3b]">
+                  <h2 className="text-lg font-bold text-white">Categories</h2>
                 </div>
-              );
-            })}
+                <nav className="p-2">
+                  <Link
+                    href="/team"
+                    className={`block px-4 py-3 text-sm font-medium rounded transition-colors mb-1 ${
+                      !selectedCategory
+                        ? 'bg-[#009f3b] text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    All Team Members
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({teamData.length})
+                    </span>
+                  </Link>
+                  {allCategories.map((category) => {
+                    const categoryLower = category.toLowerCase().trim();
+                    
+                    // Create URL-friendly category parameter
+                    // Use the actual category key for the URL
+                    const categoryParam = categoryLower.replace(/\s+/g, '-');
+                    
+                    // Check if this category is active
+                    const isActive = selectedCategory 
+                      ? (() => {
+                          const selectedLower = selectedCategory.toLowerCase().trim();
+                          const selectedNormalized = selectedLower.replace(/\s+/g, '-');
+                          const categoryNormalized = categoryLower.replace(/\s+/g, '-');
+                          
+                          // Direct match (normalized)
+                          if (categoryNormalized === selectedNormalized) return true;
+                          if (categoryLower === selectedLower) return true;
+                          
+                          // Check if category contains selected or vice versa
+                          if (categoryNormalized.includes(selectedNormalized) || selectedNormalized.includes(categoryNormalized)) {
+                            return true;
+                          }
+                          if (categoryLower.includes(selectedLower) || selectedLower.includes(categoryLower)) {
+                            return true;
+                          }
+                          
+                          // Additional check for common mappings
+                          const mappings: { [key: string]: string[] } = {
+                            'founder': ['founder'],
+                            'co-founder': ['co-founder', 'cofounder'],
+                            'cofounder': ['co-founder', 'cofounder'],
+                            'technical': ['technical', 'technical-team', 'technical team'],
+                            'technical-team': ['technical', 'technical-team', 'technical team'],
+                            'advisors': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+                            'company-advisors': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+                            'advisory': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+                            'advisory-board': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+                            'advisory board': ['advisors', 'company-advisors', 'company advisors', 'advisory', 'advisory-board', 'advisory board'],
+                            'uncategorized': ['uncategorized'],
+                          };
+                          const selectedMatches = mappings[selectedNormalized] || mappings[selectedLower] || [selectedLower, selectedNormalized];
+                          return selectedMatches.some(m => {
+                            const mLower = m.toLowerCase().trim();
+                            const mNormalized = mLower.replace(/\s+/g, '-');
+                            return categoryLower === mLower || 
+                                   categoryNormalized === mNormalized ||
+                                   categoryLower.includes(mLower) || 
+                                   mLower.includes(categoryLower) ||
+                                   categoryNormalized.includes(mNormalized) ||
+                                   mNormalized.includes(categoryNormalized);
+                          });
+                        })()
+                      : false;
+                    
+                    return (
+                      <Link
+                        key={category}
+                        href={`/team?category=${encodeURIComponent(categoryParam)}`}
+                        className={`block px-4 py-3 text-sm font-medium rounded transition-colors mb-1 ${
+                          isActive
+                            ? 'bg-[#009f3b] text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {formatCategoryLabel(category)}
+                        <span className={`ml-2 text-xs ${isActive ? 'opacity-90' : 'opacity-75'}`}>
+                          ({groupedTeams[category]?.length || 0})
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content - Team Members */}
+          <div className="lg:col-span-3">
+            {/* Show filter info if category is selected */}
+            {selectedCategory && (
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-2">
+                  {formatCategoryLabel(selectedCategory)}
+                </h2>
+                <p className="text-gray-600">
+                  Showing {Object.values(filteredTeams).flat().length} team member(s)
+                </p>
+              </div>
+            )}
+
+            {/* Display team members */}
+            {Object.keys(filteredTeams).length > 0 ? (
+              <div className="space-y-8">
+                {Object.entries(filteredTeams).map(([category, members]: [string, any]) => (
+              <div key={category} className="space-y-6">
+                    {/* Category Header - Only show if not filtering by category */}
+                    {!selectedCategory && (
+                <div className="pb-2">
+                  <h3 className="text-xl md:text-2xl font-bold text-[#009f3b]">
+                    {formatCategoryLabel(category)}
+                  </h3>
+                </div>
+                    )}
+
+                    {/* Team Members Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+                  {members.map((member: any) => (
+                    <TeamMemberCard key={member.id} member={member} category={category} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {selectedCategory 
-                ? `No team members found in category "${formatCategoryLabel(selectedCategory)}".`
-                : 'No team members available yet.'}
-            </p>
-            {selectedCategory && (
-              <Link
-                href="/team"
-                className="inline-block mt-4 text-[#009f3b] hover:text-[#00782d] font-medium underline"
-              >
-                View All Team Members
-              </Link>
+                  {selectedCategory 
+                    ? `No team members found in category "${formatCategoryLabel(selectedCategory)}".`
+                    : 'No team members available yet.'}
+                </p>
+                {selectedCategory && (
+                  <Link
+                    href="/team"
+                    className="inline-block mt-4 text-[#009f3b] hover:text-[#00782d] font-medium underline"
+                  >
+                    View All Team Members
+                  </Link>
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

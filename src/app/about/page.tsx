@@ -154,23 +154,23 @@ export default function AboutPage() {
             </div>
           )}
 
-          {/* About Description from Database - Show if available, otherwise show hardcoded content */}
-          {aboutContent.description ? (
+          {/* Two Column Layout - About Description and Values and Traits */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Left Column - About Description */}
             <div className="space-y-6">
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p className="text-base md:text-lg whitespace-pre-line">
-                  {aboutContent.description}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p className="text-base md:text-lg">
-                  NK-3D Architecture Studioz (NKASO Limited) is a forward-thinking design and construction firm dedicated to revolutionizing Rwanda's architectural landscape with innovative and sustainable solutions. Established in 2016 by Nkurikiye Eric, a visionary Architect and Sustainability Consultant, our company merges cutting-edge design with practical construction expertise. Under Eric's guidance, NKASO is setting new benchmarks for architectural excellence in the region.
-                </p>
-                <p className="text-base md:text-lg whitespace-pre-line">
-                  In 2021, NKASO Limited achieved a key milestone by officially registering as a private domestic entity with the Government of Rwanda. This evolution was driven by the addition of co-founders Rubimbura Rene Gabin and Maxime BAYINGANA Rutimirwa, fortifying our company's base and expanding our strategic outlook. This registration highlights our steadfast dedication to superior quality and compliance with the highest industry benchmarks.
+              {aboutContent.description ? (
+                <div className="space-y-4 text-gray-700 leading-relaxed">
+                  <p className="text-base md:text-lg whitespace-pre-line">
+                    {aboutContent.description}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 text-gray-700 leading-relaxed">
+                  <p className="text-base md:text-lg">
+                    NK-3D Architecture Studioz (NKASO Limited) is a forward-thinking design and construction firm dedicated to revolutionizing Rwanda's architectural landscape with innovative and sustainable solutions. Established in 2016 by Nkurikiye Eric, a visionary Architect and Sustainability Consultant, our company merges cutting-edge design with practical construction expertise. Under Eric's guidance, NKASO is setting new benchmarks for architectural excellence in the region.
+                  </p>
+                  <p className="text-base md:text-lg whitespace-pre-line">
+                    In 2021, NKASO Limited achieved a key milestone by officially registering as a private domestic entity with the Government of Rwanda. This evolution was driven by the addition of co-founders Rubimbura Rene Gabin and Maxime BAYINGANA Rutimirwa, fortifying our company's base and expanding our strategic outlook. This registration highlights our steadfast dedication to superior quality and compliance with the highest industry benchmarks.
 
 Based in Kigali- Rwanda, NKASO Limited operates through specialized divisions:
 
@@ -181,58 +181,59 @@ NK-3Dengineering.19 for comprehensive civil works and project management;
 NK-3D Academy.19, which focuses on education, training, research, and sales of academic 3D models and architectural materials, while also training young students in architecture.
 
 We are committed to environmental responsibility, incorporating green building technologies to create aesthetically appealing, functional, and eco-friendly spaces that promote a sustainable future for Rwanda and the wider world.
-                </p>
-              </div>
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Values and Traits Section - Full Width */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex-1 h-px bg-[#009f3b]"></div>
-              <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
-                VALUES AND TRAITS
-              </h3>
-              <div className="flex-1 h-px bg-[#009f3b]"></div>
+            {/* Right Column - Values and Traits Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-center gap-4">
+                <div className="flex-1 h-px bg-[#009f3b]"></div>
+                <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] uppercase whitespace-nowrap">
+                  VALUES AND TRAITS
+                </h3>
+                <div className="flex-1 h-px bg-[#009f3b]"></div>
+              </div>
+              
+              {values.length > 0 ? (
+                <div className="space-y-0 border border-gray-200">
+                  {values.map((value: any, index: number) => (
+                    <div key={value._id || value.id}>
+                      <button
+                        onClick={() => toggleValue(value.id || value._id)}
+                        className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-colors text-left"
+                      >
+                        <span className="text-base md:text-lg font-bold text-[#009f3b] uppercase">
+                          {value.label}
+                        </span>
+                        <span className="text-[#009f3b] flex-shrink-0 ml-4">
+                          {expandedValues[value.id || value._id] ? (
+                            <Minus className="w-5 h-5" />
+                          ) : (
+                            <Plus className="w-5 h-5" />
+                          )}
+                        </span>
+                      </button>
+                      {expandedValues[value.id || value._id] && value.description && (
+                        <div className="px-4 md:px-5 pb-4 md:pb-5 pt-0">
+                          <p className="text-gray-700 text-sm md:text-base leading-relaxed">
+                            {value.description}
+                          </p>
+                        </div>
+                      )}
+                      {index < values.length - 1 && (
+                        <div className="h-px bg-gray-200"></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No values and traits available yet.</p>
+                </div>
+              )}
             </div>
-            
-            {values.length > 0 ? (
-              <div className="space-y-0 border border-gray-200">
-                {values.map((value: any, index: number) => (
-                  <div key={value._id || value.id}>
-                    <button
-                      onClick={() => toggleValue(value.id || value._id)}
-                      className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <span className="text-base md:text-lg font-bold text-[#009f3b] uppercase">
-                        {value.label}
-                      </span>
-                      <span className="text-[#009f3b] flex-shrink-0 ml-4">
-                        {expandedValues[value.id || value._id] ? (
-                          <Minus className="w-5 h-5" />
-                        ) : (
-                          <Plus className="w-5 h-5" />
-                        )}
-                      </span>
-                    </button>
-                    {expandedValues[value.id || value._id] && value.description && (
-                      <div className="px-4 md:px-5 pb-4 md:pb-5 pt-0">
-                        <p className="text-gray-700 text-sm md:text-base leading-relaxed">
-                          {value.description}
-                        </p>
-                      </div>
-                    )}
-                    {index < values.length - 1 && (
-                      <div className="h-px bg-gray-200"></div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>No values and traits available yet.</p>
-              </div>
-            )}
           </div>
 
 
