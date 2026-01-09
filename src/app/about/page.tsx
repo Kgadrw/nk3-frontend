@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import { ArrowRight, Award, Handshake, Crown, Users, Lightbulb } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AboutPage() {
   const [aboutContent, setAboutContent] = useState({
@@ -88,24 +89,46 @@ export default function AboutPage() {
         </div>
         <div className="relative z-10 h-full flex items-center">
           <div className="max-w-7xl mx-auto w-full px-2 md:px-4 lg:px-6">
-            <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="max-w-2xl"
+            >
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
                 <span className="text-white">ABOUT</span>{' '}
                 <span className="text-[#90EE90]">US</span>
               </h1>
-              <p className="text-white text-sm sm:text-base md:text-lg leading-relaxed">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+                className="text-white text-sm sm:text-base md:text-lg leading-relaxed"
+              >
                 Transforming visions into reality through innovative architectural design and construction excellence.
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Main Content - Two Column Layout */}
       <div className="max-w-7xl mx-auto w-full px-2 md:px-4 lg:px-6 pt-6 md:pt-8 lg:pt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px] gap-4 md:gap-6 lg:gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px] gap-4 md:gap-6 lg:gap-8"
+        >
           {/* Left Column - About Image */}
-          <div className="relative w-full h-full min-h-[400px] overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative w-full h-full min-h-[400px] overflow-hidden"
+          >
             {aboutContent.aboutImage ? (
               <Image
                 src={aboutContent.aboutImage}
@@ -124,10 +147,16 @@ export default function AboutPage() {
               />
             )}
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
-          </div>
+          </motion.div>
 
           {/* Right Column - White Background with About Content */}
-          <div className="bg-white p-6 md:p-8 lg:p-10 flex flex-col justify-center">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="bg-white p-6 md:p-8 lg:p-10 flex flex-col justify-center"
+          >
             {aboutContent.description ? (
               <div className="space-y-4 text-gray-700">
                 <p className="text-xs md:text-sm font-medium uppercase tracking-wide text-gray-600">
@@ -165,15 +194,27 @@ export default function AboutPage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Remaining Text Section - Two Column Layout */}
       <div className="max-w-7xl mx-auto w-full px-2 md:px-4 lg:px-6 pt-6 md:pt-8 lg:pt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px] gap-4 md:gap-6 lg:gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px] gap-4 md:gap-6 lg:gap-8"
+        >
           {/* Left Column - White Background with Text */}
-          <div className="bg-white p-6 md:p-8 lg:p-10 flex flex-col justify-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-white p-6 md:p-8 lg:p-10 flex flex-col justify-center"
+          >
             {aboutContent.description ? (
               <div className="space-y-3 text-gray-700 text-sm md:text-base leading-relaxed">
                 <p className="whitespace-pre-line">
@@ -193,10 +234,16 @@ export default function AboutPage() {
                 </p>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Right Column - Construction Image */}
-          <div className="relative w-full h-full min-h-[400px] overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="relative w-full h-full min-h-[400px] overflow-hidden"
+          >
             <Image
               src="/construct.jpg"
               alt="Construction"
@@ -209,8 +256,8 @@ export default function AboutPage() {
               }}
             />
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Rest of Content */}
@@ -236,7 +283,13 @@ export default function AboutPage() {
               {/* Feature Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
                 {/* Card 1 - Proven Track Record */}
-                <div className="bg-[#90EE90] p-6 flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                >
                   <Award className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Proven track record of successful projects
@@ -322,7 +375,7 @@ export default function AboutPage() {
                   <p className="col-span-full text-center text-gray-500 py-8">No services available yet.</p>
                 )}
               </div>
-            </div>
+            </motion.div>
 
         </div>
       </div>

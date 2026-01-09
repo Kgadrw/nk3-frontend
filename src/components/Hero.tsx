@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Custom hook for typing effect
 const useTypingEffect = (text: string, speed: number = 50, delay: number = 0) => {
@@ -132,13 +133,24 @@ const Hero = () => {
     <section className="relative w-full h-[50vh] md:h-[70vh] min-h-[300px] md:min-h-[500px] overflow-hidden">
       {/* Background Image with Green Overlay */}
       <div className="absolute inset-0">
-        <Image
-          src={currentHero.image}
-          alt={currentHero.titlePart2}
-          fill
-          className="object-cover"
-          priority
-        />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={currentHero.image}
+              alt={currentHero.titlePart2}
+              fill
+              className="object-cover"
+              priority
+            />
+          </motion.div>
+        </AnimatePresence>
         {/* Green Overlay */}
         <div className="absolute inset-0 bg-[#009f3b] opacity-60"></div>
       </div>
@@ -146,35 +158,58 @@ const Hero = () => {
       {/* Content Overlay (Left) */}
       <div className="relative z-10 h-full flex items-center">
         <div className="max-w-7xl mx-auto w-full flex justify-start pl-2 md:pl-4 lg:pl-6">
-          <div className={`max-w-2xl text-left transition-all duration-500 ${
-            isTransitioning ? 'opacity-0 translate-x-[-20px]' : 'opacity-100 translate-x-0'
-          }`}>
-            {/* Heading */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
-              <span className="text-gray-300">
-                {displayedTitle1}
-                {isTypingTitle1 && <span className="animate-pulse text-[#009f3b]">|</span>}
-              </span>{' '}
-              <span className="text-white">
-                {displayedTitle2}
-                {isTypingTitle2 && <span className="animate-pulse text-[#009f3b]">|</span>}
-              </span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-white text-sm sm:text-base md:text-lg mb-6 leading-relaxed px-4 md:px-0">
-              {displayedDescription}
-              {isTypingDesc && <span className="animate-pulse text-[#009f3b]">|</span>}
-            </p>
-
-            {/* CTA Button */}
-            <Link 
-              href={currentHero.buttonLink}
-              className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="max-w-2xl text-left"
             >
-              {currentHero.buttonText}
-            </Link>
-          </div>
+              {/* Heading */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight"
+              >
+                <span className="text-gray-300">
+                  {displayedTitle1}
+                  {isTypingTitle1 && <span className="animate-pulse text-[#009f3b]">|</span>}
+                </span>{' '}
+                <span className="text-white">
+                  {displayedTitle2}
+                  {isTypingTitle2 && <span className="animate-pulse text-[#009f3b]">|</span>}
+                </span>
+              </motion.h1>
+
+              {/* Description */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-white text-sm sm:text-base md:text-lg mb-6 leading-relaxed px-4 md:px-0"
+              >
+                {displayedDescription}
+                {isTypingDesc && <span className="animate-pulse text-[#009f3b]">|</span>}
+              </motion.p>
+
+              {/* CTA Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <Link 
+                  href={currentHero.buttonLink}
+                  className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
+                >
+                  {currentHero.buttonText}
+                </Link>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
