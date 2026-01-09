@@ -133,6 +133,8 @@ export default function AdminDashboard() {
   const [teamPosition, setTeamPosition] = useState('');
   const [teamCategory, setTeamCategory] = useState<string[]>([]);
   const [teamCategories, setTeamCategories] = useState<string[]>([]);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState<string>('');
   const [copyFromMember, setCopyFromMember] = useState<string>('');
   const [teamPhone, setTeamPhone] = useState('');
   const [teamLinkedin, setTeamLinkedin] = useState('');
@@ -741,6 +743,81 @@ export default function AdminDashboard() {
     } catch (error) {
       // Error saving team
       showToast('Error saving team member. Please try again.', 'error');
+    }
+  };
+
+  const handleUpdateCategoryName = async (oldCategory: string, newCategory: string) => {
+    if (!newCategory.trim() || newCategory.trim() === oldCategory) {
+      setEditingCategory(null);
+      setEditingCategoryName('');
+      return;
+    }
+
+    const trimmedNewCategory = newCategory.trim();
+    
+    // Check if new category name already exists
+    if (teamCategories.includes(trimmedNewCategory)) {
+      showToast(`Category "${trimmedNewCategory}" already exists`, 'warning');
+      return;
+    }
+
+    try {
+      // Update all team members that use this category
+      const membersToUpdate = teams.filter((team: any) => {
+        const categories = Array.isArray(team.category) ? team.category : (team.category ? [team.category] : []);
+        return categories.includes(oldCategory);
+      });
+
+      // Update each team member
+      for (const member of membersToUpdate) {
+        const memberId = member._id || member.id;
+        const currentCategories = Array.isArray(member.category) ? member.category : (member.category ? [member.category] : []);
+        const updatedCategories = currentCategories.map((cat: string) => 
+          cat === oldCategory ? trimmedNewCategory : cat
+        );
+
+        const res = await fetch(`/api/team/${memberId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: member.name || '',
+            position: member.position || '',
+            category: updatedCategories,
+            image: member.image || '',
+            phone: member.phone || '',
+            linkedin: member.linkedin || '',
+            description: member.description || '',
+            experience: member.experience || '',
+            education: member.education || '',
+            certification: member.certification || ''
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to update team member ${memberId}`);
+        }
+      }
+
+      // Update the categories list
+      const updatedCategories = teamCategories.map(cat => 
+        cat === oldCategory ? trimmedNewCategory : cat
+      ).sort();
+      setTeamCategories(updatedCategories);
+
+      // Update selected categories if the edited category was selected
+      if (teamCategory.includes(oldCategory)) {
+        setTeamCategory(teamCategory.map(cat => 
+          cat === oldCategory ? trimmedNewCategory : cat
+        ));
+      }
+
+      setEditingCategory(null);
+      setEditingCategoryName('');
+      await fetchAllData();
+      showToast(`Category "${oldCategory}" updated to "${trimmedNewCategory}"`, 'success');
+    } catch (error) {
+      console.error('Error updating category:', error);
+      showToast('Failed to update category. Please try again.', 'error');
     }
   };
 
@@ -3566,7 +3643,8 @@ export default function AdminDashboard() {
                         {teamCategories.length > 0 ? (
                           <div className="space-y-2">
                             {teamCategories.map((cat) => (
-                              <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                              <div key={cat} className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer flex-1">
                                 <input
                                   type="checkbox"
                                   checked={teamCategory.includes(cat)}
@@ -3579,8 +3657,51 @@ export default function AdminDashboard() {
                                   }}
                                   className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
                                 />
+                                  {editingCategory === cat ? (
+                                    <input
+                                      type="text"
+                                      value={editingCategoryName}
+                                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                                      onBlur={() => {
+                                        if (editingCategoryName.trim()) {
+                                          handleUpdateCategoryName(cat, editingCategoryName);
+                                        } else {
+                                          setEditingCategory(null);
+                                          setEditingCategoryName('');
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          if (editingCategoryName.trim()) {
+                                            handleUpdateCategoryName(cat, editingCategoryName);
+                                          }
+                                        } else if (e.key === 'Escape') {
+                                          setEditingCategory(null);
+                                          setEditingCategoryName('');
+                                        }
+                                      }}
+                                      autoFocus
+                                      className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                    />
+                                  ) : (
                                 <span className="text-sm text-gray-700">{cat}</span>
+                                  )}
                               </label>
+                                {editingCategory !== cat && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingCategory(cat);
+                                      setEditingCategoryName(cat);
+                                    }}
+                                    className="text-[#009f3b] hover:text-[#00782d] text-xs px-2 py-1"
+                                    title="Edit category name"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -4560,7 +4681,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">About Page Management</h2>
-                  <p className="text-sm text-gray-600">Manage your about page content, services, values, and hero sections</p>
+                  <p className="text-sm text-gray-600">Manage your about page content including the hero image, about image, and description text</p>
                 </div>
               </div>
             </div>
@@ -4637,13 +4758,16 @@ export default function AdminDashboard() {
                         <label htmlFor="aboutDescription" className="block text-sm font-semibold text-gray-700 mb-2">
                           About Description <span className="text-red-500">*</span>
                         </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Enter the full about page description. Use double line breaks (press Enter twice) to separate paragraphs. The first two paragraphs will appear in the main section, and the remaining paragraphs will appear in the second section.
+                        </p>
                         <textarea
                           id="aboutDescription"
                           value={aboutContent.description}
                           onChange={(e) => setAboutContent({ ...aboutContent, description: e.target.value })}
-                          rows={8}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y"
-                          placeholder="Enter the about page description..."
+                          rows={12}
+                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-sm"
+                          placeholder="NK-3D Architecture Studioz (NKASO Limited) is a forward-thinking design and construction firm...&#10;&#10;In 2021, NKASO Limited achieved a key milestone...&#10;&#10;Based in Kigali- Rwanda, NKASO Limited operates through specialized divisions...&#10;&#10;We are committed to environmental responsibility..."
                           required
                         />
                       </div>

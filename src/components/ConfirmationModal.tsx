@@ -63,7 +63,7 @@ export default function ConfirmationModal({
               <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
+              <h3 className="text-lg font-bold text-gray-700 mb-2">{title}</h3>
               <p className="text-gray-700">{message}</p>
             </div>
             <button

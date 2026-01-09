@@ -198,7 +198,7 @@ const Shop = () => {
           {/* Sidebar - Category Filter */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white border border-gray-200 rounded-lg p-4 sticky top-24">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Categories</h2>
+              <h2 className="text-lg font-bold text-gray-700 mb-4">Categories</h2>
               <div className="space-y-2">
                 {categories.map((category) => (
                   <button
@@ -235,7 +235,7 @@ const Shop = () => {
             <div className="lg:hidden fixed inset-0 backdrop-blur-md bg-white/10 z-50" onClick={() => setSidebarOpen(false)}>
               <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+                  <h2 className="text-lg font-bold text-gray-700">Categories</h2>
                   <button onClick={() => setSidebarOpen(false)} className="text-gray-500">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -388,7 +388,7 @@ const Shop = () => {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.product.name}</h4>
+                    <h4 className="font-semibold text-gray-700 text-sm mb-1">{item.product.name}</h4>
                     <p className="text-[#009f3b] font-bold mb-2">{formatPrice(item.product.price)}</p>
                     <div className="flex items-center gap-2">
                       <button

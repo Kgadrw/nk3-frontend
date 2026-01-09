@@ -228,18 +228,18 @@ const Navbar = () => {
               ))}
               {contactInfo.phoneNumbers.length === 0 && (
                 <>
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                    </svg>
-                    <span className="text-xs md:text-sm">PH: +(250) 783 206 660</span>
-                  </div>
-                  <div className="flex items-center gap-1 md:gap-2">
-                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                    </svg>
-                    <span className="text-xs md:text-sm">+86 13259839600</span>
-                  </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                </svg>
+                <span className="text-xs md:text-sm">PH: +(250) 783 206 660</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                </svg>
+                <span className="text-xs md:text-sm">+86 13259839600</span>
+              </div>
                 </>
               )}
               <div className="flex items-center gap-1 md:gap-2">
@@ -370,14 +370,14 @@ const Navbar = () => {
                   }, 200);
                 }}
               >
-                <Link 
-                  href="/team" 
-                  className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
-                    pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
-                  }`}
+              <Link 
+                href="/team" 
+                className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
+                  pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
+                }`}
                   onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
-                >
-                  Team
+              >
+                Team
                   <svg 
                     className={`w-4 h-4 inline-block ml-1 transition-transform duration-300 ${
                       teamDropdownOpen ? 'rotate-180' : ''
@@ -388,10 +388,10 @@ const Navbar = () => {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
-                    pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
-                  }`}></span>
-                </Link>
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
+                  pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
+                }`}></span>
+              </Link>
                 
                 {/* Dropdown Menu */}
                 {teamDropdownOpen && teamCategories.length > 0 && (
@@ -571,15 +571,15 @@ const Navbar = () => {
                 
                 {/* Team Mobile with Categories */}
                 <div>
-                  <Link
-                    href="/team"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                <Link
+                  href="/team"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
                       pathname === '/team' ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    Team
-                  </Link>
+                  }`}
+                >
+                  Team
+                </Link>
                   {teamCategories.length > 0 && (
                     <div className="pl-6 space-y-1">
                       {teamCategories.map((category, index) => {
@@ -635,8 +635,8 @@ const Navbar = () => {
                 >
                   Contact Us
                 </Link>
-                </nav>
-              </div>
+              </nav>
+            </div>
             </>
           )}
         </div>
@@ -673,7 +673,7 @@ const Navbar = () => {
                     setSearchQuery('');
                   }
                 }}
-                className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-base"
+                className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-base"
                 autoComplete="off"
               />
               <button
@@ -720,7 +720,7 @@ const Navbar = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{result.title}</p>
+                          <p className="font-semibold text-gray-700">{result.title}</p>
                           <p className="text-sm text-gray-500 capitalize">{result.type}</p>
                         </div>
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

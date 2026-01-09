@@ -10,9 +10,9 @@ const TeamMemberCard = ({ member, category }: { member: { id: number | string; n
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <div className="flex flex-col bg-[#009f3b]">
       {/* Member Portrait */}
-      <div className="relative w-full aspect-[3/4] mb-4 overflow-hidden bg-white">
+      <div className="relative w-full aspect-[3/4] overflow-hidden bg-white">
         {imageError ? (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
             <span className="text-gray-400 text-4xl font-bold">
@@ -32,25 +32,25 @@ const TeamMemberCard = ({ member, category }: { member: { id: number | string; n
         )}
       </div>
 
-      {/* Member Info */}
-      <div className="w-full space-y-1">
-        {/* Role */}
-        <p className="text-sm font-medium text-[#009f3b] uppercase">
-          {member.role}
-        </p>
-        
+      {/* Member Info - Green Background */}
+      <div className="bg-[#009f3b] p-4 md:p-6 flex flex-col flex-grow">
         {/* Name */}
-        <h3 className="text-base font-semibold text-gray-900">
+        <h3 className="text-white text-lg md:text-xl font-bold mb-2">
           {member.name}
         </h3>
         
-        {/* Bio Link - Only show if description exists */}
+        {/* Role/Position */}
+        <p className="text-[#90EE90] text-sm md:text-base mb-4">
+          {member.role}
+        </p>
+        
+        {/* More Button - Only show if description exists */}
         {member.description && member.description.trim() && (
           <Link 
             href={`/team/${member.id}${category ? `?category=${category}` : ''}`}
-            className="inline-block text-sm font-medium text-[#009f3b] hover:text-[#00782d] transition-colors mt-2"
+            className="mt-auto bg-[#00782d] hover:bg-[#005a1f] text-white px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors inline-block text-center"
           >
-            Bio
+            More
           </Link>
         )}
       </div>
@@ -65,6 +65,44 @@ const Team = () => {
   const [groupedTeams, setGroupedTeams] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
+
+  // Helper function to normalize category to canonical form
+  const normalizeCategory = (category: string): string => {
+    const categoryLower = category.toLowerCase().trim();
+    const normalizedMap: { [key: string]: string } = {
+      'founder': 'founder',
+      'company founder': 'founder',
+      'company-founder': 'founder',
+      'co-founder': 'co-founder',
+      'cofounder': 'co-founder',
+      'co founder': 'co-founder',
+      'technical': 'technical',
+      'technical team': 'technical',
+      'technical-team': 'technical',
+      'advisors': 'advisors',
+      'company-advisors': 'advisors',
+      'company advisors': 'advisors',
+      'advisory': 'advisors',
+      'advisory-board': 'advisors',
+      'advisory board': 'advisors',
+      'uncategorized': 'uncategorized',
+    };
+
+    // Check exact match first
+    if (normalizedMap[categoryLower]) {
+      return normalizedMap[categoryLower];
+    }
+
+    // Check if category contains any of the keys
+    for (const [key, value] of Object.entries(normalizedMap)) {
+      if (categoryLower.includes(key) || key.includes(categoryLower)) {
+        return value;
+      }
+    }
+
+    // Return normalized version (lowercase, replace spaces with hyphens)
+    return categoryLower.replace(/\s+/g, '-');
+  };
 
   // Helper function to format category name
   const formatCategoryLabel = (category: string): string => {
@@ -135,13 +173,14 @@ const Team = () => {
             : (member.category ? [member.category] : ['Uncategorized']);
           
           categories.forEach((cat: string) => {
-            const category = (cat || 'Uncategorized').toLowerCase();
-            if (!grouped[category]) {
-              grouped[category] = [];
+            // Normalize category to canonical form to prevent duplicates
+            const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
+            if (!grouped[normalizedCategory]) {
+              grouped[normalizedCategory] = [];
             }
             // Only add if not already in this category (avoid duplicates)
-            if (!grouped[category].some((m: any) => m.id === member.id)) {
-              grouped[category].push(member);
+            if (!grouped[normalizedCategory].some((m: any) => m.id === member.id)) {
+              grouped[normalizedCategory].push(member);
             }
           });
         });
@@ -296,11 +335,11 @@ const Team = () => {
 
   return (
     <section className="py-8 md:py-16 px-4 bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto relative">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar - Categories */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-4">
+          <aside className="lg:w-64 flex-shrink-0">
+            <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
               <div className="bg-white border border-gray-200 shadow-sm">
                 <div className="p-4 border-b border-gray-200 bg-[#009f3b]">
                   <h2 className="text-lg font-bold text-white">Categories</h2>
@@ -315,7 +354,9 @@ const Team = () => {
                     }`}
                   >
                     All Team Members
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span className={`ml-2 text-xs font-semibold ${
+                      !selectedCategory ? 'text-white' : 'text-[#009f3b]'
+                    }`}>
                       ({teamData.length})
                     </span>
                   </Link>
@@ -384,7 +425,9 @@ const Team = () => {
                         }`}
                       >
                         {formatCategoryLabel(category)}
-                        <span className={`ml-2 text-xs ${isActive ? 'opacity-90' : 'opacity-75'}`}>
+                        <span className={`ml-2 text-xs font-semibold ${
+                          isActive ? 'text-white' : 'text-[#009f3b]'
+                        }`}>
                           ({groupedTeams[category]?.length || 0})
                         </span>
                       </Link>
@@ -396,7 +439,7 @@ const Team = () => {
           </aside>
 
           {/* Main Content - Team Members */}
-          <div className="lg:col-span-3">
+          <div className="flex-1">
             {/* Show filter info if category is selected */}
             {selectedCategory && (
               <div className="mb-6">

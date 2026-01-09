@@ -61,7 +61,7 @@ export default function TeamDetailPage() {
     return (
       <main className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Team Member Not Found</h1>
+          <h1 className="text-3xl font-bold text-gray-700 mb-4">Team Member Not Found</h1>
           <p className="text-gray-600 mb-8">The team member you're looking for doesn't exist.</p>
           <Link 
             href={category ? `/team?category=${category}` : '/team'} 
@@ -96,7 +96,7 @@ export default function TeamDetailPage() {
           {/* Left Column - Image */}
           <div className="md:col-span-1">
             <div className="sticky top-24">
-              <div className="relative w-full aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
                 {imageError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
                     <span className="text-gray-400 text-6xl md:text-8xl font-bold">
@@ -121,24 +121,41 @@ export default function TeamDetailPage() {
           <div className="md:col-span-2 space-y-8">
             {/* Name and Role */}
             <div className="space-y-2">
-              {Array.isArray(member.category) && member.category.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {member.category.map((cat: string, index: number) => (
-                    <span key={index} className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
-                      {cat}
+              {(() => {
+                // Get unique categories
+                let categories: string[] = [];
+                if (Array.isArray(member.category) && member.category.length > 0) {
+                  // Remove duplicates by normalizing and using Set
+                  const normalized = member.category.map((cat: string) => cat.toLowerCase().trim());
+                  const unique = Array.from(new Set(normalized));
+                  categories = unique.map(cat => {
+                    // Find original case from member.category
+                    const original = member.category.find((c: string) => c.toLowerCase().trim() === cat);
+                    return original || cat;
+                  });
+                } else if (member.category) {
+                  categories = [member.category];
+                }
+                
+                if (categories.length > 0) {
+                  return (
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat: string, index: number) => (
+                        <span key={index} className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                } else {
+                  return (
+                    <span className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
+                      Team Member
                     </span>
-                  ))}
-                </div>
-              ) : member.category ? (
-                <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
-                  {member.category}
-                </span>
-              ) : (
-                <span className="inline-block bg-[#009f3b] text-white px-4 py-1 text-xs font-semibold uppercase rounded">
-                  Team Member
-                </span>
-              )}
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+                  );
+                }
+              })()}
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-700">
                 {member.name}
               </h1>
               <p className="text-xl md:text-2xl text-[#009f3b] font-medium">
@@ -149,12 +166,12 @@ export default function TeamDetailPage() {
             {/* Bio Section */}
             {member.description && (
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] flex items-center gap-2">
-                  <User className="w-6 h-6" />
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800 flex items-center gap-2">
+                  <User className="w-5 h-5 text-gray-600" />
                   Bio
                 </h2>
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                <div className="prose max-w-none">
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
                     {member.description}
                   </p>
                 </div>
@@ -164,9 +181,9 @@ export default function TeamDetailPage() {
             {/* Experience Section */}
             {member.experience && (
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Experience</h2>
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Experience</h2>
+                <div className="prose max-w-none">
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
                     {member.experience}
                   </p>
                 </div>
@@ -176,9 +193,9 @@ export default function TeamDetailPage() {
             {/* Education Section */}
             {member.education && (
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Education</h2>
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Education</h2>
+                <div className="prose max-w-none">
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
                     {member.education}
                   </p>
                 </div>
@@ -188,9 +205,9 @@ export default function TeamDetailPage() {
             {/* Certification Section */}
             {member.certification && (
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b]">Certification</h2>
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Certification</h2>
+                <div className="prose max-w-none">
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
                     {member.certification}
                   </p>
                 </div>
@@ -199,19 +216,19 @@ export default function TeamDetailPage() {
 
             {/* Contact Information */}
             <div className="space-y-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-6">Contact Information</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Contact Information</h2>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {member.phone && (
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
-                      <Phone className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="text-gray-600 flex-shrink-0">
+                      <Phone className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">Phone</p>
+                      <p className="text-xs text-gray-500 mb-1">Phone</p>
                       <a
                         href={`tel:${member.phone}`}
-                        className="text-lg font-semibold text-gray-900 hover:text-[#009f3b] transition-colors"
+                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors"
                       >
                         {member.phone}
                       </a>
@@ -220,15 +237,15 @@ export default function TeamDetailPage() {
                 )}
                 
                 {member.email && (
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
-                      <Mail className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="text-gray-600 flex-shrink-0">
+                      <Mail className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">Email</p>
+                      <p className="text-xs text-gray-500 mb-1">Email</p>
                       <a
                         href={`mailto:${member.email}`}
-                        className="text-lg font-semibold text-gray-900 hover:text-[#009f3b] transition-colors break-all"
+                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors break-all"
                       >
                         {member.email}
                       </a>
@@ -237,17 +254,17 @@ export default function TeamDetailPage() {
                 )}
                 
                 {member.linkedin && (
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="bg-[#009f3b] text-white p-3 rounded-lg flex-shrink-0">
-                      <Linkedin className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="text-gray-600 flex-shrink-0">
+                      <Linkedin className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-1">LinkedIn</p>
+                      <p className="text-xs text-gray-500 mb-1">LinkedIn</p>
                       <a
                         href={member.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-lg font-semibold text-gray-900 hover:text-[#009f3b] transition-colors break-all"
+                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors break-all"
                       >
                         View Profile
                       </a>
@@ -258,15 +275,6 @@ export default function TeamDetailPage() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 pt-4">
-                {member.phone && (
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="inline-flex items-center justify-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#00782d] transition-colors"
-                  >
-                    <Phone className="w-5 h-5" />
-                    Call Now
-                  </a>
-                )}
                 {member.email && (
                   <a
                     href={`mailto:${member.email}`}
