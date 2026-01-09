@@ -55,7 +55,7 @@ const Partners = () => {
         {/* Section Title */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#009f3b] mb-2">
-            Our Partners
+            OUR PARTNERS
           </h2>
         </div>
 

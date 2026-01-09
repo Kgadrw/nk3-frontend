@@ -339,7 +339,7 @@ const Team = () => {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar - Categories */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto z-10">
               <div className="bg-white border border-gray-200 shadow-sm">
                 <div className="p-4 border-b border-gray-200 bg-[#009f3b]">
                   <h2 className="text-lg font-bold text-white">Categories</h2>
