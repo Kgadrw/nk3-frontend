@@ -61,7 +61,7 @@ const LatestPortfolio = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 md:mb-12 gap-4">
           <div className="text-left">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#009f3b] mb-2">
-              latest portfolio
+              LATEST PORTFOLIO
             </h2>
             <p className="text-gray-600 text-sm md:text-base">
               Discover our most recent architectural projects and achievements
