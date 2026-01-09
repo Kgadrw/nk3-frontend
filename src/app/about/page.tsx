@@ -138,13 +138,13 @@ export default function AboutPage() {
                 priority
               />
             ) : (
-              <Image
+            <Image
                 src="/about.jpg"
-                alt="About Us"
-                fill
-                className="object-cover"
-                priority
-              />
+              alt="About Us"
+              fill
+              className="object-cover"
+              priority
+            />
             )}
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
           </motion.div>
@@ -175,7 +175,7 @@ export default function AboutPage() {
                     </p>
                   )}
                 </div>
-              </div>
+          </div>
             ) : (
               <div className="space-y-4 text-gray-700">
                 <p className="text-xs md:text-sm font-medium uppercase tracking-wide text-gray-600">
@@ -258,7 +258,7 @@ export default function AboutPage() {
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
           </motion.div>
         </motion.div>
-      </div>
+            </div>
 
       {/* Rest of Content */}
       <div className="max-w-7xl mx-auto w-full px-2 md:px-4 lg:px-6 py-8 md:py-12">
@@ -267,7 +267,7 @@ export default function AboutPage() {
           <div className="p-6 md:p-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-8">
                 {/* Left - Heading */}
-                <div>
+              <div>
                   <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-700 mb-4">
                     WHY CHOOSE US
                   </h3>
@@ -294,40 +294,64 @@ export default function AboutPage() {
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Proven track record of successful projects
                   </p>
-                </div>
+                </motion.div>
                 
                 {/* Card 2 - Strategic Partnerships */}
-                <div className="bg-[#90EE90] p-6 flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                >
                   <Handshake className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Strategic partnerships with industry leaders
                   </p>
-                </div>
+                </motion.div>
                 
                 {/* Card 3 - Comprehensive Services */}
-                <div className="bg-[#90EE90] p-6 flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                >
                   <Crown className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Comprehensive service offerings
                   </p>
-                </div>
+                </motion.div>
                 
                 {/* Card 4 - Experienced Team */}
-                <div className="bg-[#90EE90] p-6 flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                >
                   <Users className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Dedicated and experienced team
                   </p>
-                </div>
+                </motion.div>
                 
                 {/* Card 5 - Innovation */}
-                <div className="bg-[#90EE90] p-6 flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                >
                   <Lightbulb className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
                   <p className="text-[#009f3b] text-sm md:text-base font-medium">
                     Commitment to innovation and sustainability
                   </p>
-                </div>
-              </div>
+                </motion.div>
+            </div>
           </div>
 
           {/* Services Section */}
@@ -336,7 +360,7 @@ export default function AboutPage() {
                 <div className="flex-1 h-px bg-gray-300"></div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-700 uppercase whitespace-nowrap">
                   Our Services
-                </h3>
+              </h3>
                 <div className="flex-1 h-px bg-gray-300"></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -375,8 +399,7 @@ export default function AboutPage() {
                   <p className="col-span-full text-center text-gray-500 py-8">No services available yet.</p>
                 )}
               </div>
-            </motion.div>
-
+          </div>
         </div>
       </div>
       <Footer />
