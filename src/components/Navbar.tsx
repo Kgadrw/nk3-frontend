@@ -82,35 +82,107 @@ const Navbar = () => {
         const res = await fetch('/api/team');
         const data = await res.json();
         if (data && Array.isArray(data)) {
-          // Extract unique categories from teams
-          const categoriesSet = new Set<string>();
-          data.forEach((member: any) => {
-            const categories = Array.isArray(member.category) 
-              ? member.category 
-              : (member.category ? [member.category] : ['Uncategorized']);
-            categories.forEach((cat: string) => {
-              if (cat && cat.trim()) {
-                categoriesSet.add(cat.trim());
-              }
-            });
-          });
-          // Format category labels
-          const formattedCategories = Array.from(categoriesSet).map(cat => {
-            const categoryLower = cat.toLowerCase();
+          // Helper function to normalize category to canonical form
+          const normalizeCategory = (category: string): string => {
+            const categoryLower = category.toLowerCase().trim();
+            const normalizedMap: { [key: string]: string } = {
+              'founder': 'founder',
+              'company founder': 'founder',
+              'company-founder': 'founder',
+              'co-founder': 'co-founder',
+              'cofounder': 'co-founder',
+              'co founder': 'co-founder',
+              'technical': 'technical',
+              'technical team': 'technical',
+              'technical-team': 'technical',
+              'advisors': 'advisors',
+              'company-advisors': 'advisors',
+              'company advisors': 'advisors',
+              'advisory': 'advisors',
+              'advisory-board': 'advisors',
+              'advisory board': 'advisors',
+              'uncategorized': 'uncategorized',
+            };
+
+            // Check exact match first
+            if (normalizedMap[categoryLower]) {
+              return normalizedMap[categoryLower];
+            }
+
+            // Check for founder variations (must check before generic contains check)
+            if (categoryLower.includes('founder') && !categoryLower.includes('co-founder') && !categoryLower.includes('cofounder')) {
+              return 'founder';
+            }
+            
+            // Check for co-founder variations
+            if (categoryLower.includes('co-founder') || categoryLower.includes('cofounder') || (categoryLower.includes('co') && categoryLower.includes('founder'))) {
+              return 'co-founder';
+            }
+
+            // Check for technical variations
+            if (categoryLower.includes('technical')) {
+              return 'technical';
+            }
+
+            // Check for advisors variations
+            if (categoryLower.includes('advisor') || categoryLower.includes('advisory')) {
+              return 'advisors';
+            }
+
+            // Return normalized version (lowercase, replace spaces with hyphens)
+            return categoryLower.replace(/\s+/g, '-');
+          };
+
+          // Helper function to format category name for display
+          const formatCategoryLabel = (category: string): string => {
+            const categoryLower = category.toLowerCase();
             const labelMap: { [key: string]: string } = {
               'founder': 'Company Founder',
               'co-founder': 'Co-Founder',
               'cofounder': 'Co-Founder',
               'technical': 'Technical Team',
               'advisors': 'Company Advisors',
+              'company-advisors': 'Company Advisors',
+              'company advisors': 'Company Advisors',
+              'advisory': 'Company Advisors',
+              'advisory-board': 'Company Advisors',
+              'advisory board': 'Company Advisors',
               'uncategorized': 'Uncategorized',
             };
-            return labelMap[categoryLower] || cat
+
+            if (labelMap[categoryLower]) {
+              return labelMap[categoryLower];
+            }
+
+            // Format other categories: capitalize first letter of each word
+            return category
               .split(/[\s_-]+/)
               .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
               .join(' ');
+          };
+
+          // Extract unique normalized categories from teams
+          const normalizedCategoriesSet = new Set<string>();
+          data.forEach((member: any) => {
+            const categories = Array.isArray(member.category) 
+              ? member.category 
+              : (member.category ? [member.category] : ['Uncategorized']);
+            categories.forEach((cat: string) => {
+              if (cat && cat.trim()) {
+                const normalized = normalizeCategory(cat.trim());
+                normalizedCategoriesSet.add(normalized);
+              }
+            });
           });
-          setTeamCategories(formattedCategories.sort());
+          
+          // Format category labels and use Set to ensure no duplicates
+          const formattedCategoriesSet = new Set<string>();
+          Array.from(normalizedCategoriesSet).forEach(cat => {
+            const formatted = formatCategoryLabel(cat);
+            formattedCategoriesSet.add(formatted);
+          });
+          
+          setTeamCategories(Array.from(formattedCategoriesSet).sort());
         }
       } catch (error) {
         // Error fetching team categories
