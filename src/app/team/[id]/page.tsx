@@ -139,19 +139,19 @@ export default function TeamDetailPage() {
                 
                 if (categories.length > 0) {
                   return (
-                    <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                       {categories.map((cat: string, index: number) => (
                         <span key={index} className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
+                      {cat}
+                    </span>
+                  ))}
+                </div>
                   );
                 } else {
                   return (
                     <span className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
-                      Team Member
-                    </span>
+                  Team Member
+                </span>
                   );
                 }
               })()}

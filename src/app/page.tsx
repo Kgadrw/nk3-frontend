@@ -1,9 +1,23 @@
+import dynamic from 'next/dynamic';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
-import Banner from '@/components/Banner';
-import Partners from '@/components/Partners';
-import LatestPortfolio from '@/components/LatestPortfolio';
-import Footer from '@/components/Footer';
+
+// Lazy load below-the-fold components for better performance
+const Banner = dynamic(() => import('@/components/Banner'), {
+  loading: () => <div className="min-h-[300px] md:min-h-[350px]" />,
+});
+
+const Partners = dynamic(() => import('@/components/Partners'), {
+  loading: () => <div className="min-h-[200px]" />,
+});
+
+const LatestPortfolio = dynamic(() => import('@/components/LatestPortfolio'), {
+  loading: () => <div className="min-h-[400px]" />,
+});
+
+const Footer = dynamic(() => import('@/components/Footer'), {
+  loading: () => <div className="min-h-[300px]" />,
+});
 
 export default function Home() {
   return (

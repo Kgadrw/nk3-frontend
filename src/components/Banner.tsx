@@ -40,21 +40,27 @@ const Banner = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchCompanyProfile = async () => {
       try {
         const res = await fetch('/api/social');
         const data = await res.json();
-        if (data && data.companyProfilePdf) {
+        if (isMounted && data && data.companyProfilePdf) {
           setCompanyProfilePdf(data.companyProfilePdf);
         }
       } catch (error) {
         console.error('Error fetching company profile:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchCompanyProfile();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

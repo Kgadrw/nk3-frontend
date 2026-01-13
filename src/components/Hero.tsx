@@ -98,14 +98,16 @@ const Hero = () => {
     const descTime = descDelay + (currentHero.description.length * 30);
     const totalTypingTime = descTime + 1000; // Add 1 second buffer for completion
     
-    // After typing completes, wait 6 seconds for reading, then transition
+    // After typing completes, wait 4 seconds for reading (reduced from 6), then transition
     const transitionTimeout = setTimeout(() => {
       setIsTransitioning(true);
-      setTimeout(() => {
+      const changeTimeout = setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % heroTexts.length);
         setIsTransitioning(false);
       }, 500); // Transition duration
-    }, totalTypingTime + 6000); // 6 seconds reading time after typing completes
+      
+      return () => clearTimeout(changeTimeout);
+    }, totalTypingTime + 4000); // 4 seconds reading time after typing completes (reduced for faster UX)
 
     return () => clearTimeout(transitionTimeout);
   }, [currentIndex, heroTexts]);
@@ -148,6 +150,7 @@ const Hero = () => {
               fill
               className="object-cover"
               priority
+              sizes="100vw"
             />
           </motion.div>
         </AnimatePresence>

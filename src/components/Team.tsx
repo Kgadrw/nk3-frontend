@@ -481,7 +481,7 @@ const Team = () => {
                   {selectedCategory 
                     ? `No team members found in category "${formatCategoryLabel(selectedCategory)}".`
                     : 'No team members available yet.'}
-                </p>
+            </p>
                 {selectedCategory && (
                   <Link
                     href="/team"

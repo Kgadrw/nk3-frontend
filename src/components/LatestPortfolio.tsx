@@ -22,6 +22,7 @@ const LatestPortfolio = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProjects = async () => {
       try {
         const res = await fetch('/api/portfolio');
@@ -31,14 +32,21 @@ const LatestPortfolio = () => {
           ...p,
           id: p._id || p.id
         }));
-        setLatestProjects(projects);
+        if (isMounted) {
+          setLatestProjects(projects);
+        }
       } catch (error) {
         console.error('Error fetching portfolio:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     fetchProjects();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -118,7 +126,8 @@ const LatestPortfolio = () => {
                     alt={project.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    loading="lazy"
                   />
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
@@ -175,7 +184,8 @@ const LatestPortfolio = () => {
                     alt={project.title}
                     fill
                     className="object-cover"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 320px"
+                    loading="lazy"
                   />
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
