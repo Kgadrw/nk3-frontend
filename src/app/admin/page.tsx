@@ -152,6 +152,7 @@ export default function AdminDashboard() {
   const [shopDescription, setShopDescription] = useState('');
   
   // Academy management state
+  const [academySubTab, setAcademySubTab] = useState<'research' | 'seminars' | 'internships'>('research');
   const [showAcademyForm, setShowAcademyForm] = useState(false);
   const [editingAcademy, setEditingAcademy] = useState<string | null>(null);
   const [academicTitle, setAcademicTitle] = useState('');
@@ -159,6 +160,19 @@ export default function AdminDashboard() {
   const [academicYear, setAcademicYear] = useState('');
   const [academicDescription, setAcademicDescription] = useState('');
   const [academicLink, setAcademicLink] = useState('');
+  
+  // Seminar management state
+  const [showSeminarForm, setShowSeminarForm] = useState(false);
+  const [editingSeminar, setEditingSeminar] = useState<string | null>(null);
+  const [seminarTitle, setSeminarTitle] = useState('');
+  const [seminarDescription, setSeminarDescription] = useState('');
+  const [seminarDate, setSeminarDate] = useState('');
+  const [seminarTime, setSeminarTime] = useState('');
+  const [seminarLocation, setSeminarLocation] = useState('');
+  const [seminarInstructor, setSeminarInstructor] = useState('');
+  const [seminarRegistrationLink, setSeminarRegistrationLink] = useState('');
+  const [seminarImage, setSeminarImage] = useState('');
+  const [seminarStatus, setSeminarStatus] = useState<'upcoming' | 'ongoing' | 'completed'>('upcoming');
   
   // PDF Viewer state
   const [showPdfViewer, setShowPdfViewer] = useState(false);
@@ -260,6 +274,8 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [publications, setPublications] = useState<any[]>([]);
   const [portfolios, setPortfolios] = useState<any[]>([]);
+  const [seminars, setSeminars] = useState<any[]>([]);
+  const [internshipApplications, setInternshipApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Fetch data from database
@@ -431,7 +447,7 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes, inquiriesRes, aboutRes, contactRes, servicesRes, valuesRes, heroRes] = await Promise.all([
+        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes, inquiriesRes, aboutRes, contactRes, servicesRes, valuesRes, heroRes, seminarsRes, internshipsRes] = await Promise.all([
         fetch('/api/team'),
         fetch('/api/shop'),
         fetch('/api/academic'),
@@ -445,7 +461,9 @@ export default function AdminDashboard() {
           fetch('/api/contact'),
           fetch('/api/services'),
           fetch('/api/values'),
-          fetch('/api/hero/all')
+          fetch('/api/hero/all'),
+          fetch('/api/seminars'),
+          fetch('/api/internships')
       ]);
       
       const teamsData = await teamsRes.json();
@@ -460,6 +478,8 @@ export default function AdminDashboard() {
       const aboutData = await aboutRes.json();
       const servicesData = await servicesRes.json();
       const valuesData = await valuesRes.json();
+      const seminarsData = await seminarsRes.json();
+      const internshipsData = await internshipsRes.json();
       
       setServices(servicesData || []);
       setValues(valuesData || []);
@@ -516,6 +536,8 @@ export default function AdminDashboard() {
       setPaymentMethods(paymentData || []);
       setOrders(ordersData || []);
       setInquiries(inquiriesData || []);
+      setSeminars(seminarsData || []);
+      setInternshipApplications(internshipsData || []);
       
       // Extract unique categories from portfolios
       const uniqueCategories = new Set<string>();
@@ -1394,6 +1416,112 @@ export default function AdminDashboard() {
     );
   };
 
+  // Seminar management functions
+  const handleSaveSeminar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!seminarTitle || !seminarDescription || !seminarDate) {
+      showToast('Please fill in all required fields (Title, Description, Date)', 'warning');
+      return;
+    }
+    try {
+      const data = {
+        title: seminarTitle.trim(),
+        description: seminarDescription.trim(),
+        date: seminarDate.trim(),
+        time: seminarTime.trim(),
+        location: seminarLocation.trim(),
+        instructor: seminarInstructor.trim(),
+        registrationLink: seminarRegistrationLink.trim(),
+        image: seminarImage.trim(),
+        status: seminarStatus
+      };
+      
+      const url = editingSeminar ? `/api/seminars/${editingSeminar}` : '/api/seminars';
+      const method = editingSeminar ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (res.ok) {
+        await fetchAllData();
+        setShowSeminarForm(false);
+        setEditingSeminar(null);
+        // Reset form
+        setSeminarTitle('');
+        setSeminarDescription('');
+        setSeminarDate('');
+        setSeminarTime('');
+        setSeminarLocation('');
+        setSeminarInstructor('');
+        setSeminarRegistrationLink('');
+        setSeminarImage('');
+        setSeminarStatus('upcoming');
+        showToast(editingSeminar ? 'Seminar updated successfully!' : 'Seminar created successfully!', 'success');
+      } else {
+        const contentType = res.headers.get('content-type');
+        let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await res.json();
+            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
+          } else {
+            const errorText = await res.text();
+            errorMessage = errorText || errorMessage;
+          }
+        } catch (parseError) {
+          // Error parsing seminar save error response
+        }
+        showToast(`Error: ${errorMessage}`, 'error');
+      }
+    } catch (error) {
+      showToast('Error saving seminar. Please try again.', 'error');
+    }
+  };
+
+  const deleteSeminar = async (id: string) => {
+    if (!id) {
+      showToast('Invalid seminar ID', 'error');
+      return;
+    }
+    
+    showDeleteConfirmation(
+      'Are you sure you want to delete this seminar? This action cannot be undone.',
+      async () => {
+        try {
+          const res = await fetch(`/api/seminars/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            await fetchAllData();
+            showToast('Seminar deleted successfully!', 'success');
+          } else {
+            const contentType = res.headers.get('content-type');
+            let errorMessage = 'Failed to delete seminar';
+            
+            if (contentType && contentType.includes('application/json')) {
+              try {
+                const errorData = await res.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+              } catch (e) {
+                // Error parsing JSON error response
+              }
+            } else {
+              try {
+                const errorText = await res.text();
+                if (errorText) errorMessage = errorText;
+              } catch (e) {
+                // Error parsing text error response
+              }
+            }
+            
+            showToast(`Error: ${errorMessage}`, 'error');
+          }
+        } catch (error: any) {
+          showToast(`Error deleting seminar: ${error.message || 'Please try again'}`, 'error');
+        }
+      }
+    );
+  };
 
   const saveContactInfo = async () => {
     try {
@@ -2966,30 +3094,69 @@ export default function AdminDashboard() {
           </div>
           )}
 
-          {/* Academy/Research Management */}
+          {/* Academy Management */}
           {activeTab === 'academy' && (
             <div className="p-6 space-y-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-[#009f3b]">Research Publications Management</h2>
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => {
-                      setShowAcademyForm(true);
-                      setEditingAcademy(null);
-                      setAcademicTitle('');
-                      setAcademicAuthor('');
-                      setAcademicYear('');
-                      setAcademicDescription('');
-                      setPdfLink('');
-                      setAcademicLink('');
-                      setPdfFile(null);
-                    }}
-                    className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+              {/* Sub-tabs */}
+              <div className="border-b border-gray-200 mb-6">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setAcademySubTab('research')}
+                    className={`px-6 py-3 font-semibold transition-colors ${
+                      academySubTab === 'research'
+                        ? 'bg-[#009f3b] text-white border-b-2 border-[#009f3b]'
+                        : 'text-gray-700 hover:text-[#009f3b] hover:bg-gray-50'
+                    }`}
                   >
-                    + Publish New Research
+                    Research Publications
                   </button>
-                  </div>
+                  <button
+                    onClick={() => setAcademySubTab('seminars')}
+                    className={`px-6 py-3 font-semibold transition-colors ${
+                      academySubTab === 'seminars'
+                        ? 'bg-[#009f3b] text-white border-b-2 border-[#009f3b]'
+                        : 'text-gray-700 hover:text-[#009f3b] hover:bg-gray-50'
+                    }`}
+                  >
+                    Seminars & Workshops
+                  </button>
+                  <button
+                    onClick={() => setAcademySubTab('internships')}
+                    className={`px-6 py-3 font-semibold transition-colors ${
+                      academySubTab === 'internships'
+                        ? 'bg-[#009f3b] text-white border-b-2 border-[#009f3b]'
+                        : 'text-gray-700 hover:text-[#009f3b] hover:bg-gray-50'
+                    }`}
+                  >
+                    Internship Applications
+                  </button>
                 </div>
+              </div>
+
+              {/* Research Publications Tab */}
+              {academySubTab === 'research' && (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-[#009f3b]">Research Publications Management</h2>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => {
+                          setShowAcademyForm(true);
+                          setEditingAcademy(null);
+                          setAcademicTitle('');
+                          setAcademicAuthor('');
+                          setAcademicYear('');
+                          setAcademicDescription('');
+                          setPdfLink('');
+                          setAcademicLink('');
+                          setPdfFile(null);
+                        }}
+                        className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                      >
+                        + Publish New Research
+                      </button>
+                    </div>
+                  </div>
 
               {/* Publications List/Grid */}
               {!showAcademyForm && (
@@ -3227,6 +3394,408 @@ export default function AdminDashboard() {
                     </div>
                 </form>
                 </div>
+              )}
+                </>
+              )}
+
+              {/* Seminars & Workshops Tab */}
+              {academySubTab === 'seminars' && (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-[#009f3b]">Seminars & Workshops Management</h2>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => {
+                          setShowSeminarForm(true);
+                          setEditingSeminar(null);
+                          setSeminarTitle('');
+                          setSeminarDescription('');
+                          setSeminarDate('');
+                          setSeminarTime('');
+                          setSeminarLocation('');
+                          setSeminarInstructor('');
+                          setSeminarRegistrationLink('');
+                          setSeminarImage('');
+                          setSeminarStatus('upcoming');
+                        }}
+                        className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                      >
+                        + Create New Seminar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Seminars List/Grid */}
+                  {!showSeminarForm && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Seminars & Workshops ({seminars.length})</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {seminars.map((seminar) => (
+                          <div key={seminar._id || seminar.id} className="border border-gray-200 rounded-lg overflow-hidden transition-shadow">
+                            {seminar.image && (
+                              <div className="relative w-full h-48">
+                                <Image
+                                  src={seminar.image}
+                                  alt={seminar.title}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+                            )}
+                            <div className="p-4">
+                              <div className="mb-2">
+                                <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                  seminar.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
+                                  seminar.status === 'ongoing' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {seminar.status?.charAt(0).toUpperCase() + seminar.status?.slice(1)}
+                                </span>
+                              </div>
+                              <h3 className="font-bold text-lg text-gray-900 mb-2">{seminar.title}</h3>
+                              <p className="text-sm text-gray-700 mb-3 line-clamp-3">{seminar.description}</p>
+                              <div className="space-y-1 text-xs text-gray-600 mb-3">
+                                {seminar.date && <p><span className="font-semibold">Date:</span> {seminar.date}</p>}
+                                {seminar.time && <p><span className="font-semibold">Time:</span> {seminar.time}</p>}
+                                {seminar.location && <p><span className="font-semibold">Location:</span> {seminar.location}</p>}
+                                {seminar.instructor && <p><span className="font-semibold">Instructor:</span> {seminar.instructor}</p>}
+                              </div>
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setShowSeminarForm(true);
+                                    setEditingSeminar(seminar._id || seminar.id);
+                                    setSeminarTitle(seminar.title || '');
+                                    setSeminarDescription(seminar.description || '');
+                                    setSeminarDate(seminar.date || '');
+                                    setSeminarTime(seminar.time || '');
+                                    setSeminarLocation(seminar.location || '');
+                                    setSeminarInstructor(seminar.instructor || '');
+                                    setSeminarRegistrationLink(seminar.registrationLink || '');
+                                    setSeminarImage(seminar.image || '');
+                                    setSeminarStatus(seminar.status || 'upcoming');
+                                  }}
+                                  className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-sm hover:bg-[#00782d] rounded transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    const seminarId = seminar._id || seminar.id;
+                                    if (seminarId) {
+                                      deleteSeminar(String(seminarId));
+                                    } else {
+                                      showToast('Error: Invalid seminar ID', 'error');
+                                    }
+                                  }}
+                                  className="flex-1 px-3 py-2 bg-red-600 text-white text-sm hover:bg-red-700 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {seminars.length === 0 && (
+                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <p className="text-gray-500">No seminars or workshops yet. Create one to get started.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Add/Edit Seminar Form */}
+                  {showSeminarForm && (
+                    <div className="border-t pt-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-[#009f3b]">
+                          {editingSeminar ? 'Edit Seminar' : 'Create New Seminar'}
+                        </h3>
+                        <button 
+                          onClick={() => {
+                            setShowSeminarForm(false);
+                            setEditingSeminar(null);
+                            setSeminarTitle('');
+                            setSeminarDescription('');
+                            setSeminarDate('');
+                            setSeminarTime('');
+                            setSeminarLocation('');
+                            setSeminarInstructor('');
+                            setSeminarRegistrationLink('');
+                            setSeminarImage('');
+                            setSeminarStatus('upcoming');
+                          }}
+                          className="text-gray-600 hover:text-gray-800 text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <form onSubmit={handleSaveSeminar} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                          <input 
+                            type="text" 
+                            value={seminarTitle}
+                            onChange={(e) => setSeminarTitle(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
+                          <textarea 
+                            rows={4} 
+                            value={seminarDescription}
+                            onChange={(e) => setSeminarDescription(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                            <input 
+                              type="text" 
+                              value={seminarDate}
+                              onChange={(e) => setSeminarDate(e.target.value)}
+                              placeholder="e.g., January 15, 2024"
+                              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Time</label>
+                            <input 
+                              type="text" 
+                              value={seminarTime}
+                              onChange={(e) => setSeminarTime(e.target.value)}
+                              placeholder="e.g., 10:00 AM - 12:00 PM"
+                              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                            <input 
+                              type="text" 
+                              value={seminarLocation}
+                              onChange={(e) => setSeminarLocation(e.target.value)}
+                              placeholder="e.g., Conference Hall, Kigali"
+                              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Instructor</label>
+                            <input 
+                              type="text" 
+                              value={seminarInstructor}
+                              onChange={(e) => setSeminarInstructor(e.target.value)}
+                              placeholder="Instructor name"
+                              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Registration Link</label>
+                          <input 
+                            type="url" 
+                            value={seminarRegistrationLink}
+                            onChange={(e) => setSeminarRegistrationLink(e.target.value)}
+                            placeholder="https://example.com/register"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL</label>
+                          <input 
+                            type="url" 
+                            value={seminarImage}
+                            onChange={(e) => setSeminarImage(e.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black mb-2"
+                          />
+                          <p className="text-xs text-gray-500 mb-2">Or upload an image:</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, setSeminarImage, 'nk3d/seminars')}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                          />
+                          {seminarImage && (
+                            <div className="mt-2 relative w-32 h-32">
+                              <Image
+                                src={seminarImage}
+                                alt="Seminar preview"
+                                fill
+                                className="object-cover rounded"
+                                unoptimized
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                          <select
+                            value={seminarStatus}
+                            onChange={(e) => setSeminarStatus(e.target.value as 'upcoming' | 'ongoing' | 'completed')}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                          >
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </div>
+                        <div className="flex gap-3">
+                          <button 
+                            type="submit"
+                            className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                          >
+                            {editingSeminar ? 'Update Seminar' : 'Create Seminar'}
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setShowSeminarForm(false);
+                              setEditingSeminar(null);
+                              setSeminarTitle('');
+                              setSeminarDescription('');
+                              setSeminarDate('');
+                              setSeminarTime('');
+                              setSeminarLocation('');
+                              setSeminarInstructor('');
+                              setSeminarRegistrationLink('');
+                              setSeminarImage('');
+                              setSeminarStatus('upcoming');
+                            }}
+                            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Internship Applications Tab */}
+              {academySubTab === 'internships' && (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-[#009f3b]">Internship Applications</h2>
+                    <div className="text-sm text-gray-600">
+                      Total Applications: <span className="font-bold text-[#009f3b]">{internshipApplications.length}</span>
+                    </div>
+                  </div>
+
+                  {internshipApplications.length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                      <Mail className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                      <p className="text-gray-500 text-lg">No internship applications yet.</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse min-w-[800px]">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Institution</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Field of Study</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {internshipApplications.map((application) => (
+                              <tr key={application._id || application.id} className="border-b border-gray-200 hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                                  {new Date(application.createdAt).toLocaleDateString()}
+                                  <br />
+                                  <span className="text-gray-400">{new Date(application.createdAt).toLocaleTimeString()}</span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900 font-medium">{application.fullName}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">
+                                  <a href={`mailto:${application.email}`} className="text-[#009f3b] hover:underline break-all">
+                                    {application.email}
+                                  </a>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{application.phone || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{application.institution || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{application.fieldOfStudy || '-'}</td>
+                                <td className="px-4 py-3">
+                                  <select
+                                    value={application.status || 'pending'}
+                                    onChange={async (e) => {
+                                      try {
+                                        const res = await fetch(`/api/internships/${application._id || application.id}`, {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ status: e.target.value }),
+                                        });
+                                        if (res.ok) {
+                                          await fetchAllData();
+                                          showToast('Application status updated successfully!', 'success');
+                                        } else {
+                                          showToast('Error updating application status', 'error');
+                                        }
+                                      } catch (error) {
+                                        showToast('Error updating application status', 'error');
+                                      }
+                                    }}
+                                    className={`px-2 py-1 text-xs font-semibold rounded border-0 focus:outline-none focus:ring-2 focus:ring-[#009f3b] ${
+                                      application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                      application.status === 'reviewed' ? 'bg-blue-100 text-blue-800' :
+                                      application.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="reviewed">Reviewed</option>
+                                    <option value="accepted">Accepted</option>
+                                    <option value="rejected">Rejected</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setSelectedInquiry({
+                                          ...application,
+                                          name: application.fullName,
+                                          subject: 'Internship Application',
+                                          message: `Field of Study: ${application.fieldOfStudy || 'N/A'}\nInstitution: ${application.institution || 'N/A'}\nCurrent Year: ${application.currentYear || 'N/A'}\nStart Date: ${application.startDate || 'N/A'}\nDuration: ${application.duration || 'N/A'}\n\nCover Letter:\n${application.coverLetter || 'N/A'}`
+                                        });
+                                      }}
+                                      className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                    >
+                                      View Details
+                                    </button>
+                                    {application.email && (
+                                      <a
+                                        href={`mailto:${application.email}?subject=Re: Internship Application`}
+                                        className="px-3 py-1 bg-gray-200 text-gray-700 text-xs hover:bg-gray-300 transition-colors"
+                                      >
+                                        Reply
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
