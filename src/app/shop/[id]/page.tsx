@@ -31,9 +31,9 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/shop/${id}`);
-        if (res.ok) {
-          const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>(`/api/shop/${id}`);
+        if (data) {
           setProduct({
             ...data,
             price: typeof data.price === 'string' ? parseFloat(data.price.replace(/[^0-9.]/g, '')) || 0 : data.price
@@ -56,7 +56,8 @@ export default function ProductDetailPage() {
       currency: 'RWF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+      currencyDisplay: 'code',
+    }).format(price).replace('RWF', 'FRW');
   };
 
   const addToCart = () => {

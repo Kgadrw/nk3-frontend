@@ -22,6 +22,8 @@ type CartItem = {
 const Shop = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('default');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [cartOpen, setCartOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
@@ -30,8 +32,8 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/shop');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/shop');
         const productsData = (data || []).map((p: any) => ({
           ...p,
           id: p._id || p.id,
@@ -66,9 +68,47 @@ const Shop = () => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === selectedCategory);
+  // Filter and sort products
+  const filteredProducts = (() => {
+    let filtered = products;
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort products
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case 'price-low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-asc':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      default:
+        // Keep original order
+        break;
+    }
+
+    return sorted;
+  })();
 
   const addToCart = (product: Product) => {
     setCart(prevCart => {
@@ -151,7 +191,8 @@ const Shop = () => {
       currency: 'RWF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+      currencyDisplay: 'code',
+    }).format(price).replace('RWF', 'FRW');
   };
 
   // Update cart count in localStorage to sync with navbar
@@ -184,15 +225,69 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-[#009f3b] text-white py-8 md:py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Our Shop</h1>
-          <p className="text-sm md:text-base text-gray-200">Discover our services and products</p>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
+        {/* Filters and Sorting - All on same line */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          {/* Search Bar */}
+          <div className="flex-1 w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black placeholder:text-gray-500"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <div className="w-full sm:w-48 relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-3 pr-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black bg-white appearance-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'left 0.75rem center',
+                paddingLeft: '2.5rem'
+              }}
+            >
+              <option value="all">All Categories</option>
+              {categories.filter(cat => cat.id !== 'all').map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort Options */}
+          <div className="w-full sm:w-64 relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-4 py-3 pr-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black bg-white appearance-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'left 0.75rem center',
+                paddingLeft: '2.5rem'
+              }}
+            >
+              <option value="default">Sort by: Default</option>
+              <option value="price-low">Sort by: Price (Low to High)</option>
+              <option value="price-high">Sort by: Price (High to Low)</option>
+              <option value="name-asc">Sort by: Name (A-Z)</option>
+              <option value="name-desc">Sort by: Name (Z-A)</option>
+            </select>
+          </div>
+
+          {/* Results Count */}
+          <div className="text-sm text-gray-600 whitespace-nowrap">
+            {filteredProducts.length} of {products.length}
+          </div>
+        </div>
+
         {/* Main Content */}
         <div>
           {/* Products Grid - Alibaba Style */}
@@ -219,6 +314,8 @@ const Shop = () => {
                         fill
                         className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
                         unoptimized
+                        loading="lazy"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
                     </div>
                   </div>
@@ -313,6 +410,8 @@ const Shop = () => {
                       fill
                       className="object-cover"
                       unoptimized
+                      loading="lazy"
+                      sizes="80px"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

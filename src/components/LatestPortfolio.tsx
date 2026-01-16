@@ -25,8 +25,8 @@ const LatestPortfolio = () => {
     let isMounted = true;
     const fetchProjects = async () => {
       try {
-        const res = await fetch('/api/portfolio');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/portfolio');
         // Get latest 3 projects
         const projects = (data || []).slice(0, 3).map((p: any) => ({
           ...p,
@@ -117,7 +117,7 @@ const LatestPortfolio = () => {
               <Link
                 key={project.id}
                 href={`/portfolio/${project._id || project.id}`}
-                className="bg-white overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-shadow block"
+                className="bg-white overflow-hidden group cursor-pointer shadow-sm block"
               >
                 {/* Project Image */}
                 <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -175,7 +175,7 @@ const LatestPortfolio = () => {
               <Link
                 key={project.id}
                 href={`/portfolio/${project._id || project.id}`}
-                className="bg-white overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-shadow flex flex-col md:flex-row block"
+                className="bg-white overflow-hidden group cursor-pointer shadow-sm flex flex-col md:flex-row block"
               >
                 {/* Project Image */}
                 <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0">

@@ -17,9 +17,9 @@ export default function PortfolioDetailPage() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const res = await fetch(`/api/portfolio/${id}`);
-        if (res.ok) {
-          const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>(`/api/portfolio/${id}`);
+        if (data) {
           setPortfolio({
             ...data,
             fullDescription: data.description,
@@ -142,6 +142,8 @@ export default function PortfolioDetailPage() {
                         alt={`${portfolio.title} - Image ${index + 1}`}
                         fill
                         className="object-cover hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     </div>
                   ))}

@@ -69,8 +69,8 @@ export default function AcademyPage() {
   useEffect(() => {
     const fetchPublications = async () => {
       try {
-        const res = await fetch('/api/academic');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/academic');
         const publications = (data || []).map((p: any) => ({
           ...p,
           id: p._id || p.id,
@@ -119,8 +119,8 @@ export default function AcademyPage() {
   useEffect(() => {
     const fetchSeminars = async () => {
       try {
-        const res = await fetch('/api/seminars');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/seminars');
         setSeminars(data || []);
       } catch (error) {
         console.error('Error fetching seminars:', error);
@@ -253,112 +253,112 @@ export default function AcademyPage() {
       <div className="max-w-7xl mx-auto px-2 md:px-4 lg:px-6 py-8 md:py-12">
         {/* Research & Publication Section */}
         {activeSection === 'research' && (
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <h2 className="text-3xl md:text-4xl font-bold text-[#009f3b]">Research Publications</h2>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#009f3b]">Research Publications</h2>
               <div className="w-full md:w-auto">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full md:w-64 px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-gray-700 font-semibold bg-white"
                 >
-                  {categories.map((category) => {
-                    const displayLabel = category === 'All' ? 'All' : formatCategoryLabel(category);
-                    return (
+              {categories.map((category) => {
+                const displayLabel = category === 'All' ? 'All' : formatCategoryLabel(category);
+                return (
                       <option key={category} value={category}>
-                        {displayLabel}
+                    {displayLabel}
                       </option>
-                    );
-                  })}
+                );
+              })}
                 </select>
-              </div>
             </div>
+          </div>
 
             {publicationsLoading ? (
-              <div className="text-center py-12">
-                <Image
-                  src="/loader.gif"
-                  alt="Loading..."
-                  width={100}
-                  height={100}
-                  className="mx-auto"
-                  unoptimized
-                />
+            <div className="text-center py-12">
+              <Image
+                src="/loader.gif"
+                alt="Loading..."
+                width={100}
+                height={100}
+                className="mx-auto"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {researchPublications.map((publication) => (
+              <div key={publication._id || publication.id} className="bg-white border border-gray-200 p-6">
+                <div className="mb-3">
+                  {publication.category && (
+                    <span className="text-xs font-semibold text-[#009f3b] bg-gray-100 px-3 py-1 rounded">
+                      {formatCategoryLabel(publication.category)}
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-500 ml-2">{publication.date}</span>
+                </div>
+                
+                <h3 className="text-xl font-bold text-[#009f3b] mb-3 leading-tight">
+                  {publication.title}
+                </h3>
+                
+                <p className="text-sm text-gray-600 mb-3">
+                  <span className="font-semibold">Author:</span> {publication.author}
+                </p>
+                
+                <p className="text-sm text-gray-700 mb-4 line-clamp-3">
+                  {publication.abstract}
+                </p>
+                
+                <div className="flex gap-3 flex-wrap">
+                  {publication.link && publication.link.trim() ? (
+                    <a
+                      href={publication.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Follow Link
+                    </a>
+                  ) : publication.pdf && publication.pdf !== '#' ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          const publicationId = publication._id || publication.id;
+                          if (publicationId) {
+                            setCurrentPdfUrl(`/api/academic/pdf/${publicationId}`);
+                            setShowPdfViewer(true);
+                          }
+                        }}
+                        className="text-sm text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View PDF
+                      </button>
+                      <a
+                        href={`/api/academic/pdf/${publication._id || publication.id}?download=true`}
+                        download
+                        className="text-sm text-gray-600 hover:text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download PDF
+                      </a>
+                    </>
+                  ) : null}
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {researchPublications.map((publication) => (
-                  <div key={publication._id || publication.id} className="bg-white border border-gray-200 p-6">
-                    <div className="mb-3">
-                      {publication.category && (
-                        <span className="text-xs font-semibold text-[#009f3b] bg-gray-100 px-3 py-1 rounded">
-                          {formatCategoryLabel(publication.category)}
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-500 ml-2">{publication.date}</span>
-                    </div>
-                    
-                    <h3 className="text-xl font-bold text-[#009f3b] mb-3 leading-tight">
-                      {publication.title}
-                    </h3>
-                    
-                    <p className="text-sm text-gray-600 mb-3">
-                      <span className="font-semibold">Author:</span> {publication.author}
-                    </p>
-                    
-                    <p className="text-sm text-gray-700 mb-4 line-clamp-3">
-                      {publication.abstract}
-                    </p>
-                    
-                    <div className="flex gap-3 flex-wrap">
-                      {publication.link && publication.link.trim() ? (
-                        <a
-                          href={publication.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                          Follow Link
-                        </a>
-                      ) : publication.pdf && publication.pdf !== '#' ? (
-                        <>
-                          <button
-                            onClick={() => {
-                              const publicationId = publication._id || publication.id;
-                              if (publicationId) {
-                                setCurrentPdfUrl(`/api/academic/pdf/${publicationId}`);
-                                setShowPdfViewer(true);
-                              }
-                            }}
-                            className="text-sm text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            View PDF
-                          </button>
-                          <a
-                            href={`/api/academic/pdf/${publication._id || publication.id}?download=true`}
-                            download
-                            className="text-sm text-gray-600 hover:text-[#009f3b] font-semibold hover:underline flex items-center gap-1"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Download PDF
-                          </a>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
         )}
 
         {/* Seminars & Workshops Section */}
@@ -390,6 +390,7 @@ export default function AcademyPage() {
                           height={250}
                           className="w-full h-48 object-cover"
                           unoptimized
+                          loading="lazy"
                         />
                       </div>
                     )}

@@ -36,30 +36,30 @@ const About = () => {
           <div className="space-y-6">
             {/* Small heading */}
             {aboutContent.homeSince && (
-              <p className="text-[#00782d] text-sm md:text-base font-medium uppercase tracking-wide">
-                {aboutContent.homeSince}
-              </p>
+            <p className="text-[#00782d] text-sm md:text-base font-medium uppercase tracking-wide">
+              {aboutContent.homeSince}
+            </p>
             )}
 
             {/* Main heading */}
             {(aboutContent.homeHeading || aboutContent.homeSubheading) && (
-              <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight">
+            <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight">
                 {aboutContent.homeHeading && (
                   <span className="text-[#009f3b]">{aboutContent.homeHeading}</span>
                 )}
                 {aboutContent.homeHeading && aboutContent.homeSubheading && ' '}
                 {aboutContent.homeSubheading && (
-                  <span className="text-[#009f3b]/60">{aboutContent.homeSubheading}</span>
+              <span className="text-[#009f3b]/60">{aboutContent.homeSubheading}</span>
                 )}
-              </h2>
+            </h2>
             )}
 
             {/* Description paragraphs */}
             {(aboutContent.homeDescription1 || aboutContent.homeDescription2) && (
-              <div className="space-y-4 text-[#00782d] text-sm md:text-base leading-relaxed">
+            <div className="space-y-4 text-[#00782d] text-sm md:text-base leading-relaxed">
                 {aboutContent.homeDescription1 && <p>{aboutContent.homeDescription1}</p>}
                 {aboutContent.homeDescription2 && <p>{aboutContent.homeDescription2}</p>}
-              </div>
+            </div>
             )}
 
             {/* CTA Button */}
@@ -73,19 +73,19 @@ const About = () => {
 
           {/* Right Section - Image */}
           {aboutContent.homeImage && (
-            <div className="relative h-[300px] md:h-[350px] lg:h-[400px]">
-              {/* Photo */}
-              <div className="absolute inset-0 rounded-none overflow-hidden">
-                <Image
+          <div className="relative h-[300px] md:h-[350px] lg:h-[400px]">
+            {/* Photo */}
+            <div className="absolute inset-0 rounded-none overflow-hidden">
+              <Image
                   src={aboutContent.homeImage}
-                  alt="About Us"
-                  fill
-                  className="object-cover grayscale"
+                alt="About Us"
+                fill
+                className="object-cover grayscale"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   loading="lazy"
-                />
-              </div>
+              />
             </div>
+          </div>
           )}
         </div>
       </div>

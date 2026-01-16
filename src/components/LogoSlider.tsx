@@ -81,6 +81,7 @@ const LogoSlider = () => {
                   width={160}
                   height={80}
                   className="object-contain max-h-full max-w-full"
+                  loading="lazy"
                 />
               </div>
             ))}

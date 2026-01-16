@@ -101,7 +101,8 @@ export default function CartPage() {
       currency: 'RWF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+      currencyDisplay: 'code',
+    }).format(price).replace('RWF', 'FRW');
   };
 
   const clearCart = () => {
@@ -208,6 +209,8 @@ export default function CartPage() {
                             fill
                             className="object-cover"
                             unoptimized
+                            loading="lazy"
+                            sizes="128px"
                           />
                         </div>
                       </Link>

@@ -43,8 +43,8 @@ const Banner = () => {
     let isMounted = true;
     const fetchCompanyProfile = async () => {
       try {
-        const res = await fetch('/api/social');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>('/api/social');
         if (isMounted && data && data.companyProfilePdf) {
           setCompanyProfilePdf(data.companyProfilePdf);
         }

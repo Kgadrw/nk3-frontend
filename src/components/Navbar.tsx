@@ -47,8 +47,8 @@ const Navbar = () => {
 
     const fetchSocialLinks = async () => {
       try {
-        const res = await fetch('/api/social');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>('/api/social');
         if (data) {
           setSocialLinks({
             facebook: data.facebook || '',
@@ -64,8 +64,8 @@ const Navbar = () => {
 
     const fetchContactInfo = async () => {
       try {
-        const res = await fetch('/api/contact');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>('/api/contact');
         if (data && Object.keys(data).length > 0) {
           setContactInfo({
             phoneNumbers: data.phoneNumbers || [],
@@ -79,8 +79,8 @@ const Navbar = () => {
 
     const fetchTeamCategories = async () => {
       try {
-        const res = await fetch('/api/team');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/team');
         if (data && Array.isArray(data)) {
           // Helper function to normalize category to canonical form
           const normalizeCategory = (category: string): string => {
@@ -541,10 +541,8 @@ const Navbar = () => {
 
             {/* Right: Action Icons */}
             <div className="flex items-center gap-3 transition-all duration-300">
-              {/* Shopping Cart and Search - Hidden when past hero */}
-              <div className={`flex items-center gap-3 transition-all duration-300 ${
-                isPastHero ? 'hidden' : ''
-              }`}>
+              {/* Shopping Cart and Search - Always visible when scrolled */}
+              <div className="flex items-center gap-3 transition-all duration-300">
                 {/* Shopping Cart */}
                 <Link href="/cart" className="relative p-2 hover:bg-gray-100 rounded transition-colors">
                   <svg className="w-6 h-6 text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

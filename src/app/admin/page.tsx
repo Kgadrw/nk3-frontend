@@ -447,43 +447,29 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-        const [teamsRes, productsRes, publicationsRes, portfoliosRes, socialRes, partnersRes, paymentRes, ordersRes, inquiriesRes, aboutRes, contactRes, servicesRes, valuesRes, heroRes, seminarsRes, internshipsRes] = await Promise.all([
-        fetch('/api/team'),
-        fetch('/api/shop'),
-        fetch('/api/academic'),
-        fetch('/api/portfolio'),
-        fetch('/api/social'),
-          fetch('/api/partners'),
-          fetch('/api/payment'),
-          fetch('/api/order'),
-          fetch('/api/inquiry'),
-          fetch('/api/about'),
-          fetch('/api/contact'),
-          fetch('/api/services'),
-          fetch('/api/values'),
-          fetch('/api/hero/all'),
-          fetch('/api/seminars'),
-          fetch('/api/internships')
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const [teamsData, productsData, publicationsData, portfoliosData, socialData, partnersData, paymentData, ordersData, inquiriesData, aboutData, contactData, servicesData, valuesData, heroData, seminarsData, internshipsData] = await Promise.all([
+        cachedFetch<any[]>('/api/team'),
+        cachedFetch<any[]>('/api/shop'),
+        cachedFetch<any[]>('/api/academic'),
+        cachedFetch<any[]>('/api/portfolio'),
+        cachedFetch<any>('/api/social'),
+          cachedFetch<any[]>('/api/partners'),
+          cachedFetch<any>('/api/payment'),
+          cachedFetch<any[]>('/api/order'),
+          cachedFetch<any[]>('/api/inquiry'),
+          cachedFetch<any>('/api/about'),
+          cachedFetch<any>('/api/contact'),
+          cachedFetch<any[]>('/api/services'),
+          cachedFetch<any[]>('/api/values'),
+          cachedFetch<any[]>('/api/hero/all'),
+          cachedFetch<any[]>('/api/seminars'),
+          cachedFetch<any[]>('/api/internships')
       ]);
-      
-      const teamsData = await teamsRes.json();
-      const productsData = await productsRes.json();
-      const publicationsData = await publicationsRes.json();
-      const portfoliosData = await portfoliosRes.json();
-      const socialData = await socialRes.json();
-      const partnersData = await partnersRes.json();
-      const paymentData = await paymentRes.json();
-      const ordersData = await ordersRes.json();
-      const inquiriesData = await inquiriesRes.json();
-      const aboutData = await aboutRes.json();
-      const servicesData = await servicesRes.json();
-      const valuesData = await valuesRes.json();
-      const seminarsData = await seminarsRes.json();
-      const internshipsData = await internshipsRes.json();
       
       setServices(servicesData || []);
       setValues(valuesData || []);
-      setHeroTexts(await heroRes.json() || []);
+      setHeroTexts(heroData || []);
       
       // Set about content
       if (aboutData && Object.keys(aboutData).length > 0) {
@@ -3136,27 +3122,27 @@ export default function AdminDashboard() {
               {/* Research Publications Tab */}
               {academySubTab === 'research' && (
                 <>
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-[#009f3b]">Research Publications Management</h2>
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => {
-                          setShowAcademyForm(true);
-                          setEditingAcademy(null);
-                          setAcademicTitle('');
-                          setAcademicAuthor('');
-                          setAcademicYear('');
-                          setAcademicDescription('');
-                          setPdfLink('');
-                          setAcademicLink('');
-                          setPdfFile(null);
-                        }}
-                        className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-                      >
-                        + Publish New Research
-                      </button>
-                    </div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-[#009f3b]">Research Publications Management</h2>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      setShowAcademyForm(true);
+                      setEditingAcademy(null);
+                      setAcademicTitle('');
+                      setAcademicAuthor('');
+                      setAcademicYear('');
+                      setAcademicDescription('');
+                      setPdfLink('');
+                      setAcademicLink('');
+                      setPdfFile(null);
+                    }}
+                    className="bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                  >
+                    + Publish New Research
+                  </button>
                   </div>
+                </div>
 
               {/* Publications List/Grid */}
               {!showAcademyForm && (

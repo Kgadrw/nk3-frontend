@@ -48,8 +48,8 @@ const Hero = () => {
   // Hardcoded hero data - no backend fetch
   const heroTexts = [
     {
-      titlePart1: 'OUR',
-      titlePart2: 'FOCUS',
+    titlePart1: 'OUR',
+    titlePart2: 'FOCUS',
       description: 'Transforming visions into reality through innovative architectural design and construction excellence.',
       buttonText: 'OUR SERVICES',
       buttonLink: '/contact',
@@ -61,7 +61,7 @@ const Hero = () => {
       description: 'Sustainable construction in action building with local materials to create strong foundation for our community\'s future.',
       buttonText: 'OUR SERVICES',
       buttonLink: '/contact',
-      image: '/hero1.webp'
+      image: '/heroo.png'
     },
     {
       titlePart1: 'INTERIOR',
@@ -69,15 +69,15 @@ const Hero = () => {
       description: 'Where elegance meet the nature -- nature designs create harmoniuos spaces that invites the beauty of surroundings indoors, enhancing every moment with breathtaking views.',
       buttonText: 'OUR SERVICES',
       buttonLink: '/contact',
-      image: '/hero1.webp'
+      image: '/interior.png'
     },
     {
       titlePart1: 'REDEFINING',
       titlePart2: 'SKYLINES',
       description: 'Clacking landmark design, that redefines skylines, our innovative approach merges creativity with sustainability.',
-      buttonText: 'OUR SERVICES',
+    buttonText: 'OUR SERVICES',
       buttonLink: '/contact',
-      image: '/hero1.webp'
+      image: '/hero2.png'
     }
   ];
 
@@ -144,14 +144,15 @@ const Hero = () => {
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="absolute inset-0"
           >
-            <Image
+        <Image
               src={currentHero.image}
               alt={currentHero.titlePart2}
-              fill
-              className="object-cover"
-              priority
+          fill
+          className="object-cover"
+          priority={currentIndex === 0}
+          loading={currentIndex === 0 ? "eager" : "lazy"}
               sizes="100vw"
-            />
+        />
           </motion.div>
         </AnimatePresence>
         {/* Green Overlay */}
@@ -170,46 +171,46 @@ const Hero = () => {
               transition={{ duration: 0.5, ease: "easeInOut" }}
               className="max-w-2xl text-left"
             >
-              {/* Heading */}
+            {/* Heading */}
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight"
               >
-                <span className="text-gray-300">
-                  {displayedTitle1}
-                  {isTypingTitle1 && <span className="animate-pulse text-[#009f3b]">|</span>}
-                </span>{' '}
-                <span className="text-white">
-                  {displayedTitle2}
-                  {isTypingTitle2 && <span className="animate-pulse text-[#009f3b]">|</span>}
-                </span>
+              <span className="text-gray-300">
+                {displayedTitle1}
+                {isTypingTitle1 && <span className="animate-pulse text-[#009f3b]">|</span>}
+              </span>{' '}
+              <span className="text-white">
+                {displayedTitle2}
+                {isTypingTitle2 && <span className="animate-pulse text-[#009f3b]">|</span>}
+              </span>
               </motion.h1>
 
-              {/* Description */}
+            {/* Description */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="text-white text-sm sm:text-base md:text-lg mb-6 leading-relaxed px-4 md:px-0"
               >
-                {displayedDescription}
-                {isTypingDesc && <span className="animate-pulse text-[#009f3b]">|</span>}
+              {displayedDescription}
+              {isTypingDesc && <span className="animate-pulse text-[#009f3b]">|</span>}
               </motion.p>
 
-              {/* CTA Button */}
+            {/* CTA Button */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <Link 
+            <Link 
                   href={currentHero.buttonLink}
-                  className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
-                >
+              className="inline-block bg-[#90EE90] text-white px-6 py-3 md:px-8 md:py-4 rounded-none font-semibold uppercase hover:bg-[#7dd87d] transition-colors shadow-lg text-sm md:text-base"
+            >
                   {currentHero.buttonText}
-                </Link>
+            </Link>
               </motion.div>
             </motion.div>
           </AnimatePresence>

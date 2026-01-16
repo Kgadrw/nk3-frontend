@@ -111,7 +111,8 @@ export default function CheckoutPage() {
       currency: 'RWF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+      currencyDisplay: 'code',
+    }).format(price).replace('RWF', 'FRW');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -471,6 +472,8 @@ export default function CheckoutPage() {
                         fill
                         className="object-cover"
                         unoptimized
+                        loading="lazy"
+                        sizes="64px"
                       />
                     </div>
                     <div className="flex-1 min-w-0">

@@ -31,8 +31,8 @@ export default function ContactPage() {
   useEffect(() => {
     const fetchContactInfo = async () => {
       try {
-        const res = await fetch('/api/contact');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>('/api/contact');
         if (data && Object.keys(data).length > 0) {
           setContactInfo({
             phoneNumbers: data.phoneNumbers || [],

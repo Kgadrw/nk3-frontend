@@ -19,13 +19,11 @@ export default function AboutPage() {
     const fetchAboutContent = async () => {
       try {
         setLoading(true);
-        const [aboutRes, servicesRes] = await Promise.all([
-          fetch('/api/about'),
-          fetch('/api/services')
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const [aboutData, servicesData] = await Promise.all([
+          cachedFetch<any>('/api/about'),
+          cachedFetch<any[]>('/api/services')
         ]);
-        
-        const aboutData = await aboutRes.json();
-        const servicesData = await servicesRes.json();
         
         // Only use data from API, no fallbacks or defaults
         if (aboutData && Object.keys(aboutData).length > 0) {
@@ -139,11 +137,11 @@ export default function AboutPage() {
               />
             ) : (
             <Image
-                src="/about.jpg"
+                src="/about1.jpeg"
               alt="About Us"
               fill
-              className="object-cover"
-              priority
+                className="object-cover"
+                priority
             />
             )}
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
@@ -224,9 +222,6 @@ export default function AboutPage() {
             ) : (
               <div className="space-y-3 text-gray-700 text-sm md:text-base leading-relaxed">
                 <p>
-                  In 2021, NKASO Limited achieved a key milestone by officially registering as a private domestic entity with the Government of Rwanda. This evolution was driven by the addition of co-founders Rubimbura Rene Gabin and Maxime BAYINGANA Rutimirwa, fortifying our company's base and expanding our strategic outlook. This registration highlights our steadfast dedication to superior quality and compliance with the highest industry benchmarks.
-                </p>
-                <p>
                   Based in Kigali- Rwanda, NKASO Limited operates through specialized divisions: NK-3Darchitects.19 for architectural design, landscaping, interior design, and urban planning; NK-3Dengineering.19 for comprehensive civil works and project management; NK-3D Academy.19, which focuses on education, training, research, and sales of academic 3D models and architectural materials, while also training young students in architecture.
                 </p>
                 <p>
@@ -245,14 +240,14 @@ export default function AboutPage() {
             className="relative w-full h-full min-h-[400px] overflow-hidden"
           >
             <Image
-              src="/construct.jpg"
+              src="/4.jpg"
               alt="Construction"
               fill
               className="object-cover"
-              priority
+              loading="lazy"
               onError={(e) => {
                 // Fallback to about image if construction image doesn't exist
-                (e.target as HTMLImageElement).src = '/about.jpg';
+                (e.target as HTMLImageElement).src = '/about1.jpeg';
               }}
             />
             <div className="absolute inset-0 bg-[#009f3b] opacity-20"></div>
@@ -268,7 +263,7 @@ export default function AboutPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-8">
                 {/* Left - Heading */}
               <div>
-                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-700 mb-4">
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">
                     WHY CHOOSE US
                   </h3>
                 </div>
@@ -288,12 +283,22 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
                 >
-                  <Award className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                  <p className="text-[#009f3b] text-sm md:text-base font-medium">
-                    Proven track record of successful projects
-                  </p>
+                  <Image
+                    src="/1.jpg"
+                    alt="Proven Track Record"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                  <div className="relative z-10">
+                    <Award className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                    <p className="text-white text-sm md:text-base font-medium">
+                      Proven track record of successful projects
+                    </p>
+                  </div>
                 </motion.div>
                 
                 {/* Card 2 - Strategic Partnerships */}
@@ -302,12 +307,22 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
                 >
-                  <Handshake className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                  <p className="text-[#009f3b] text-sm md:text-base font-medium">
-                    Strategic partnerships with industry leaders
-                  </p>
+                  <Image
+                    src="/2.jpg"
+                    alt="Strategic Partnerships"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                  <div className="relative z-10">
+                    <Handshake className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                    <p className="text-white text-sm md:text-base font-medium">
+                      Strategic partnerships with industry leaders
+                    </p>
+                  </div>
                 </motion.div>
                 
                 {/* Card 3 - Comprehensive Services */}
@@ -316,12 +331,22 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
                 >
-                  <Crown className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                  <p className="text-[#009f3b] text-sm md:text-base font-medium">
-                    Comprehensive service offerings
-                  </p>
+                  <Image
+                    src="/3.jpg"
+                    alt="Comprehensive Services"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                  <div className="relative z-10">
+                    <Crown className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                    <p className="text-white text-sm md:text-base font-medium">
+                      Comprehensive service offerings
+                    </p>
+                  </div>
                 </motion.div>
                 
                 {/* Card 4 - Experienced Team */}
@@ -330,12 +355,22 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.4 }}
-                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
                 >
-                  <Users className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                  <p className="text-[#009f3b] text-sm md:text-base font-medium">
-                    Dedicated and experienced team
-                  </p>
+                  <Image
+                    src="/aboutt.jpg"
+                    alt="Experienced Team"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                  <div className="relative z-10">
+                    <Users className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                    <p className="text-white text-sm md:text-base font-medium">
+                      Dedicated and experienced team
+                    </p>
+                  </div>
                 </motion.div>
                 
                 {/* Card 5 - Innovation */}
@@ -344,12 +379,22 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.5 }}
-                  className="bg-[#90EE90] p-6 flex flex-col items-center text-center"
+                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
                 >
-                  <Lightbulb className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                  <p className="text-[#009f3b] text-sm md:text-base font-medium">
-                    Commitment to innovation and sustainability
-                  </p>
+                  <Image
+                    src="/5.jpg"
+                    alt="Innovation"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                  <div className="relative z-10">
+                    <Lightbulb className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                    <p className="text-white text-sm md:text-base font-medium">
+                      Commitment to innovation and sustainability
+                    </p>
+                  </div>
                 </motion.div>
             </div>
           </div>

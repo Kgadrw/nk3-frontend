@@ -19,9 +19,9 @@ export default function TeamDetailPage() {
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const res = await fetch(`/api/team/${id}`);
-        if (res.ok) {
-          const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any>(`/api/team/${id}`);
+        if (data) {
           setMember({
             ...data,
             id: data._id || data.id,
@@ -111,6 +111,8 @@ export default function TeamDetailPage() {
                     className="object-cover"
                     onError={() => setImageError(true)}
                     unoptimized
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 )}
               </div>

@@ -46,8 +46,8 @@ const Portfolio = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch('/api/portfolio');
-        const data = await res.json();
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const data = await cachedFetch<any[]>('/api/portfolio');
         const projectsData = (data || []).map((p: any) => ({
           ...p,
           id: p._id || p.id
@@ -126,10 +126,10 @@ const Portfolio = () => {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold uppercase transition-all duration-300 ${
+                  className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold uppercase ${
                     isActive
                       ? 'bg-[#009f3b] text-white'
-                      : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
+                      : 'bg-gray-200 text-[#009f3b]'
                   }`}
                 >
                   {category.label}
@@ -145,7 +145,7 @@ const Portfolio = () => {
             <Link
               key={project._id || project.id}
               href={`/portfolio/${project._id || project.id}`}
-              className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer block"
+              className="bg-white border border-gray-200 overflow-hidden block"
             >
               {/* Project Image */}
               <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -153,21 +153,17 @@ const Portfolio = () => {
                   src={project.image}
                   alt={project.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover"
                   unoptimized
+                  loading="lazy"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                {/* Overlay on Hover */}
-                <div className="absolute inset-0 bg-[#009f3b] opacity-0 group-hover:opacity-60 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="text-white font-semibold text-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                    View Details
-                  </span>
-                </div>
               </div>
 
               {/* Project Info */}
               <div className="p-3 md:p-4">
                 <div className="flex items-start justify-between mb-2 gap-2">
-                  <h3 className="text-base md:text-lg font-bold text-[#009f3b] group-hover:text-[#00782d] transition-colors flex-1">
+                  <h3 className="text-base md:text-lg font-bold text-[#009f3b] flex-1">
                     {project.title}
                   </h3>
                   {project.year && (
