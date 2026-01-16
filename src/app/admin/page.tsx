@@ -28,7 +28,7 @@ import {
 import Image from 'next/image';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 
-type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy' | 'orders' | 'inquiries' | 'about' | 'hero';
+type ActiveTab = 'dashboard' | 'portfolio' | 'team' | 'shop' | 'academy' | 'orders' | 'inquiries' | 'hero';
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -219,13 +219,6 @@ export default function AdminDashboard() {
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
   
-  // About page content state
-  const [aboutContent, setAboutContent] = useState({
-    aboutImage: '',
-    description: ''
-  });
-  const [aboutImage, setAboutImage] = useState('');
-  
   // Services management state
   const [services, setServices] = useState<any[]>([]);
   const [showServiceForm, setShowServiceForm] = useState(false);
@@ -242,8 +235,6 @@ export default function AdminDashboard() {
   const [valueLabel, setValueLabel] = useState('');
   const [valueDescription, setValueDescription] = useState('');
   const [valueOrder, setValueOrder] = useState(0);
-  const [showAboutPreview, setShowAboutPreview] = useState(true);
-  
   // Hero management state
   const [heroTexts, setHeroTexts] = useState<any[]>([]);
   const [showHeroForm, setShowHeroForm] = useState(false);
@@ -448,7 +439,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
         const { cachedFetch } = await import('@/lib/apiCache');
-        const [teamsData, productsData, publicationsData, portfoliosData, socialData, partnersData, paymentData, ordersData, inquiriesData, aboutData, contactData, servicesData, valuesData, heroData, seminarsData, internshipsData] = await Promise.all([
+        const [teamsData, productsData, publicationsData, portfoliosData, socialData, partnersData, paymentData, ordersData, inquiriesData, contactData, servicesData, valuesData, heroData, seminarsData, internshipsData] = await Promise.all([
         cachedFetch<any[]>('/api/team'),
         cachedFetch<any[]>('/api/shop'),
         cachedFetch<any[]>('/api/academic'),
@@ -458,7 +449,6 @@ export default function AdminDashboard() {
           cachedFetch<any>('/api/payment'),
           cachedFetch<any[]>('/api/order'),
           cachedFetch<any[]>('/api/inquiry'),
-          cachedFetch<any>('/api/about'),
           cachedFetch<any>('/api/contact'),
           cachedFetch<any[]>('/api/services'),
           cachedFetch<any[]>('/api/values'),
@@ -470,15 +460,6 @@ export default function AdminDashboard() {
       setServices(servicesData || []);
       setValues(valuesData || []);
       setHeroTexts(heroData || []);
-      
-      // Set about content
-      if (aboutData && Object.keys(aboutData).length > 0) {
-        setAboutContent({
-          aboutImage: aboutData.aboutImage || aboutData.homeImage || '',
-          description: aboutData.description || aboutData.description1 || aboutData.description2 || aboutData.paragraph1 || ''
-        });
-        setAboutImage(aboutData.aboutImage || aboutData.homeImage || '');
-      }
       
       // Ensure teams have proper IDs
       const teamsWithIds = (teamsData || []).map((team: any) => {
@@ -574,7 +555,7 @@ export default function AdminDashboard() {
     if (username.trim() === 'admin' && password.trim() === 'admin') {
       setIsLoggedIn(true);
     } else {
-      showToast('Invalid credentials. Use: admin / admin', 'error');
+      showToast('Invalid credentials', 'error');
     }
   };
 
@@ -648,6 +629,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/portfolio');
         await fetchAllData();
         showToast('Portfolio deleted successfully', 'success');
       } else {
@@ -843,6 +826,8 @@ export default function AdminDashboard() {
       const deleteUrl = `/api/team/${teamId}`;
       const res = await fetch(deleteUrl, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/team');
         await fetchAllData();
         showToast('Team member deleted successfully', 'success');
       } else {
@@ -1004,6 +989,8 @@ export default function AdminDashboard() {
         try {
           const res = await fetch(`/api/payment/${id}`, { method: 'DELETE' });
           if (res.ok) {
+            const { apiCache } = await import('@/lib/apiCache');
+            apiCache.invalidatePattern('GET_/api/payment');
             await fetchAllData();
             showToast('Payment method deleted successfully!', 'success');
           } else {
@@ -1033,6 +1020,8 @@ export default function AdminDashboard() {
           console.log('Delete shop - Response status:', res.status, res.statusText);
           
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/shop');
         await fetchAllData();
             showToast('Product deleted successfully', 'success');
           } else {
@@ -1073,11 +1062,16 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const data = {
-        title: serviceTitle,
-        description: serviceDescription,
+      const data: any = {
+        title: serviceTitle.trim(),
         features: serviceFeatures.filter(f => f.trim() !== '')
       };
+      
+      // Only include description if it has a value
+      if (serviceDescription && serviceDescription.trim()) {
+        data.description = serviceDescription.trim();
+      }
+      
       const url = editingService ? `/api/services/${editingService}` : '/api/services';
       const method = editingService ? 'PUT' : 'POST';
       const res = await fetch(url, {
@@ -1086,6 +1080,8 @@ export default function AdminDashboard() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/services');
         await fetchAllData();
         setShowServiceForm(false);
         setEditingService(null);
@@ -1095,12 +1091,25 @@ export default function AdminDashboard() {
         setNewServiceFeature('');
         showToast('Service saved successfully!', 'success');
       } else {
-        const errorData = await res.json();
-        showToast(`Error: ${errorData.error || 'Failed to save service'}`, 'error');
+        let errorMessage = 'Failed to save service';
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await res.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } else {
+            const errorText = await res.text();
+            if (errorText) errorMessage = errorText;
+          }
+        } catch (e) {
+          // Error parsing response
+        }
+        console.error('Service save error:', res.status, errorMessage);
+        showToast(`Error: ${errorMessage}`, 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving service:', error);
-      showToast('Error saving service. Please try again.', 'error');
+      showToast(`Error: ${error.message || 'Failed to save service'}`, 'error');
     }
   };
 
@@ -1108,6 +1117,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/services');
         await fetchAllData();
         showToast('Service deleted successfully', 'success');
       } else {
@@ -1160,6 +1171,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/values/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/values');
         await fetchAllData();
         showToast('Value deleted successfully', 'success');
       } else {
@@ -1218,6 +1231,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/hero/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/hero');
         await fetchAllData();
         showToast('Hero text deleted successfully', 'success');
       } else {
@@ -1229,42 +1244,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveAbout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aboutContent.description) {
-      showToast('Please fill in the description field', 'warning');
-      return;
-    }
-    try {
-      const data = {
-        aboutImage: aboutImage || aboutContent.aboutImage || '',
-        description: aboutContent.description || ''
-      };
-      
-      // Log the data being sent for debugging
-      console.log('Saving about data:', data);
-      
-      const res = await fetch('/api/about', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      if (res.ok) {
-        const savedData = await res.json();
-        console.log('About data saved successfully:', savedData);
-        await fetchAllData();
-        showToast('About page content saved successfully!', 'success');
-      } else {
-        const errorData = await res.json();
-        console.error('Error saving about content:', errorData);
-        showToast(`Error: ${errorData.error || 'Failed to save about content'}`, 'error');
-      }
-    } catch (error) {
-      console.error('Error saving about content:', error);
-      showToast('Error saving about content. Please try again.', 'error');
-    }
-  };
 
   const handleSaveAcademic = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1367,6 +1346,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/academic/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/academic');
         await fetchAllData();
             showToast('Publication deleted successfully!', 'success');
           } else {
@@ -1475,6 +1456,8 @@ export default function AdminDashboard() {
         try {
           const res = await fetch(`/api/seminars/${id}`, { method: 'DELETE' });
           if (res.ok) {
+            const { apiCache } = await import('@/lib/apiCache');
+            apiCache.invalidatePattern('GET_/api/seminars');
             await fetchAllData();
             showToast('Seminar deleted successfully!', 'success');
           } else {
@@ -1708,6 +1691,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/partners');
         await fetchAllData();
             showToast('Partner logo deleted successfully!', 'success');
           } else {
@@ -1857,14 +1842,14 @@ export default function AdminDashboard() {
   if (!isLoggedIn) {
     return (
       <main className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-[#009f3b] mb-2">Admin Login</h1>
-            <p className="text-gray-600">NK 3D Architecture Studio</p>
+        <div className="bg-white p-6 rounded-lg w-full max-w-xs">
+          <div className="text-center mb-6">
+            <h1 className="text-xl font-bold text-[#009f3b] mb-1">Admin Login</h1>
+            <p className="text-sm text-gray-600">NK 3D Architecture Studio</p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="username" className="block text-xs font-semibold text-gray-700 mb-1">
                 Username
               </label>
               <input
@@ -1872,11 +1857,11 @@ export default function AdminDashboard() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
+                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-xs font-semibold text-gray-700 mb-1">
                 Password
               </label>
               <input
@@ -1884,13 +1869,12 @@ export default function AdminDashboard() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
+                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
               />
             </div>
-            <p className="text-xs text-gray-500 text-center">Username: <strong>admin</strong> | Password: <strong>admin</strong></p>
             <button
               type="submit"
-              className="w-full bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+              className="w-full bg-[#009f3b] text-white px-4 py-2 text-sm rounded-none font-semibold hover:bg-[#00782d] transition-colors"
             >
               Login
             </button>
@@ -1907,7 +1891,6 @@ export default function AdminDashboard() {
     { id: 'academy' as ActiveTab, label: 'Academic', icon: GraduationCap },
     { id: 'orders' as ActiveTab, label: 'Orders', icon: Package },
     { id: 'inquiries' as ActiveTab, label: 'Inquiries', icon: Mail },
-    { id: 'about' as ActiveTab, label: 'About Page', icon: FileText },
   ];
 
   return (
@@ -5223,313 +5206,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* About Page Management */}
-        {activeTab === 'about' && (
-          <div className="p-4 md:p-6 space-y-6">
-            {/* Header Section */}
-            <div className="bg-white shadow-sm border border-gray-200 p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">About Page Management</h2>
-                  <p className="text-sm text-gray-600">Manage your about page content including the hero image, about image, and description text</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - Content Forms */}
-              <div className="space-y-6">
-                {/* About Content Section */}
-                <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      About Page Content
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <form onSubmit={handleSaveAbout} className="space-y-5">
-                      {/* About Image Upload */}
-                      <div>
-                        <label htmlFor="aboutImage" className="block text-sm font-semibold text-gray-700 mb-2">
-                          About Page Image
-                        </label>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <label
-                              htmlFor="aboutImage"
-                              className="flex-1 px-4 py-2.5 border-2 border-dashed border-gray-300 cursor-pointer hover:border-[#009f3b] transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-[#009f3b]"
-                            >
-                              <Upload className="w-5 h-5" />
-                              <span className="text-sm font-medium">Choose Image</span>
-                            </label>
-                            <input
-                              type="file"
-                              id="aboutImage"
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files?.[0]) {
-                                  handleImageUpload(e, (url) => {
-                                    setAboutImage(url);
-                                    setAboutContent({ ...aboutContent, aboutImage: url });
-                                  }, 'nk3d/about');
-                                }
-                              }}
-                              className="hidden"
-                            />
-                          </div>
-                          {aboutImage || aboutContent.aboutImage ? (
-                            <div className="relative w-full h-48 md:h-64 overflow-hidden border-2 border-gray-200 shadow-sm">
-                              <Image
-                                src={aboutImage || aboutContent.aboutImage}
-                                alt="About page preview"
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setAboutImage('');
-                                  setAboutContent({ ...aboutContent, aboutImage: '' });
-                                }}
-                                className="absolute top-2 right-2 bg-red-500 text-white p-2 hover:bg-red-600 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <label htmlFor="aboutDescription" className="block text-sm font-semibold text-gray-700 mb-2">
-                          About Description <span className="text-red-500">*</span>
-                        </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          Enter the full about page description. Use double line breaks (press Enter twice) to separate paragraphs. The first two paragraphs will appear in the main section, and the remaining paragraphs will appear in the second section.
-                        </p>
-                        <textarea
-                          id="aboutDescription"
-                          value={aboutContent.description}
-                          onChange={(e) => setAboutContent({ ...aboutContent, description: e.target.value })}
-                          rows={12}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-sm"
-                          placeholder="NK-3D Architecture Studioz (NKASO Limited) is a forward-thinking design and construction firm...&#10;&#10;In 2021, NKASO Limited achieved a key milestone...&#10;&#10;Based in Kigali- Rwanda, NKASO Limited operates through specialized divisions...&#10;&#10;We are committed to environmental responsibility..."
-                          required
-                        />
-                      </div>
-
-                      {/* Save Button */}
-                      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                        <button
-                          type="submit"
-                          className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
-                        >
-                          Save Changes
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Services Management */}
-              <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] px-6 py-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Package className="w-5 h-5" />
-                      Services Management
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setShowServiceForm(!showServiceForm);
-                        setEditingService(null);
-                        setServiceTitle('');
-                        setServiceDescription('');
-                        setServiceFeatures([]);
-                        setNewServiceFeature('');
-                      }}
-                      className="bg-white text-[#009f3b] px-4 py-2 hover:bg-gray-100 transition-colors font-semibold text-sm"
-                    >
-                      {showServiceForm ? 'Cancel' : '+ Add Service'}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-6">
-                  {/* Service Form */}
-                  {showServiceForm && (
-                    <form onSubmit={handleSaveService} className="space-y-5 mb-6 p-5 bg-gray-50 border border-gray-200">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Service Title <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={serviceTitle}
-                          onChange={(e) => setServiceTitle(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all text-black"
-                          placeholder="Architectural Design"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={serviceDescription}
-                          onChange={(e) => setServiceDescription(e.target.value)}
-                          rows={4}
-                          className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
-                          placeholder="Service description (optional)..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Features
-                        </label>
-                        <div className="space-y-2 mb-3">
-                          {serviceFeatures.map((feature, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={feature}
-                                onChange={(e) => {
-                                  const updated = [...serviceFeatures];
-                                  updated[index] = e.target.value;
-                                  setServiceFeatures(updated);
-                                }}
-                                className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-                                placeholder="Feature description"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setServiceFeatures(serviceFeatures.filter((_, i) => i !== index))}
-                                className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newServiceFeature}
-                            onChange={(e) => setNewServiceFeature(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                if (newServiceFeature.trim()) {
-                                  setServiceFeatures([...serviceFeatures, newServiceFeature.trim()]);
-                                  setNewServiceFeature('');
-                                }
-                              }
-                            }}
-                            className="flex-1 px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
-                            placeholder="Add new feature"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (newServiceFeature.trim()) {
-                                setServiceFeatures([...serviceFeatures, newServiceFeature.trim()]);
-                                setNewServiceFeature('');
-                              }
-                            }}
-                            className="px-4 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-medium"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                        <button
-                          type="submit"
-                          className="px-6 py-2.5 bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors font-semibold shadow-sm hover:shadow-md"
-                        >
-                          {editingService ? 'Update Service' : 'Create Service'}
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* Services List */}
-                  <div className="bg-gray-50 border border-gray-200 p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">All Services ({services.length})</h4>
-                    <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
-                      {services.length === 0 ? (
-                        <div className="text-center py-8 bg-white border-2 border-dashed border-gray-300">
-                          <Package className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-500 text-sm font-medium">No services yet</p>
-                          <p className="text-xs text-gray-400 mt-1">Click "Add Service" to create your first service</p>
-                        </div>
-                      ) : (
-                        services.map((service: any) => (
-                          <div key={service._id || service.id} className="border border-gray-200 p-3 hover:border-[#009f3b] hover:shadow-sm transition-all bg-white">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex-1">
-                                <h3 className="text-base font-bold text-[#009f3b] mb-1">{service.title}</h3>
-                                <p className="text-gray-600 text-xs line-clamp-2 mb-2">{service.description}</p>
-                              </div>
-                              <div className="flex gap-1 ml-2">
-                                <button
-                                  onClick={() => {
-                                    setEditingService(service._id || service.id);
-                                    setServiceTitle(service.title || '');
-                                    setServiceDescription(service.description || '');
-                                    setServiceFeatures(service.features || []);
-                                    setShowServiceForm(true);
-                                  }}
-                                  className="px-2 py-1 bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    showDeleteConfirmation(
-                                      `Are you sure you want to delete "${service.title}"?`,
-                                      () => deleteService(service._id || service.id)
-                                    );
-                                  }}
-                                  className="px-2 py-1 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                            {service.features && service.features.length > 0 && (
-                              <div className="mt-2">
-                                <div className="flex flex-wrap gap-1">
-                                  {service.features.slice(0, 2).map((feature: string, index: number) => (
-                                    <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs">
-                                      {feature}
-                                    </span>
-                                  ))}
-                                  {service.features.length > 2 && (
-                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">
-                                      +{service.features.length - 2}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-          </div>
-        )}
 
         {/* Inquiry Detail Modal */}
         {selectedInquiry && (

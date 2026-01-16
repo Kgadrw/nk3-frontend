@@ -409,7 +409,8 @@ export default function AboutPage() {
                 <div className="flex-1 h-px bg-gray-300"></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {services.length > 0 ? services.map((service: any) => {
+                {/* Display API services first */}
+                {services.length > 0 && services.map((service: any) => {
                   return (
                     <div
                       key={service._id || service.id}
@@ -418,9 +419,11 @@ export default function AboutPage() {
                       <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-3">
                         {service.title}
                       </h3>
-                      <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
-                        {service.description}
-                      </p>
+                      {service.description && (
+                        <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
+                          {service.description}
+                        </p>
+                      )}
                       {service.features && service.features.length > 0 && (
                         <ul className="space-y-2 mb-4 flex-grow">
                           {service.features.map((feature: string, index: number) => (
@@ -440,9 +443,37 @@ export default function AboutPage() {
                       </Link>
                     </div>
                   );
-                }) : (
-                  <p className="col-span-full text-center text-gray-500 py-8">No services available yet.</p>
-                )}
+                })}
+                {/* Default Services */}
+                {(() => {
+                  const defaultServices = [
+                    'Feasibility Studies & Project Planning',
+                    'Architectural & Structural Design',
+                    'Construction Supervision & Project Management',
+                    'Environmental & Social Impact Assessments (ESIA)',
+                    'MEP (Mechanical, Electrical & Plumbing) Engineering',
+                    'Quantity Surveying & Cost Estimation',
+                    'Construction Permit Processing & Legal Compliance'
+                  ];
+                  
+                  return defaultServices.map((serviceTitle, index) => (
+                    <div
+                      key={`default-service-${index}`}
+                      className="bg-white border border-gray-300 p-6 flex flex-col h-full"
+                    >
+                      <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-4">
+                        {serviceTitle}
+                      </h3>
+                      <Link
+                        href="/contact"
+                        className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors mt-auto"
+                      >
+                        Get a Quote
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  ));
+                })()}
               </div>
           </div>
         </div>
