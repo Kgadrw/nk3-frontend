@@ -548,21 +548,18 @@ export default function AdminDashboard() {
       if (partnersData) setPartnerLogos(partnersData);
       
       // Set contact info
-      if (contactRes && contactRes.ok) {
-        const contactData = await contactRes.json();
-        if (contactData && Object.keys(contactData).length > 0) {
-          setContactInfo({
-            phoneNumbers: contactData.phoneNumbers || [],
-            email: contactData.email || '',
-            address: contactData.address || '',
-            website: contactData.website || '',
-            businessHours: contactData.businessHours || {
-              weekdays: '8:00 AM - 5:00 PM',
-              saturday: '9:00 AM - 1:00 PM',
-              sunday: 'Closed'
-            }
-          });
-        }
+      if (contactData && Object.keys(contactData).length > 0) {
+        setContactInfo({
+          phoneNumbers: contactData.phoneNumbers || [],
+          email: contactData.email || '',
+          address: contactData.address || '',
+          website: contactData.website || '',
+          businessHours: contactData.businessHours || {
+            weekdays: '8:00 AM - 5:00 PM',
+            saturday: '9:00 AM - 1:00 PM',
+            sunday: 'Closed'
+          }
+        });
       }
     } catch (error) {
       // Error fetching data

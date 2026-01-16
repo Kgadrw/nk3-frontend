@@ -160,7 +160,7 @@ const Team = () => {
             
             // Combine role/position with categories
             const baseRole = existingMember.position || member.position || '';
-            const categoryLabels = allCategories.map(cat => formatCategoryLabel(cat));
+            const categoryLabels = allCategories.map((cat: string) => formatCategoryLabel(cat));
             const combinedRole = categoryLabels.length > 0 
               ? `${baseRole}${baseRole ? ', ' : ''}${categoryLabels.join(', ')}`
               : baseRole;
@@ -182,7 +182,7 @@ const Team = () => {
               ? member.category 
               : (member.category ? [member.category] : []);
             
-            const categoryLabels = categories.map(cat => formatCategoryLabel(cat));
+            const categoryLabels = categories.map((cat: string) => formatCategoryLabel(cat));
             const baseRole = member.position || '';
             const combinedRole = categoryLabels.length > 0 
               ? `${baseRole}${baseRole ? ', ' : ''}${categoryLabels.join(', ')}`
