@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Phone, Mail, Linkedin, User } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -10,10 +10,12 @@ import Footer from '@/components/Footer';
 export default function TeamDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = params?.id as string;
   const category = searchParams.get('category');
   const [member, setMember] = useState<any>(null);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [allTeamMembersData, setAllTeamMembersData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
@@ -66,19 +68,26 @@ export default function TeamDetailPage() {
           // Fetch all team members to get same category members
           const allMembers = await cachedFetch<any[]>('/api/team');
           if (allMembers && Array.isArray(allMembers)) {
-            // Get categories from current member
-            const memberCategories = Array.isArray(currentMember.category) 
-              ? currentMember.category 
-              : (currentMember.category ? [currentMember.category] : []);
-            
-            // Normalize member categories
-            const normalizedMemberCategories = memberCategories.map((cat: string) => 
-              normalizeCategory(cat || 'Uncategorized')
-            );
+            // Use category from URL if provided, otherwise use member's categories
+            let filterCategory: string | null = null;
+            if (category) {
+              filterCategory = normalizeCategory(category);
+            } else {
+              // Fallback to member's categories if no URL category
+              const memberCategories = Array.isArray(currentMember.category) 
+                ? currentMember.category 
+                : (currentMember.category ? [currentMember.category] : []);
+              
+              if (memberCategories.length > 0) {
+                filterCategory = normalizeCategory(memberCategories[0]);
+              }
+            }
 
-            // Filter members that share at least one category with current member
+            // Filter members by the selected category
             const sameCategoryMembers = allMembers.filter((m: any) => {
               if (m._id === memberData._id || m.id === memberData._id) return false; // Exclude current member
+              
+              if (!filterCategory) return true; // If no category filter, show all
               
               const mCategories = Array.isArray(m.category) 
                 ? m.category 
@@ -88,10 +97,8 @@ export default function TeamDetailPage() {
                 normalizeCategory(cat || 'Uncategorized')
               );
 
-              // Check if any category matches
-              return normalizedMCategories.some((cat: string) => 
-                normalizedMemberCategories.includes(cat)
-              );
+              // Check if member has the filtered category
+              return normalizedMCategories.includes(filterCategory);
             });
 
             // Process and format team members
@@ -104,6 +111,24 @@ export default function TeamDetailPage() {
             }));
 
             setTeamMembers(processedMembers);
+            
+            // Store all team members for instant switching
+            const allProcessed = allMembers.map((m: any) => ({
+              ...m,
+              id: m._id || m.id,
+              name: m.name || 'Unknown',
+              position: m.position || '',
+              image: m.image || '',
+              description: m.description || '',
+              experience: m.experience || '',
+              education: m.education || '',
+              certification: m.certification || '',
+              phone: m.phone || '',
+              email: m.email || '',
+              linkedin: m.linkedin || '',
+              category: m.category || []
+            }));
+            setAllTeamMembersData(allProcessed);
           }
         }
       } catch (error) {
@@ -115,7 +140,68 @@ export default function TeamDetailPage() {
     if (id) {
       fetchData();
     }
-  }, [id]);
+  }, [id, category]);
+
+  // Function to switch team member instantly
+  const switchTeamMember = (memberId: string) => {
+    const newMember = allTeamMembersData.find(m => (m.id === memberId || m._id === memberId));
+    if (newMember) {
+      const newMemberData = {
+        ...newMember,
+        id: newMember.id || newMember._id,
+        role: newMember.position,
+        email: newMember.linkedin
+      };
+      setMember(newMemberData);
+      setImageError(false);
+      
+      // Update URL without page reload using router.push
+      const categoryParam = category ? `?category=${encodeURIComponent(category)}` : '';
+      router.push(`/team/${memberId}${categoryParam}`, { scroll: false });
+      
+      // Update sidebar members list - exclude new current member, add previous member back
+      const updatedSidebarMembers = allTeamMembersData
+        .filter(m => {
+          const mId = m.id || m._id;
+          return mId !== memberId && mId !== (member?.id || member?._id);
+        })
+        .filter(m => {
+          // Filter by category if category is specified
+          if (category) {
+            const filterCategory = normalizeCategory(category);
+            const mCategories = Array.isArray(m.category) 
+              ? m.category 
+              : (m.category ? [m.category] : []);
+            
+            const normalizedMCategories = mCategories.map((cat: string) => 
+              normalizeCategory(cat || 'Uncategorized')
+            );
+            return normalizedMCategories.includes(filterCategory);
+          }
+          return true;
+        })
+        .map((m: any) => ({
+          ...m,
+          id: m.id || m._id,
+          name: m.name || 'Unknown',
+          position: m.position || '',
+          image: m.image || ''
+        }));
+      
+      // Add previous member back to sidebar if it's not the new current member
+      if (member && member.id !== memberId) {
+        updatedSidebarMembers.push({
+          ...member,
+          id: member.id || member._id,
+          name: member.name || 'Unknown',
+          position: member.position || '',
+          image: member.image || ''
+        });
+      }
+      
+      setTeamMembers(updatedSidebarMembers);
+    }
+  };
 
   if (loading) {
     return (
@@ -145,7 +231,6 @@ export default function TeamDetailPage() {
             className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            Back to Team
           </Link>
         </div>
       </main>
@@ -154,18 +239,6 @@ export default function TeamDetailPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Back Button */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <Link 
-            href={category ? `/team?category=${category}` : '/team'} 
-            className="inline-flex items-center gap-2 text-[#009f3b] hover:text-[#00782d] transition-colors font-medium"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Team
-          </Link>
-        </div>
-      </div>
 
       {/* Main Content - Three Column Layout with Sidebar */}
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
@@ -224,10 +297,10 @@ export default function TeamDetailPage() {
                     
                     {/* Other Team Members */}
                     {teamMembers.map((teamMember: any) => (
-                      <Link
+                      <div
                         key={teamMember.id}
-                        href={`/team/${teamMember.id}${category ? `?category=${category}` : ''}`}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                        onClick={() => switchTeamMember(teamMember.id)}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
                       >
                         <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
                           {teamMember.image ? (
@@ -258,7 +331,7 @@ export default function TeamDetailPage() {
                             </p>
                           )}
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -289,12 +362,21 @@ export default function TeamDetailPage() {
                   />
                 )}
               </div>
+              {/* Name and Position under image */}
+              <div className="mt-4 space-y-1 text-center">
+                <h1 className="text-sm md:text-base font-medium text-gray-700">
+                  {member.name}
+                </h1>
+                <p className="text-xs md:text-sm text-[#009f3b]">
+                  {member.role || member.position}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Right Column - Bio, Experience, and Contact Info */}
           <div className={`${teamMembers.length > 0 ? 'lg:col-span-6' : 'lg:col-span-8'} order-2 lg:order-3 space-y-8`}>
-            {/* Name and Role */}
+            {/* Categories */}
             <div className="space-y-2">
               {(() => {
                 // Get unique categories
@@ -330,12 +412,6 @@ export default function TeamDetailPage() {
                   );
                 }
               })()}
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-700">
-                {member.name}
-              </h1>
-              <p className="text-xl md:text-2xl text-[#009f3b] font-medium">
-                {member.role || member.position}
-              </p>
             </div>
 
             {/* Bio Section */}

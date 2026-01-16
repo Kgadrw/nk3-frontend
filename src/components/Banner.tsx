@@ -52,7 +52,7 @@ const Banner = () => {
         console.error('Error fetching company profile:', error);
       } finally {
         if (isMounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     };

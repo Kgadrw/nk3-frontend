@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
+import Services from '@/components/Services';
 
 // Lazy load below-the-fold components for better performance
 const Banner = dynamic(() => import('@/components/Banner'), {
@@ -25,8 +26,9 @@ export default function Home() {
       <Hero />
       <About />
       <Banner />
-      <Partners />
+      <Services />
       <LatestPortfolio />
+      <Partners />
       <Footer />
     </main>
   );

@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 // Team Member Card Component
-const TeamMemberCard = ({ member }: { member: { id: number | string; name: string; role: string; image: string; phone?: string; email?: string; description?: string } }) => {
+const TeamMemberCard = ({ member, category }: { member: { id: number | string; name: string; role: string; image: string; phone?: string; email?: string; description?: string }; category?: string | null }) => {
   const [imageError, setImageError] = useState(false);
+  const detailUrl = `/team/${member.id}${category && category !== 'all' ? `?category=${category}` : ''}`;
 
   return (
-    <div className="flex flex-col bg-[#009f3b]">
+    <Link href={detailUrl} className="flex flex-col bg-[#009f3b] hover:opacity-90 transition-opacity cursor-pointer">
       {/* Member Portrait */}
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-white">
         {imageError ? (
@@ -50,23 +51,22 @@ const TeamMemberCard = ({ member }: { member: { id: number | string; name: strin
         
         {/* More Button - Only show if description exists */}
         {member.description && member.description.trim() && (
-          <Link 
-            href={`/team/${member.id}`}
-            className="mt-auto bg-[#00782d] hover:bg-[#005a1f] text-white px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-colors inline-block text-center"
-          >
+          <div className="mt-auto bg-[#00782d] hover:bg-[#005a1f] text-white px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-colors inline-block text-center">
             More
-          </Link>
+          </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 
 const Team = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [teamData, setTeamData] = useState<any[]>([]);
   const [allTeamData, setAllTeamData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasRedirectedRef = useRef(false);
 
   // Helper function to normalize category to canonical form
   const normalizeCategory = (category: string): string => {
@@ -145,7 +145,7 @@ const Team = () => {
           const memberName = member.name || '';
           const normalizedName = normalizeName(memberName);
           const memberId = member._id || member.id;
-          
+
           // Check if a person with the same name already exists
           if (memberMap.has(normalizedName)) {
             // Person already exists (same name), merge categories
@@ -155,7 +155,7 @@ const Team = () => {
               : (existingMember.category ? [existingMember.category] : []);
             
             const newCategories = Array.isArray(member.category) 
-              ? member.category 
+            ? member.category 
               : (member.category ? [member.category] : []);
             
             // Combine categories and remove duplicates
@@ -178,7 +178,7 @@ const Team = () => {
               category: allCategories,
               role: combinedRole,
               position: combinedRole
-            });
+          });
           } else {
             // New person, add to map
             const categories = Array.isArray(member.category) 
@@ -219,6 +219,8 @@ const Team = () => {
     
     if (!categoryParam || categoryParam === 'all') {
       setTeamData(allTeamData);
+      // Reset redirect flag when no category is selected
+      hasRedirectedRef.current = false;
     } else {
       const normalizedParam = normalizeCategory(categoryParam);
       const filtered = allTeamData.filter((member: any) => {
@@ -230,8 +232,18 @@ const Team = () => {
         });
       });
       setTeamData(filtered);
+      
+      // Redirect to first team member's detail page if category is selected and we haven't redirected yet
+      if (filtered.length > 0 && !hasRedirectedRef.current && !loading) {
+        const firstMember = filtered[0];
+        const memberId = firstMember.id;
+        if (memberId) {
+          hasRedirectedRef.current = true;
+          router.push(`/team/${memberId}?category=${encodeURIComponent(categoryParam)}`);
+        }
+      }
     }
-  }, [searchParams, allTeamData]);
+  }, [searchParams, allTeamData, loading, router]);
 
 
   if (loading) {
@@ -264,7 +276,7 @@ const Team = () => {
         {teamData.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
             {teamData.map((member: any) => (
-              <TeamMemberCard key={member.id} member={member} />
+              <TeamMemberCard key={member.id} member={member} category={categoryParam} />
             ))}
           </div>
         ) : (

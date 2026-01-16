@@ -659,15 +659,15 @@ const Navbar = () => {
                   
                   return (
                     <>
-                      <Link
-                        href="/team"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                <Link
+                  href="/team"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
                             pathname === '/team' && (!currentCategory || currentCategory === 'all') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        Team
-                      </Link>
+                  }`}
+                >
+                  Team
+                </Link>
                       {teamCategories.length > 0 && (
                         <div className="pl-6 space-y-1">
                           {teamCategories.map((category, index) => {

@@ -3835,7 +3835,7 @@ export default function AdminDashboard() {
                             <div className="block md:hidden space-y-3">
                               {groupedTeams[category].map((member: any) => (
                                 <div key={member._id || member.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-                                  <div className="flex items-start gap-3">
+                                  <div className="flex flex-col items-center gap-2">
                                     <div className="relative w-16 h-16 flex-shrink-0">
                                       <Image
                                         src={member.image}
@@ -3844,9 +3844,9 @@ export default function AdminDashboard() {
                                         className="object-cover rounded-full"
                                       />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h5 className="text-base font-semibold text-gray-900 mb-1">{member.name}</h5>
-                                      <p className="text-sm text-gray-600 mb-2">{member.position}</p>
+                                    <div className="flex flex-col items-center text-center">
+                                      <h5 className="text-sm font-semibold text-gray-900 mb-1">{member.name}</h5>
+                                      <p className="text-xs text-gray-600 mb-2">{member.position}</p>
                                       {member.phone && (
                                         <p className="text-xs text-gray-600 mb-1">
                                           <span className="font-medium">Phone:</span> {member.phone}

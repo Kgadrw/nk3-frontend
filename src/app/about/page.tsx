@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
-import { ArrowRight, Award, Handshake, Crown, Users, Lightbulb } from 'lucide-react';
+import { Award, Handshake, Crown, Users, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function AboutPage() {
@@ -12,7 +12,6 @@ export default function AboutPage() {
     aboutImage: '',
     description: '',
   });
-  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,10 +19,7 @@ export default function AboutPage() {
       try {
         setLoading(true);
         const { cachedFetch } = await import('@/lib/apiCache');
-        const [aboutData, servicesData] = await Promise.all([
-          cachedFetch<any>('/api/about'),
-          cachedFetch<any[]>('/api/services')
-        ]);
+        const aboutData = await cachedFetch<any>('/api/about');
         
         // Only use data from API, no fallbacks or defaults
         if (aboutData && Object.keys(aboutData).length > 0) {
@@ -39,8 +35,6 @@ export default function AboutPage() {
             description: '',
           });
         }
-        
-        setServices(servicesData || []);
       } catch (error) {
         console.error('Error fetching about content:', error);
       } finally {
@@ -399,83 +393,6 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Services Section */}
-          <div className="p-6 md:p-8">
-              <div className="flex items-center justify-center gap-4 mb-8">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-700 uppercase whitespace-nowrap">
-                  Our Services
-              </h3>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {/* Display API services first */}
-                {services.length > 0 && services.map((service: any) => {
-                  return (
-                    <div
-                      key={service._id || service.id}
-                      className="bg-white border border-gray-300 p-6 flex flex-col h-full"
-                    >
-                      <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-3">
-                        {service.title}
-                      </h3>
-                      {service.description && (
-                        <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
-                          {service.description}
-                        </p>
-                      )}
-                      {service.features && service.features.length > 0 && (
-                        <ul className="space-y-2 mb-4 flex-grow">
-                          {service.features.map((feature: string, index: number) => (
-                            <li key={index} className="flex items-start gap-2 text-gray-600 text-sm">
-                              <span className="text-[#009f3b] mt-1">•</span>
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <Link
-                        href="/contact"
-                        className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors mt-auto"
-                      >
-                        Get a Quote
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  );
-                })}
-                {/* Default Services */}
-                {(() => {
-                  const defaultServices = [
-                    'Feasibility Studies & Project Planning',
-                    'Architectural & Structural Design',
-                    'Construction Supervision & Project Management',
-                    'Environmental & Social Impact Assessments (ESIA)',
-                    'MEP (Mechanical, Electrical & Plumbing) Engineering',
-                    'Quantity Surveying & Cost Estimation',
-                    'Construction Permit Processing & Legal Compliance'
-                  ];
-                  
-                  return defaultServices.map((serviceTitle, index) => (
-                    <div
-                      key={`default-service-${index}`}
-                      className="bg-white border border-gray-300 p-6 flex flex-col h-full"
-                    >
-                      <h3 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-4">
-                        {serviceTitle}
-                      </h3>
-                      <Link
-                        href="/contact"
-                        className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors mt-auto"
-                      >
-                        Get a Quote
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  ));
-                })()}
-              </div>
-          </div>
         </div>
       </div>
       <Footer />
