@@ -13,30 +13,107 @@ export default function TeamDetailPage() {
   const id = params?.id as string;
   const category = searchParams.get('category');
   const [member, setMember] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  // Helper function to normalize category to canonical form
+  const normalizeCategory = (category: string): string => {
+    const categoryLower = category.toLowerCase().trim();
+    const normalizedMap: { [key: string]: string } = {
+      'founder': 'founder',
+      'company founder': 'founder',
+      'company-founder': 'founder',
+      'co-founder': 'co-founder',
+      'cofounder': 'co-founder',
+      'co founder': 'co-founder',
+      'technical': 'technical',
+      'technical team': 'technical',
+      'technical-team': 'technical',
+      'advisors': 'advisors',
+      'company-advisors': 'advisors',
+      'company advisors': 'advisors',
+      'advisory': 'advisors',
+      'advisory-board': 'advisors',
+      'advisory board': 'advisors',
+      'advisory team': 'advisors',
+      'uncategorized': 'uncategorized',
+    };
+
+    if (normalizedMap[categoryLower]) {
+      return normalizedMap[categoryLower];
+    }
+
+    return categoryLower.replace(/\s+/g, '-');
+  };
+
   useEffect(() => {
-    const fetchMember = async () => {
+    const fetchData = async () => {
       try {
         const { cachedFetch } = await import('@/lib/apiCache');
-        const data = await cachedFetch<any>(`/api/team/${id}`);
-        if (data) {
-          setMember({
-            ...data,
-            id: data._id || data.id,
-            role: data.position,
-            email: data.linkedin // Using linkedin as email placeholder
-          });
+        
+        // Fetch current member
+        const memberData = await cachedFetch<any>(`/api/team/${id}`);
+        if (memberData) {
+          const currentMember = {
+            ...memberData,
+            id: memberData._id || memberData.id,
+            role: memberData.position,
+            email: memberData.linkedin
+          };
+          setMember(currentMember);
+
+          // Fetch all team members to get same category members
+          const allMembers = await cachedFetch<any[]>('/api/team');
+          if (allMembers && Array.isArray(allMembers)) {
+            // Get categories from current member
+            const memberCategories = Array.isArray(currentMember.category) 
+              ? currentMember.category 
+              : (currentMember.category ? [currentMember.category] : []);
+            
+            // Normalize member categories
+            const normalizedMemberCategories = memberCategories.map((cat: string) => 
+              normalizeCategory(cat || 'Uncategorized')
+            );
+
+            // Filter members that share at least one category with current member
+            const sameCategoryMembers = allMembers.filter((m: any) => {
+              if (m._id === memberData._id || m.id === memberData._id) return false; // Exclude current member
+              
+              const mCategories = Array.isArray(m.category) 
+                ? m.category 
+                : (m.category ? [m.category] : []);
+              
+              const normalizedMCategories = mCategories.map((cat: string) => 
+                normalizeCategory(cat || 'Uncategorized')
+              );
+
+              // Check if any category matches
+              return normalizedMCategories.some((cat: string) => 
+                normalizedMemberCategories.includes(cat)
+              );
+            });
+
+            // Process and format team members
+            const processedMembers = sameCategoryMembers.map((m: any) => ({
+              ...m,
+              id: m._id || m.id,
+              name: m.name || 'Unknown',
+              position: m.position || '',
+              image: m.image || ''
+            }));
+
+            setTeamMembers(processedMembers);
+          }
         }
       } catch (error) {
-        console.error('Error fetching team member:', error);
+        console.error('Error fetching team data:', error);
       } finally {
         setLoading(false);
       }
     };
     if (id) {
-      fetchMember();
+      fetchData();
     }
   }, [id]);
 
@@ -90,11 +167,107 @@ export default function TeamDetailPage() {
         </div>
       </div>
 
-      {/* Main Content - Two Column Layout */}
+      {/* Main Content - Three Column Layout with Sidebar */}
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          {/* Left Column - Image */}
-          <div className="md:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+          {/* Left Sidebar - Other Team Members in Same Category */}
+          {teamMembers.length > 0 && (
+            <div className="lg:col-span-3 order-3 lg:order-1">
+              <div className="sticky top-24">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+                    Other Team Members
+                  </h3>
+                  <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+                    {/* Current Member - Active */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[#009f3b] text-white">
+                      <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden bg-white/20 border-2 border-white">
+                        {imageError ? (
+                          <div className="w-full h-full flex items-center justify-center bg-white/10">
+                            <span className="text-white text-lg font-bold">
+                              {member.name.charAt(0)}
+                            </span>
+                          </div>
+                        ) : member.image ? (
+                          <Image
+                            src={member.image}
+                            alt={member.name}
+                            fill
+                            className="object-cover"
+                            onError={() => setImageError(true)}
+                            unoptimized
+                            loading="lazy"
+                            sizes="48px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-white/10">
+                            <span className="text-white text-lg font-bold">
+                              {member.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {member.name}
+                        </p>
+                        {member.position && (
+                          <p className="text-xs text-white/80 truncate">
+                            {member.position}
+                          </p>
+                        )}
+                        <span className="inline-block mt-1 text-xs bg-white/20 text-white px-2 py-0.5 rounded">
+                          Current
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Other Team Members */}
+                    {teamMembers.map((teamMember: any) => (
+                      <Link
+                        key={teamMember.id}
+                        href={`/team/${teamMember.id}${category ? `?category=${category}` : ''}`}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                      >
+                        <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
+                          {teamMember.image ? (
+                            <Image
+                              src={teamMember.image}
+                              alt={teamMember.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                              loading="lazy"
+                              sizes="48px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-gray-400 text-lg font-bold">
+                                {teamMember.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 group-hover:text-[#009f3b] transition-colors truncate">
+                            {teamMember.name}
+                          </p>
+                          {teamMember.position && (
+                            <p className="text-xs text-gray-500 truncate">
+                              {teamMember.position}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Center Column - Image */}
+          <div className={`${teamMembers.length > 0 ? 'lg:col-span-3' : 'lg:col-span-4'} order-1 lg:order-2`}>
             <div className="sticky top-24">
               <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
                 {imageError ? (
@@ -120,7 +293,7 @@ export default function TeamDetailPage() {
           </div>
 
           {/* Right Column - Bio, Experience, and Contact Info */}
-          <div className="md:col-span-2 space-y-8">
+          <div className={`${teamMembers.length > 0 ? 'lg:col-span-6' : 'lg:col-span-8'} order-2 lg:order-3 space-y-8`}>
             {/* Name and Role */}
             <div className="space-y-2">
               {(() => {

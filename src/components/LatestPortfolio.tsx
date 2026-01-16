@@ -33,13 +33,13 @@ const LatestPortfolio = () => {
           id: p._id || p.id
         }));
         if (isMounted) {
-          setLatestProjects(projects);
+        setLatestProjects(projects);
         }
       } catch (error) {
         console.error('Error fetching portfolio:', error);
       } finally {
         if (isMounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     };

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 // Team Member Card Component
 const TeamMemberCard = ({ member }: { member: { id: number | string; name: string; role: string; image: string; phone?: string; email?: string; description?: string } }) => {
@@ -40,7 +41,10 @@ const TeamMemberCard = ({ member }: { member: { id: number | string; name: strin
         </h3>
         
         {/* Role/Position */}
-        <p className="text-[#90EE90] text-xs md:text-sm mb-2">
+        <p 
+          className="text-[#90EE90] text-xs md:text-sm mb-2 line-clamp-2"
+          title={member.role}
+        >
           {member.role}
         </p>
         
@@ -59,10 +63,9 @@ const TeamMemberCard = ({ member }: { member: { id: number | string; name: strin
 };
 
 const Team = () => {
+  const searchParams = useSearchParams();
   const [teamData, setTeamData] = useState<any[]>([]);
   const [allTeamData, setAllTeamData] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
 
   // Helper function to normalize category to canonical form
@@ -201,20 +204,6 @@ const Team = () => {
 
         const processedMembers = Array.from(memberMap.values());
         setAllTeamData(processedMembers);
-        setTeamData(processedMembers);
-
-        // Extract unique categories from all members
-        const uniqueCategories = new Set<string>();
-        processedMembers.forEach((member: any) => {
-          const categories = member.category || [];
-          categories.forEach((cat: string) => {
-            const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
-            uniqueCategories.add(normalizedCategory);
-          });
-        });
-
-        const sortedCategories = Array.from(uniqueCategories).sort();
-        setCategories(['All', ...sortedCategories]);
       } catch (error) {
         console.error('Error fetching team:', error);
       } finally {
@@ -224,22 +213,25 @@ const Team = () => {
     fetchTeams();
   }, []);
 
-  // Filter team members by selected category
+  // Filter team members by category from URL parameter
   useEffect(() => {
-    if (selectedCategory === 'All') {
+    const categoryParam = searchParams.get('category');
+    
+    if (!categoryParam || categoryParam === 'all') {
       setTeamData(allTeamData);
     } else {
+      const normalizedParam = normalizeCategory(categoryParam);
       const filtered = allTeamData.filter((member: any) => {
         const categories = member.category || [];
         
         return categories.some((cat: string) => {
           const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
-          return normalizedCategory === selectedCategory;
+          return normalizedCategory === normalizedParam;
         });
       });
       setTeamData(filtered);
     }
-  }, [selectedCategory, allTeamData]);
+  }, [searchParams, allTeamData]);
 
 
   if (loading) {
@@ -262,32 +254,12 @@ const Team = () => {
   }
 
 
+  const categoryParam = searchParams.get('category');
+  const displayCategory = categoryParam ? formatCategoryLabel(categoryParam) : null;
+
   return (
     <section className="py-8 md:py-16 px-4 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Category Filter - Tabs at top */}
-        <div className="bg-white border-b border-gray-200 mb-6">
-          <div className="flex gap-2 overflow-x-auto">
-            {categories.map((category) => {
-              const displayLabel = category === 'All' ? 'All' : formatCategoryLabel(category);
-              const isActive = selectedCategory === category;
-              return (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
-                    isActive
-                      ? 'bg-[#009f3b] text-white border-b-2 border-[#009f3b]'
-                      : 'text-gray-700 hover:text-[#009f3b] hover:bg-gray-50'
-                  }`}
-                >
-                  {displayLabel}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Team Members Grid */}
         {teamData.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
@@ -298,9 +270,9 @@ const Team = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {selectedCategory === 'All' 
+              {!categoryParam || categoryParam === 'all'
                 ? 'No team members available yet.'
-                : `No team members found in category "${formatCategoryLabel(selectedCategory)}".`}
+                : `No team members found in category "${displayCategory}".`}
             </p>
           </div>
         )}

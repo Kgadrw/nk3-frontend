@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 const Navbar = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isPastHero, setIsPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -135,18 +136,20 @@ const Navbar = () => {
 
           // Helper function to format category name for display
           const formatCategoryLabel = (category: string): string => {
+            if (!category || category === 'All') return 'All';
             const categoryLower = category.toLowerCase();
             const labelMap: { [key: string]: string } = {
               'founder': 'Company Founder',
               'co-founder': 'Co-Founder',
               'cofounder': 'Co-Founder',
               'technical': 'Technical Team',
-              'advisors': 'Company Advisors',
-              'company-advisors': 'Company Advisors',
-              'company advisors': 'Company Advisors',
-              'advisory': 'Company Advisors',
-              'advisory-board': 'Company Advisors',
-              'advisory board': 'Company Advisors',
+              'advisors': 'Advisory Board',
+              'company-advisors': 'Advisory Board',
+              'company advisors': 'Advisory Board',
+              'advisory': 'Advisory Board',
+              'advisory-board': 'Advisory Board',
+              'advisory board': 'Advisory Board',
+              'advisory team': 'Advisory Board',
               'uncategorized': 'Uncategorized',
             };
 
@@ -182,7 +185,15 @@ const Navbar = () => {
             formattedCategoriesSet.add(formatted);
           });
           
-          setTeamCategories(Array.from(formattedCategoriesSet).sort());
+          // Add "All" and sort categories: "All" first, then alphabetical
+          const allCategories = ['All', ...Array.from(formattedCategoriesSet)];
+          const sortedCategories = allCategories.sort((a, b) => {
+            if (a === 'All') return -1;
+            if (b === 'All') return 1;
+            return a.localeCompare(b);
+          });
+          
+          setTeamCategories(sortedCategories);
         }
       } catch (error) {
         // Error fetching team categories
@@ -466,42 +477,44 @@ const Navbar = () => {
               </Link>
                 
                 {/* Dropdown Menu */}
-                {teamDropdownOpen && teamCategories.length > 0 && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md z-[110] py-2">
-                    <Link
-                      href="/team"
-                      onClick={() => setTeamDropdownOpen(false)}
-                      className={`block px-4 py-2 text-sm text-gray-700 hover:bg-[#009f3b] hover:text-white transition-colors ${
-                        pathname === '/team' ? 'bg-gray-100 text-[#009f3b] font-semibold' : ''
-                      }`}
-                    >
-                      All Team Members
-                    </Link>
-                    <div className="border-t border-gray-200 my-1"></div>
-                    {teamCategories.map((category, index) => {
-                      const categoryLower = category.toLowerCase();
-                      const categoryMap: { [key: string]: string } = {
-                        'company founder': 'founder',
-                        'co-founder': 'co-founder',
-                        'technical team': 'technical',
-                        'company advisors': 'advisors',
-                        'uncategorized': 'uncategorized',
-                      };
-                      const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
-                      
-                      return (
-                        <Link
-                          key={index}
-                          href={`/team?category=${encodeURIComponent(categoryParam)}`}
-                          onClick={() => setTeamDropdownOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#009f3b] hover:text-white transition-colors"
-                        >
-                          {category}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+                {teamDropdownOpen && teamCategories.length > 0 && (() => {
+                  const currentCategory = searchParams.get('category');
+                  
+                  return (
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-md z-[110] py-2">
+                      {teamCategories.map((category, index) => {
+                        const categoryLower = category.toLowerCase();
+                        const categoryMap: { [key: string]: string } = {
+                          'all': 'all',
+                          'company founder': 'founder',
+                          'co-founder': 'co-founder',
+                          'technical team': 'technical',
+                          'advisory board': 'advisors',
+                          'uncategorized': 'uncategorized',
+                        };
+                        const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
+                        const href = category === 'All' ? '/team' : `/team?category=${encodeURIComponent(categoryParam)}`;
+                        const isActive = (category === 'All' && (!currentCategory || currentCategory === 'all')) ||
+                                        (category !== 'All' && currentCategory === categoryParam);
+                        
+                        return (
+                          <Link
+                            key={index}
+                            href={href}
+                            onClick={() => setTeamDropdownOpen(false)}
+                            className={`block px-4 py-2 text-sm transition-colors ${
+                              isActive
+                                ? 'bg-[#009f3b] text-white font-semibold'
+                                : 'text-gray-700 hover:bg-[#009f3b] hover:text-white'
+                            }`}
+                          >
+                            {category}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
 
               <Link 
@@ -641,43 +654,57 @@ const Navbar = () => {
                 
                 {/* Team Mobile with Categories */}
                 <div>
-                <Link
-                  href="/team"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
-                      pathname === '/team' ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  Team
-                </Link>
-                  {teamCategories.length > 0 && (
-                    <div className="pl-6 space-y-1">
-                      {teamCategories.map((category, index) => {
-                        const categoryLower = category.toLowerCase();
-                        const categoryMap: { [key: string]: string } = {
-                          'company founder': 'founder',
-                          'co-founder': 'co-founder',
-                          'technical team': 'technical',
-                          'company advisors': 'advisors',
-                          'uncategorized': 'uncategorized',
-                        };
-                        const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
-                        
-                        return (
-                          <Link
-                            key={index}
-                            href={`/team?category=${encodeURIComponent(categoryParam)}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`block px-4 py-2 text-sm text-gray-600 transition-colors ${
-                              pathname?.includes(`category=${categoryParam}`) ? 'bg-gray-100 text-[#009f3b] font-semibold' : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            {category}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
+                {(() => {
+                  const currentCategory = searchParams.get('category');
+                  
+                  return (
+                    <>
+                      <Link
+                        href="/team"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                            pathname === '/team' && (!currentCategory || currentCategory === 'all') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        Team
+                      </Link>
+                      {teamCategories.length > 0 && (
+                        <div className="pl-6 space-y-1">
+                          {teamCategories.map((category, index) => {
+                            const categoryLower = category.toLowerCase();
+                            const categoryMap: { [key: string]: string } = {
+                              'all': 'all',
+                              'company founder': 'founder',
+                              'co-founder': 'co-founder',
+                              'technical team': 'technical',
+                              'advisory board': 'advisors',
+                              'uncategorized': 'uncategorized',
+                            };
+                            const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
+                            const href = category === 'All' ? '/team' : `/team?category=${encodeURIComponent(categoryParam)}`;
+                            const isActive = (category === 'All' && (!currentCategory || currentCategory === 'all')) ||
+                                            (category !== 'All' && currentCategory === categoryParam);
+                            
+                            return (
+                              <Link
+                                key={index}
+                                href={href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={`block px-4 py-2 text-sm transition-colors ${
+                                  isActive
+                                    ? 'bg-[#009f3b] text-white font-semibold'
+                                    : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                              >
+                                {category}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
                 </div>
 
                 <Link 

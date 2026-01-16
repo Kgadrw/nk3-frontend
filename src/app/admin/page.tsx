@@ -1068,8 +1068,8 @@ export default function AdminDashboard() {
 
   const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!serviceTitle || !serviceDescription) {
-      showToast('Please fill in all required fields (Title, Description)', 'warning');
+    if (!serviceTitle) {
+      showToast('Please fill in the required field (Title)', 'warning');
       return;
     }
     try {
@@ -5378,15 +5378,14 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Description <span className="text-red-500">*</span>
+                          Description
                         </label>
                         <textarea
                           value={serviceDescription}
                           onChange={(e) => setServiceDescription(e.target.value)}
                           rows={4}
                           className="w-full px-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent transition-all resize-y text-black"
-                          placeholder="Service description..."
-                          required
+                          placeholder="Service description (optional)..."
                         />
                       </div>
                       <div>
