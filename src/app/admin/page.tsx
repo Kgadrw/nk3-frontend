@@ -643,9 +643,11 @@ export default function AdminDashboard() {
     }
   };
 
-  // Simplified team save with optimistic updates
+  // Simplified team save with auto-refresh
   const handleSaveTeam = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
     if (!teamName?.trim() || !teamPosition?.trim() || !teamImage?.trim()) {
       showToast('Please fill in all required fields (Name, Position, Image)', 'warning');
       return;
@@ -654,74 +656,70 @@ export default function AdminDashboard() {
     const teamId = editingTeam ? String(editingTeam).trim() : null;
     const isEdit = !!teamId;
     
-    // Optimistic update - update UI immediately
-    const tempId = teamId || `temp_${Date.now()}`;
-    const newMember = {
-      _id: tempId,
-      id: tempId,
-        name: teamName.trim(),
-        position: teamPosition.trim(),
+    // Prepare data
+    const data = {
+      name: teamName.trim(),
+      position: teamPosition.trim(),
       category: teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
-        image: teamImage.trim(),
-        phone: teamPhone?.trim() || '',
+      image: teamImage.trim(),
+      phone: teamPhone?.trim() || '',
       email: teamEmail?.trim() || '',
-        linkedin: teamLinkedin?.trim() || '',
-        description: teamDescription?.trim() || '',
-        experience: teamExperience?.trim() || '',
-        education: teamEducation?.trim() || '',
-        certification: teamCertification?.trim() || ''
-      };
-      
-    if (isEdit && teamId) {
-      // Optimistic update for edit
-      setTeams(prev => prev.map((t: any) => 
-        (t._id === teamId || t.id === teamId) ? { ...t, ...newMember } : t
-      ));
-    } else {
-      // Optimistic update for create
-      setTeams(prev => [...prev, newMember as any]);
-    }
+      linkedin: teamLinkedin?.trim() || '',
+      description: teamDescription?.trim() || '',
+      experience: teamExperience?.trim() || '',
+      education: teamEducation?.trim() || '',
+      certification: teamCertification?.trim() || ''
+    };
     
     try {
-      const data = {
-        name: newMember.name,
-        position: newMember.position,
-        category: newMember.category,
-        image: newMember.image,
-        phone: newMember.phone,
-        email: newMember.email,
-        linkedin: newMember.linkedin,
-        description: newMember.description,
-        experience: newMember.experience,
-        education: newMember.education,
-        certification: newMember.certification
-      };
-      
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
       const method = teamId ? 'PUT' : 'POST';
+      
+      console.log('Saving team member:', { url, method, data });
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       
+      console.log('Response status:', res.status, res.statusText);
+      
       if (res.ok) {
+        // Clear cache and refresh data
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/team');
+        
         // Refresh data to get actual server response
         await fetchAllData();
+        
         showToast(isEdit ? 'Team member updated successfully!' : 'Team member added successfully!', 'success');
+        
         // Close form and reset
         setShowTeamForm(false);
         resetTeamForm();
       } else {
-        // Revert optimistic update on error
-        await fetchAllData();
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        showToast(`Error: ${errorData.error || 'Failed to save team member'}`, 'error');
+        // Handle error response
+        let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await res.json();
+            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
+            console.error('Error response:', errorData);
+          } else {
+            const errorText = await res.text();
+            errorMessage = errorText || errorMessage;
+            console.error('Error text:', errorText);
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
+        }
+        showToast(`Error: ${errorMessage}`, 'error');
       }
     } catch (error: any) {
-      // Revert optimistic update on error
-      await fetchAllData();
-      showToast(`Error: ${error.message || 'Please try again.'}`, 'error');
+      console.error('Error saving team member:', error);
+      showToast(`Error: ${error.message || 'Network error. Please try again.'}`, 'error');
     }
   };
 
@@ -4042,7 +4040,7 @@ export default function AdminDashboard() {
 
               {/* Modal Form */}
               {showTeamForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => { resetTeamForm(); setShowTeamForm(false); }}>
+                <div className="fixed inset-0 backdrop-blur-md bg-black/20 z-50 flex items-center justify-center p-4" onClick={() => { resetTeamForm(); setShowTeamForm(false); }}>
                   <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                     <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
                       <h3 className="text-xl font-bold text-[#009f3b]">

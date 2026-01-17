@@ -2,15 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function TeamDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const id = params?.id as string;
   const category = searchParams.get('category');
   const [member, setMember] = useState<any>(null);
@@ -49,9 +48,19 @@ export default function TeamDetailPage() {
     return categoryLower.replace(/\s+/g, '-');
   };
 
+  // Track if we're switching via sidebar (instant switch) to avoid refetch/reload
+  const isInternalSwitchRef = useRef(false);
+
   useEffect(() => {
+    // Skip fetch when we've just switched via sidebar - data is already in state
+    if (isInternalSwitchRef.current) {
+      isInternalSwitchRef.current = false;
+      return;
+    }
+
     const fetchData = async () => {
       try {
+        setLoading(true);
         const { cachedFetch } = await import('@/lib/apiCache');
         
         // Fetch current member
@@ -148,10 +157,13 @@ export default function TeamDetailPage() {
     }
   }, [id, category]);
 
-  // Function to switch team member instantly
+  // Function to switch team member instantly (no reload/refetch)
   const switchTeamMember = (memberId: string) => {
     const newMember = allTeamMembersData.find(m => (m.id === memberId || m._id === memberId));
     if (newMember) {
+      // Mark as internal switch so useEffect skips refetch when URL updates
+      isInternalSwitchRef.current = true;
+      
       const newMemberData = {
         ...newMember,
         id: newMember.id || newMember._id,
@@ -167,9 +179,10 @@ export default function TeamDetailPage() {
       setMember(newMemberData);
       setImageError(false);
       
-      // Update URL without page reload using router.push
+      // Update URL (replaceState avoids triggering Next.js navigation/refetch)
       const categoryParam = category ? `?category=${encodeURIComponent(category)}` : '';
-      router.push(`/team/${memberId}${categoryParam}`, { scroll: false });
+      const newPath = `/team/${memberId}${categoryParam}`;
+      window.history.replaceState(null, '', newPath);
       
       // Update sidebar members list - exclude new current member, add previous member back
       const updatedSidebarMembers = allTeamMembersData
