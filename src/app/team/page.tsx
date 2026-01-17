@@ -57,7 +57,7 @@ function TeamRedirect() {
               }
             });
           });
-          
+
           if (allCategories.size > 0) {
             // Get first category and redirect to it
             const firstCategory = Array.from(allCategories).sort()[0];
@@ -85,20 +85,20 @@ function TeamRedirect() {
           return;
         }
 
-        // Filter by category
-        const normalizedParam = normalizeCategory(category);
-        const filtered = allMembers.filter((member: any) => {
-          const categories = Array.isArray(member.category) 
-            ? member.category 
-            : (member.category ? [member.category] : []);
-          
-          return categories.some((cat: string) => {
-            const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
-            return normalizedCategory === normalizedParam;
+          // Filter by category
+          const normalizedParam = normalizeCategory(category);
+          const filtered = allMembers.filter((member: any) => {
+            const categories = Array.isArray(member.category) 
+              ? member.category 
+              : (member.category ? [member.category] : []);
+            
+            return categories.some((cat: string) => {
+              const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
+              return normalizedCategory === normalizedParam;
+            });
           });
-        });
-        
-        if (filtered.length > 0) {
+          
+          if (filtered.length > 0) {
           const targetMember = filtered[0];
           const memberId = targetMember._id || targetMember.id;
           if (memberId) {

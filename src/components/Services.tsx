@@ -22,7 +22,7 @@ export default function Services() {
   // Default services
   const defaultServices = [
     'Feasibility Studies & Architectural Design',
-    'Construction Supervision & Project Management',
+    'Building Construction & Project Management',
     'MEP (Mechanical, Electrical & Plumbing) Engineering',
     'Environmental & Social Impact Assessments (ESIA)',
     'Construction Permit Processing & Legal Compliance'

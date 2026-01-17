@@ -163,9 +163,7 @@ export default function AboutPage() {
           >
             {aboutContent.description ? (
               <div className="space-y-4 text-gray-700">
-                <p className="text-xs md:text-sm font-medium uppercase tracking-wide text-gray-600">
-                  ABOUT US
-                </p>
+               
                 <h1 className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight text-[#009f3b]">
                   Building for People, Creating for Generations
                 </h1>
@@ -182,9 +180,7 @@ export default function AboutPage() {
           </div>
             ) : (
               <div className="space-y-4 text-gray-700">
-                <p className="text-xs md:text-sm font-medium uppercase tracking-wide text-gray-600">
-                  ABOUT US
-                </p>
+              
                 <h1 className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight text-[#009f3b]">
                   Building for People, Creating for Generations
                 </h1>
@@ -286,7 +282,7 @@ export default function AboutPage() {
                 // Default services
                 const defaultServices = [
                   'Feasibility Studies & Architectural Design',
-                  'Construction Supervision & Project Management',
+                  'Building Construction & Project Management',
                   'MEP (Mechanical, Electrical & Plumbing) Engineering',
                   'Environmental & Social Impact Assessments (ESIA)',
                   'Construction Permit Processing & Legal Compliance'
