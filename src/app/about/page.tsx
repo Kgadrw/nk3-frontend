@@ -285,12 +285,10 @@ export default function AboutPage() {
               {(() => {
                 // Default services
                 const defaultServices = [
-                  'Feasibility Studies & Project Planning',
-                  'Architectural & Structural Design',
+                  'Feasibility Studies & Architectural Design',
                   'Construction Supervision & Project Management',
-                  'Environmental & Social Impact Assessments (ESIA)',
                   'MEP (Mechanical, Electrical & Plumbing) Engineering',
-                  'Quantity Surveying & Cost Estimation',
+                  'Environmental & Social Impact Assessments (ESIA)',
                   'Construction Permit Processing & Legal Compliance'
                 ];
 
