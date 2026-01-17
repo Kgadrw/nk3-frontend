@@ -643,54 +643,60 @@ export default function AdminDashboard() {
     }
   };
 
+  // Simplified team save with optimistic updates
   const handleSaveTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName || !teamPosition || !teamImage) {
+    if (!teamName?.trim() || !teamPosition?.trim() || !teamImage?.trim()) {
       showToast('Please fill in all required fields (Name, Position, Image)', 'warning');
       return;
     }
     
-    // Validate ID if editing
-    if (editingTeam) {
-      // Convert to string and validate
-      const teamId = String(editingTeam).trim();
-      if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
-        showToast('Error: Invalid team member ID. Please try refreshing the page.', 'error');
-        // Invalid team ID
-        return;
-      }
-      // MongoDB ObjectId should be 24 hex characters
-      if (!/^[0-9a-fA-F]{24}$/.test(teamId)) {
-        showToast('Error: Team member ID format is invalid. Please try refreshing the page.', 'error');
-        // Invalid ObjectId format
-        return;
-      }
+    const teamId = editingTeam ? String(editingTeam).trim() : null;
+    const isEdit = !!teamId;
+    
+    // Optimistic update - update UI immediately
+    const tempId = teamId || `temp_${Date.now()}`;
+    const newMember = {
+      _id: tempId,
+      id: tempId,
+        name: teamName.trim(),
+        position: teamPosition.trim(),
+      category: teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
+        image: teamImage.trim(),
+        phone: teamPhone?.trim() || '',
+      email: teamEmail?.trim() || '',
+        linkedin: teamLinkedin?.trim() || '',
+        description: teamDescription?.trim() || '',
+        experience: teamExperience?.trim() || '',
+        education: teamEducation?.trim() || '',
+        certification: teamCertification?.trim() || ''
+      };
+      
+    if (isEdit && teamId) {
+      // Optimistic update for edit
+      setTeams(prev => prev.map((t: any) => 
+        (t._id === teamId || t.id === teamId) ? { ...t, ...newMember } : t
+      ));
+    } else {
+      // Optimistic update for create
+      setTeams(prev => [...prev, newMember as any]);
     }
     
     try {
       const data = {
-        name: teamName.trim(),
-        position: teamPosition.trim(),
-        category: Array.isArray(teamCategory) && teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
-        image: teamImage.trim(),
-        phone: teamPhone ? String(teamPhone).trim() : '',
-        email: teamEmail ? String(teamEmail).trim() : '',
-        linkedin: teamLinkedin ? String(teamLinkedin).trim() : '',
-        description: teamDescription ? String(teamDescription).trim() : '',
-        experience: teamExperience ? String(teamExperience).trim() : '',
-        education: teamEducation ? String(teamEducation).trim() : '',
-        certification: teamCertification ? String(teamCertification).trim() : ''
+        name: newMember.name,
+        position: newMember.position,
+        category: newMember.category,
+        image: newMember.image,
+        phone: newMember.phone,
+        email: newMember.email,
+        linkedin: newMember.linkedin,
+        description: newMember.description,
+        experience: newMember.experience,
+        education: newMember.education,
+        certification: newMember.certification
       };
       
-      // Debug: Log the data being sent
-      console.log('Saving team member with data:', {
-        ...data,
-        experience: data.experience || '(empty)',
-        education: data.education || '(empty)',
-        certification: data.certification || '(empty)'
-      });
-      
-      const teamId = editingTeam ? String(editingTeam).trim() : null;
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
       const method = teamId ? 'PUT' : 'POST';
       const res = await fetch(url, {
@@ -698,46 +704,65 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      
       if (res.ok) {
+        // Refresh data to get actual server response
         await fetchAllData();
+        showToast(isEdit ? 'Team member updated successfully!' : 'Team member added successfully!', 'success');
+        // Close form and reset
         setShowTeamForm(false);
+        resetTeamForm();
+      } else {
+        // Revert optimistic update on error
+        await fetchAllData();
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        showToast(`Error: ${errorData.error || 'Failed to save team member'}`, 'error');
+      }
+    } catch (error: any) {
+      // Revert optimistic update on error
+      await fetchAllData();
+      showToast(`Error: ${error.message || 'Please try again.'}`, 'error');
+    }
+  };
+
+  // Helper to reset form
+  const resetTeamForm = () => {
         setEditingTeam(null);
-        // Reset form
         setTeamName('');
         setTeamPosition('');
         setTeamCategory([]);
         setTeamPhone('');
-        setTeamEmail('');
+    setTeamEmail('');
         setTeamLinkedin('');
         setTeamDescription('');
         setTeamExperience('');
         setTeamEducation('');
         setTeamCertification('');
         setTeamImage('');
-      } else {
-        // Try to get error message from response
-        let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
-        try {
-          const contentType = res.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            const errorData = await res.json();
-            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
-          } else {
-            const errorText = await res.text();
-            errorMessage = errorText || errorMessage;
-          }
-        } catch (parseError) {
-          console.error('Error parsing response:', parseError);
-          // Error parsing response - keep default error message
-        }
-        console.error('Team save error:', res.status, errorMessage);
-        showToast(`Error: ${errorMessage}`, 'error');
-      }
-    } catch (error: any) {
-      // Error saving team
-      console.error('Error saving team member:', error);
-      showToast(`Error saving team member: ${error.message || 'Please try again.'}`, 'error');
+    setCopyFromMember('');
+  };
+
+  // Simplified edit handler
+  const handleEditTeam = (member: any) => {
+    const id = member._id || member.id;
+    if (!id) {
+      showToast('Error: Team member ID is missing', 'error');
+      return;
     }
+    
+    setEditingTeam(String(id));
+    setTeamName(member.name || '');
+    setTeamPosition(member.position || '');
+    setTeamCategory(Array.isArray(member.category) ? member.category : (member.category ? [member.category] : []));
+    setTeamPhone(member.phone || '');
+    setTeamEmail(member.email || '');
+    setTeamLinkedin(member.linkedin || '');
+    setTeamDescription(member.description || '');
+    setTeamExperience(member.experience || '');
+    setTeamEducation(member.education || '');
+    setTeamCertification(member.certification || '');
+    setTeamImage(member.image || '');
+    setShowTeamForm(true);
   };
 
   const handleSaveNewCategory = async (newCategory: string): Promise<boolean> => {
@@ -875,50 +900,41 @@ export default function AdminDashboard() {
     }
   };
 
+  // Simplified delete with optimistic updates
   const deleteTeam = async (id: string) => {
     const teamId = String(id || '').trim();
-    
     if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
       showToast('Error: Invalid team member ID', 'error');
       return;
     }
     
-    if (teamId.length < 1) {
-      showToast('Error: Invalid team member ID format - ID is too short', 'error');
-      return;
-    }
+    // Optimistic update - remove from UI immediately
+    const memberToDelete = teams.find((t: any) => (t._id || t.id) === teamId);
+    setTeams(prev => prev.filter((t: any) => (t._id || t.id) !== teamId));
     
     try {
-      const deleteUrl = `/api/team/${teamId}`;
-      const res = await fetch(deleteUrl, { method: 'DELETE' });
+      const res = await fetch(`/api/team/${teamId}`, { method: 'DELETE' });
       if (res.ok) {
         const { apiCache } = await import('@/lib/apiCache');
         apiCache.invalidatePattern('GET_/api/team');
-        await fetchAllData();
+        await fetchAllData(); // Refresh to sync with server
         showToast('Team member deleted successfully', 'success');
       } else {
-        // Try to get error message from response
-        let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
-        try {
-          const contentType = res.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            const errorData = await res.json();
-            errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
-          } else {
-            const errorText = await res.text();
-            errorMessage = errorText || errorMessage;
-          }
-        } catch (parseError) {
-          console.error('Error parsing delete response:', parseError);
-          // Error parsing delete error response - keep default error message
+        // Revert optimistic update on error
+        if (memberToDelete) {
+          setTeams(prev => [...prev, memberToDelete]);
         }
-        console.error('Team delete error:', res.status, errorMessage);
-        showToast(`Error deleting team member: ${errorMessage}`, 'error');
+        await fetchAllData();
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        showToast(`Error: ${errorData.error || 'Failed to delete team member'}`, 'error');
       }
     } catch (error: any) {
-      // Error deleting team
-      console.error('Error deleting team member:', error);
-      showToast(`Error deleting team member: ${error.message || 'Please try again.'}`, 'error');
+      // Revert optimistic update on error
+      if (memberToDelete) {
+        setTeams(prev => [...prev, memberToDelete]);
+      }
+      await fetchAllData();
+      showToast(`Error: ${error.message || 'Please try again.'}`, 'error');
     }
   };
 
@@ -3835,55 +3851,46 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Team Management */}
+          {/* Team Management - Redesigned */}
           {activeTab === 'team' && (
             <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <div>
                 <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Team Management</h2>
-                <div className="flex gap-3">
+                  <p className="text-sm text-gray-600 mt-1">Manage your team members and categories</p>
+                </div>
                   <button 
                     onClick={() => {
-                      setEditingTeam(null);
-                      setTeamName('');
-                      setTeamPosition('');
-                      setTeamCategory([]);
-                      setTeamPhone('');
-                      setTeamEmail('');
-                      setTeamLinkedin('');
-                      setTeamDescription('');
-                      setTeamExperience('');
-                      setTeamEducation('');
-                      setTeamCertification('');
-                      setTeamImage('');
-                      setCopyFromMember('');
+                    resetTeamForm();
                       setShowTeamForm(true);
                     }}
-                    className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                  className="bg-[#009f3b] text-white px-4 py-2 text-sm font-semibold hover:bg-[#00782d] transition-colors flex items-center gap-2"
                   >
-                  + Add Team Member
+                  <User className="w-4 h-4" />
+                  Add Team Member
                 </button>
                 </div>
-                </div>
 
-              {/* Team List/Grid */}
+              {/* Team List - Simplified */}
               {!showTeamForm && (
                   <div>
-                  <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-4">Team Members ({teams.length})</h3>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-700">
+                      Team Members <span className="text-gray-500">({teams.length})</span>
+                    </h3>
+                  </div>
                   
                   {/* Group teams by category */}
                   {(() => {
                     const groupedTeams = teams.reduce((acc, member) => {
-                      // Handle both array and string categories
                       const categories = Array.isArray(member.category) 
                         ? member.category 
-                        : (member.category && typeof member.category === 'string' ? [member.category] : ['Uncategorized']);
+                        : (member.category ? [member.category] : ['Uncategorized']);
                       
                       categories.forEach((cat: string) => {
-                        const category = (cat && typeof cat === 'string' ? cat.trim() : 'Uncategorized') || 'Uncategorized';
-                        if (!acc[category]) {
-                          acc[category] = [];
-                        }
-                        // Only add if not already in this category (avoid duplicates)
+                        const category = (cat?.trim() || 'Uncategorized');
+                        if (!acc[category]) acc[category] = [];
                         if (!acc[category].some((m: any) => (m._id || m.id) === (member._id || member.id))) {
                           acc[category].push(member);
                         }
@@ -3891,253 +3898,139 @@ export default function AdminDashboard() {
                       return acc;
                     }, {} as Record<string, typeof teams>);
 
-                    const categories = Object.keys(groupedTeams);
+                    const categories = Object.keys(groupedTeams).sort();
+
+                    if (categories.length === 0) {
+                    return (
+                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">No team members yet. Add your first team member!</p>
+                        </div>
+                      );
+                    }
 
                     return (
-                      <div className="space-y-6 md:space-y-8">
+                      <div className="space-y-6">
                         {categories.map((category) => (
-                          <div key={category} className="space-y-4">
-                            <h4 className="text-lg md:text-xl font-bold text-[#009f3b] border-b-2 border-[#009f3b] pb-2 mb-4">
-                              {category} ({groupedTeams[category].length})
+                          <div key={category} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="bg-[#009f3b] text-white px-4 py-3">
+                              <h4 className="text-lg font-bold">
+                                {category} <span className="text-white/80 font-normal">({groupedTeams[category].length})</span>
                             </h4>
+                            </div>
                             
-                            {/* Mobile Card Layout */}
-                            <div className="block md:hidden space-y-3">
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                              <table className="w-full">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Image</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Position</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Contact</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
                               {groupedTeams[category].map((member: any) => (
-                                <div key={member._id || member.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-                                  <div className="flex flex-col items-center gap-2">
-                                    <div className="relative w-16 h-16 flex-shrink-0">
+                                    <tr key={member._id || member.id} className="hover:bg-gray-50">
+                                      <td className="px-4 py-3">
+                                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
                                       <Image
                                         src={member.image}
                                         alt={member.name}
                                         fill
-                                        className="object-cover rounded-full"
+                                            className="object-cover"
                                       />
                                     </div>
-                                    <div className="flex flex-col items-center text-center">
-                                      <h5 className="text-sm font-semibold text-gray-900 mb-1">{member.name}</h5>
-                                      <p className="text-xs text-gray-600 mb-2">{member.position}</p>
-                                      {member.phone && (
-                                        <p className="text-xs text-gray-600 mb-1">
-                                          <span className="font-medium">Phone:</span> {member.phone}
-                                        </p>
-                                      )}
-                                      {member.email && (
-                                        <p className="text-xs text-gray-600 mb-1">
-                                          <span className="font-medium">Email:</span> {member.email}
-                                        </p>
-                                      )}
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <div className="font-medium text-gray-900">{member.name}</div>
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-600">{member.position}</td>
+                                      <td className="px-4 py-3 text-sm text-gray-600">
+                                        <div className="space-y-1">
+                                          {member.phone && <div>📞 {member.phone}</div>}
+                                          {member.email && <div>✉️ {member.email}</div>}
                                       {member.linkedin && (
-                                        <a 
-                                          href={member.linkedin} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-[#009f3b] hover:text-[#00782d] hover:underline block"
-                                        >
-                                          View LinkedIn Profile
-                                        </a>
+                                            <a href={member.linkedin} target="_blank" rel="noopener noreferrer" 
+                                               className="text-[#009f3b] hover:underline">LinkedIn</a>
                                       )}
                                     </div>
-                                  </div>
-                                  <div className="flex gap-2 pt-2 border-t border-gray-200">
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <div className="flex gap-2">
                                     <button
-                                      onClick={() => {
-                                        const id = member._id || member.id;
-                                        if (!id) {
-                                          showToast('Error: Team member ID is missing', 'error');
-                                          // Team member missing ID
-                                          return;
-                                        }
-                                        const teamId = String(id).trim();
-                                        if (!teamId || teamId === 'undefined' || teamId === 'null') {
-                                          showToast('Error: Invalid team member ID', 'error');
-                                          console.error('Invalid team ID:', id, 'Stringified:', teamId);
-                                          return;
-                                        }
-                                        setEditingTeam(teamId);
-                                        setTeamName(member.name || '');
-                                        setTeamPosition(member.position || '');
-                                        const memberCategories = Array.isArray(member.category) 
-                                          ? member.category 
-                                          : (member.category ? [member.category] : []);
-                                        setTeamCategory(memberCategories);
-                                        setTeamPhone(member.phone || '');
-                                        setTeamEmail(member.email || '');
-                                        setTeamLinkedin(member.linkedin || '');
-                                        setTeamDescription(member.description || '');
-                                        setTeamExperience(member.experience || '');
-                                        setTeamEducation(member.education || '');
-                                        setTeamCertification(member.certification || '');
-                                        setTeamImage(member.image || '');
-                                        setShowTeamForm(true);
-                                      }}
-                                      className="flex-1 px-3 py-2 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                            onClick={() => handleEditTeam(member)}
+                                            className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
                                     >
                                       Edit
                                     </button>
                                     <button 
                                       onClick={() => {
-                                        let id = member._id || member.id;
-                                        if (id && typeof id === 'object') {
-                                          id = id.toString ? id.toString() : String(id);
-                                        } else if (id) {
-                                          id = String(id);
-                                        }
-                                        if (!id || id === 'undefined' || id === 'null') {
-                                          showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
-                                          // Team member missing ID for deletion
-                                          return;
-                                        }
-                                        const teamId = id.trim();
-                                        if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
-                                          showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
-                                          // Invalid team ID for deletion
-                                          return;
-                                        }
-                                        if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
-                                          showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
-                                          // Invalid ID format for deletion
-                                          return;
-                                        }
+                                              const id = member._id || member.id;
+                                              if (id) {
                                         showDeleteConfirmation(
-                                          `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
-                                          () => {
-                                            deleteTeam(teamId);
-                                          }
-                                        );
-                                      }}
-                                      className="flex-1 px-3 py-2 bg-[#00782d] text-white text-xs hover:bg-[#009f3b] transition-colors"
+                                                  `Delete ${member.name}?`,
+                                                  () => deleteTeam(String(id))
+                                                );
+                                              }
+                                            }}
+                                            className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
                                     >
                                       Delete
                                     </button>
                                   </div>
-                                </div>
+                                      </td>
+                                    </tr>
                               ))}
+                                </tbody>
+                              </table>
                             </div>
 
-                            {/* Desktop Table Layout */}
-                            <div className="hidden md:block overflow-x-auto">
-                              <table className="w-full border-collapse">
-                                <thead>
-                                  <tr className="bg-gray-50 border-b border-gray-200">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Image</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Position</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Phone</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Email</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">LinkedIn</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
+                            {/* Mobile Cards */}
+                            <div className="md:hidden divide-y divide-gray-200">
                                   {groupedTeams[category].map((member: any) => (
-                                    <tr key={member._id || member.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                      <td className="px-4 py-3">
-                                        <div className="relative w-12 h-12">
-                                          <Image
-                                            src={member.image}
-                                            alt={member.name}
-                                            fill
-                                            className="object-cover rounded-full"
-                                          />
+                                <div key={member._id || member.id} className="p-4">
+                                  <div className="flex gap-4">
+                                    <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                                      <Image src={member.image} alt={member.name} fill className="object-cover" />
                                         </div>
-                                      </td>
-                                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{member.name}</td>
-                                      <td className="px-4 py-3 text-sm text-gray-600">{member.position}</td>
-                                      <td className="px-4 py-3 text-sm text-gray-600">{member.phone || '-'}</td>
-                                      <td className="px-4 py-3 text-sm text-gray-600">{member.email || '-'}</td>
-                                      <td className="px-4 py-3 text-sm">
-                                        {member.linkedin ? (
-                                          <a 
-                                            href={member.linkedin} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="text-[#009f3b] hover:text-[#00782d] hover:underline"
-                                          >
-                                            View Profile
-                                          </a>
-                                        ) : (
-                                          <span className="text-gray-400">-</span>
-                                        )}
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        <div className="flex gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-semibold text-gray-900 truncate">{member.name}</h5>
+                                      <p className="text-sm text-gray-600">{member.position}</p>
+                                      {(member.phone || member.email) && (
+                                        <div className="mt-2 text-xs text-gray-600 space-y-1">
+                                          {member.phone && <div>📞 {member.phone}</div>}
+                                          {member.email && <div>✉️ {member.email}</div>}
+                                        </div>
+                                      )}
+                                      <div className="mt-3 flex gap-2">
                                           <button
-                                            onClick={() => {
-                                              const id = member._id || member.id;
-                                              if (!id) {
-                                                showToast('Error: Team member ID is missing', 'error');
-                                                // Team member missing ID
-                                                return;
-                                              }
-                                              const teamId = String(id).trim();
-                                              if (!teamId || teamId === 'undefined' || teamId === 'null') {
-                                                showToast('Error: Invalid team member ID', 'error');
-                                                console.error('Invalid team ID:', id, 'Stringified:', teamId);
-                                                return;
-                                              }
-                                              setEditingTeam(teamId);
-                                              setTeamName(member.name || '');
-                                              setTeamPosition(member.position || '');
-                                              const memberCategories = Array.isArray(member.category) 
-                                          ? member.category 
-                                          : (member.category ? [member.category] : []);
-                                        setTeamCategory(memberCategories);
-                                              setTeamPhone(member.phone || '');
-                                              setTeamEmail(member.email || '');
-                                              setTeamLinkedin(member.linkedin || '');
-                                              setTeamDescription(member.description || '');
-                                              setTeamExperience(member.experience || '');
-                                              setTeamEducation(member.education || '');
-                                              setTeamCertification(member.certification || '');
-                                              setTeamImage(member.image || '');
-                                              setShowTeamForm(true);
-                                            }}
-                                            className="px-3 py-1 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
+                                          onClick={() => handleEditTeam(member)}
+                                          className="flex-1 px-3 py-1.5 bg-[#009f3b] text-white text-xs hover:bg-[#00782d] transition-colors"
                                           >
                                             Edit
                                           </button>
                                           <button 
                                             onClick={() => {
-                                              let id = member._id || member.id;
-                                              if (id && typeof id === 'object') {
-                                                id = id.toString ? id.toString() : String(id);
-                                              } else if (id) {
-                                                id = String(id);
-                                              }
-                                              if (!id || id === 'undefined' || id === 'null') {
-                                                showToast(`Error: Team member ID is missing for ${member.name}`, 'error');
-                                                // Team member missing ID for deletion
-                                                return;
-                                              }
-                                              const teamId = id.trim();
-                                              if (!teamId || teamId === 'undefined' || teamId === 'null' || teamId === '') {
-                                                showToast(`Error: Invalid team member ID for ${member.name}. ID value: "${teamId}"`, 'error');
-                                                // Invalid team ID for deletion
-                                                return;
-                                              }
-                                              if (teamId.length < 5 || !/^[a-zA-Z0-9_-]+$/.test(teamId)) {
-                                                showToast(`Error: Invalid team member ID format for ${member.name}. ID: "${teamId}" (length: ${teamId.length})`, 'error');
-                                                // Invalid ID format for deletion
-                                                return;
-                                              }
+                                            const id = member._id || member.id;
+                                            if (id) {
                                               showDeleteConfirmation(
-                                                `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
-                                                () => {
-                                                  deleteTeam(teamId);
-                                                }
+                                                `Delete ${member.name}?`,
+                                                () => deleteTeam(String(id))
                                               );
-                                            }}
-                                            className="px-3 py-1 bg-[#00782d] text-white text-xs hover:bg-[#009f3b] transition-colors"
+                                            }
+                                          }}
+                                          className="flex-1 px-3 py-1.5 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
                                           >
                                             Delete
                                           </button>
                                         </div>
-                                      </td>
-                                    </tr>
+                                    </div>
+                                  </div>
+                                </div>
                                   ))}
-                                </tbody>
-                              </table>
                             </div>
                 </div>
                         ))}
@@ -4147,35 +4040,22 @@ export default function AdminDashboard() {
             </div>
           )}
 
-              {/* Add/Edit Form */}
+              {/* Modal Form */}
               {showTeamForm && (
-                <div className="border-t pt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-[#009f3b]">
-                      {editingTeam ? 'Edit Team Member' : 'Add New Team Member'}
-                    </h3>
-                    <button 
-                      onClick={() => {
-                        setShowTeamForm(false);
-                        setEditingTeam(null);
-                        setTeamName('');
-                        setTeamPosition('');
-                        setTeamCategory([]);
-                        setTeamPhone('');
-                        setTeamEmail('');
-                        setTeamLinkedin('');
-                        setTeamDescription('');
-                        setTeamExperience('');
-                        setTeamEducation('');
-                        setTeamCertification('');
-                        setTeamImage('');
-                        setCopyFromMember('');
-                      }}
-                      className="text-gray-600 hover:text-gray-800 text-sm"
-                    >
-                      Cancel
-                </button>
-              </div>
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => { resetTeamForm(); setShowTeamForm(false); }}>
+                  <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                    <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
+                      <h3 className="text-xl font-bold text-[#009f3b]">
+                        {editingTeam ? 'Edit Team Member' : 'Add New Team Member'}
+                      </h3>
+                      <button 
+                        onClick={() => { resetTeamForm(); setShowTeamForm(false); }}
+                        className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="p-6">
               
               {/* Copy from Existing Member */}
               {!editingTeam && (
@@ -4273,27 +4153,27 @@ export default function AdminDashboard() {
                                 />
                                   {editingCategory === cat ? (
                                     <div className="flex items-center gap-2 flex-1">
-                                      <input
-                                        type="text"
-                                        value={editingCategoryName}
-                                        onChange={(e) => setEditingCategoryName(e.target.value)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            e.preventDefault();
+                                    <input
+                                      type="text"
+                                      value={editingCategoryName}
+                                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
                                             if (editingCategoryName.trim() && editingCategoryName.trim() !== cat) {
-                                              handleUpdateCategoryName(cat, editingCategoryName);
+                                            handleUpdateCategoryName(cat, editingCategoryName);
                                             } else if (editingCategoryName.trim() === cat) {
                                               setEditingCategory(null);
                                               setEditingCategoryName('');
-                                            }
-                                          } else if (e.key === 'Escape') {
-                                            setEditingCategory(null);
-                                            setEditingCategoryName('');
                                           }
-                                        }}
-                                        autoFocus
-                                        className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-                                      />
+                                        } else if (e.key === 'Escape') {
+                                          setEditingCategory(null);
+                                          setEditingCategoryName('');
+                                        }
+                                      }}
+                                      autoFocus
+                                      className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                    />
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -4346,18 +4226,18 @@ export default function AdminDashboard() {
                         )}
                         <div className="mt-3 pt-3 border-t">
                           <div className="flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="Add new category"
+                          <input
+                            type="text"
+                            placeholder="Add new category"
                               onKeyDown={async (e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const newCat = (e.target as HTMLInputElement).value.trim();
-                                  if (newCat && !teamCategories.includes(newCat)) {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const newCat = (e.target as HTMLInputElement).value.trim();
+                                if (newCat && !teamCategories.includes(newCat)) {
                                     // Save the new category to backend before proceeding
                                     const saved = await handleSaveNewCategory(newCat);
                                     if (saved) {
-                                      (e.target as HTMLInputElement).value = '';
+                                  (e.target as HTMLInputElement).value = '';
                                     }
                                   } else if (newCat && teamCategories.includes(newCat)) {
                                     showToast(`Category "${newCat}" already exists`, 'warning');
@@ -4486,25 +4366,25 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                    <div className="flex gap-3">
-                      <button 
-                        type="submit"
-                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-                      >
-                        {editingTeam ? 'Update Team Member' : 'Add Team Member'}
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowTeamForm(false);
-                          setEditingTeam(null);
-                        }}
-                        className="bg-gray-200 text-gray-700 px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors"
-                      >
-                        Cancel
-                  </button>
+                      <div className="flex gap-3 pt-4 border-t border-gray-200">
+                        <button 
+                          type="submit"
+                          className="bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors"
+                        >
+                          {editingTeam ? 'Update Team Member' : 'Add Team Member'}
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => { resetTeamForm(); setShowTeamForm(false); }}
+                          className="bg-gray-200 text-gray-700 px-6 py-2 font-semibold hover:bg-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                    </div>
+                  </div>
                 </div>
-                </form>
-              </div>
               )}
             </div>
           )}
