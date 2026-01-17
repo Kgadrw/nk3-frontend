@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Phone, Mail, Linkedin, User } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function TeamDetailPage() {
@@ -61,7 +61,13 @@ export default function TeamDetailPage() {
             ...memberData,
             id: memberData._id || memberData.id,
             role: memberData.position,
-            email: memberData.linkedin
+            email: memberData.email || memberData.linkedin,
+            experience: memberData.experience || '',
+            education: memberData.education || '',
+            certification: memberData.certification || '',
+            description: memberData.description || '',
+            phone: memberData.phone || '',
+            linkedin: memberData.linkedin || ''
           };
           setMember(currentMember);
 
@@ -150,7 +156,13 @@ export default function TeamDetailPage() {
         ...newMember,
         id: newMember.id || newMember._id,
         role: newMember.position,
-        email: newMember.linkedin
+        email: newMember.email || newMember.linkedin,
+        experience: newMember.experience || '',
+        education: newMember.education || '',
+        certification: newMember.certification || '',
+        description: newMember.description || '',
+        phone: newMember.phone || '',
+        linkedin: newMember.linkedin || ''
       };
       setMember(newMemberData);
       setImageError(false);
@@ -377,7 +389,7 @@ export default function TeamDetailPage() {
           {/* Right Column - Bio, Experience, and Contact Info */}
           <div className={`${teamMembers.length > 0 ? 'lg:col-span-6' : 'lg:col-span-8'} order-2 lg:order-3 space-y-8`}>
             {/* Categories */}
-            <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
               {(() => {
                 // Get unique categories
                 let categories: string[] = [];
@@ -395,159 +407,176 @@ export default function TeamDetailPage() {
                 }
                 
                 if (categories.length > 0) {
-                  return (
-                <div className="flex flex-wrap gap-2">
-                      {categories.map((cat: string, index: number) => (
-                        <span key={index} className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
+                  return categories.map((cat: string, index: number) => (
+                    <span key={index} className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
                       {cat}
                     </span>
-                  ))}
-                </div>
-                  );
+                  ));
                 } else {
                   return (
                     <span className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
-                  Team Member
-                </span>
+                      Team Member
+                    </span>
                   );
                 }
               })()}
             </div>
 
-            {/* Bio Section */}
-            {member.description && (
+            {/* Personal Information Table */}
+            {(member.position || member.description || member.experience || member.education || member.certification || member.phone || member.email || member.linkedin) && (
               <div className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-800 flex items-center gap-2">
-                  <User className="w-5 h-5 text-gray-600" />
-                  Bio
-                </h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                    {member.description}
-                  </p>
+                <div className="border border-gray-200 overflow-hidden">
+                  <table className="w-full">
+                    <tbody className="divide-y divide-gray-200">
+                      {/* Position */}
+                      {(member.position || member.role) && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 w-32">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-600" />
+                              Position
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm text-gray-700">
+                              {member.position || member.role}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Description/Bio */}
+                      {member.description && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-gray-600" />
+                              Description
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                              {member.description}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Experience */}
+                      {member.experience && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="w-4 h-4 text-gray-600" />
+                              Experience
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                              {member.experience}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Education */}
+                      {member.education && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
+                            <div className="flex items-center gap-2">
+                              <GraduationCap className="w-4 h-4 text-gray-600" />
+                              Education
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                              {member.education}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Certification */}
+                      {member.certification && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
+                            <div className="flex items-center gap-2">
+                              <Award className="w-4 h-4 text-gray-600" />
+                              Certification
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                              {member.certification}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+
+                      {/* Contact Information */}
+                      {member.phone && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-gray-600" />
+                              Phone
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <a
+                              href={`tel:${member.phone}`}
+                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                            >
+                              {member.phone}
+                            </a>
+                          </td>
+                        </tr>
+                      )}
+                      
+                      {member.email && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-gray-600" />
+                              Email
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <a
+                              href={`mailto:${member.email}`}
+                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors break-all"
+                            >
+                              {member.email}
+                            </a>
+                          </td>
+                        </tr>
+                      )}
+                      
+                      {member.linkedin && (
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
+                            <div className="flex items-center gap-2">
+                              <Linkedin className="w-4 h-4 text-gray-600" />
+                              LinkedIn
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <a
+                              href={member.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors break-all"
+                            >
+                              View Profile
+                            </a>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
-
-            {/* Experience Section */}
-            {member.experience && (
-              <div className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Experience</h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                    {member.experience}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Education Section */}
-            {member.education && (
-              <div className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Education</h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                    {member.education}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Certification Section */}
-            {member.certification && (
-              <div className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Certification</h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                    {member.certification}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Contact Information</h2>
-              
-              <div className="space-y-3">
-                {member.phone && (
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="text-gray-600 flex-shrink-0">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">Phone</p>
-                      <a
-                        href={`tel:${member.phone}`}
-                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors"
-                      >
-                        {member.phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
-                
-                {member.email && (
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="text-gray-600 flex-shrink-0">
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">Email</p>
-                      <a
-                        href={`mailto:${member.email}`}
-                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors break-all"
-                      >
-                        {member.email}
-                      </a>
-                    </div>
-                  </div>
-                )}
-                
-                {member.linkedin && (
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="text-gray-600 flex-shrink-0">
-                      <Linkedin className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">LinkedIn</p>
-                      <a
-                        href={member.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-gray-700 hover:text-gray-700 transition-colors break-all"
-                      >
-                        View Profile
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 pt-4">
-                {member.email && (
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="inline-flex items-center justify-center gap-2 bg-white border-2 border-[#009f3b] text-[#009f3b] px-6 py-3 rounded-lg font-semibold hover:bg-[#009f3b] hover:text-white transition-colors"
-                  >
-                    <Mail className="w-5 h-5" />
-                    Send Email
-                  </a>
-                )}
-                {member.linkedin && (
-                  <a
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 bg-[#0077b5] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#005885] transition-colors"
-                  >
-                    <Linkedin className="w-5 h-5" />
-                    View LinkedIn
-                  </a>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>

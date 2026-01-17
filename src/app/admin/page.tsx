@@ -673,13 +673,13 @@ export default function AdminDashboard() {
         position: teamPosition.trim(),
         category: Array.isArray(teamCategory) && teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
         image: teamImage.trim(),
-        phone: teamPhone?.trim() || '',
-        email: teamEmail?.trim() || '',
-        linkedin: teamLinkedin?.trim() || '',
-        description: teamDescription?.trim() || '',
-        experience: teamExperience?.trim() || '',
-        education: teamEducation?.trim() || '',
-        certification: teamCertification?.trim() || ''
+        phone: teamPhone ? String(teamPhone).trim() : '',
+        email: teamEmail ? String(teamEmail).trim() : '',
+        linkedin: teamLinkedin ? String(teamLinkedin).trim() : '',
+        description: teamDescription ? String(teamDescription).trim() : '',
+        experience: teamExperience ? String(teamExperience).trim() : '',
+        education: teamEducation ? String(teamEducation).trim() : '',
+        certification: teamCertification ? String(teamCertification).trim() : ''
       };
       
       // Debug: Log the data being sent
@@ -720,20 +720,23 @@ export default function AdminDashboard() {
         try {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
-        const errorData = await res.json();
+            const errorData = await res.json();
             errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
           } else {
             const errorText = await res.text();
             errorMessage = errorText || errorMessage;
           }
         } catch (parseError) {
-          // Error parsing response
+          console.error('Error parsing response:', parseError);
+          // Error parsing response - keep default error message
         }
+        console.error('Team save error:', res.status, errorMessage);
         showToast(`Error: ${errorMessage}`, 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Error saving team
-      showToast('Error saving team member. Please try again.', 'error');
+      console.error('Error saving team member:', error);
+      showToast(`Error saving team member: ${error.message || 'Please try again.'}`, 'error');
     }
   };
 
@@ -776,6 +779,7 @@ export default function AdminDashboard() {
             category: updatedCategories,
             image: member.image || '',
             phone: member.phone || '',
+            email: member.email || '',
             linkedin: member.linkedin || '',
             description: member.description || '',
             experience: member.experience || '',
@@ -846,13 +850,16 @@ export default function AdminDashboard() {
             errorMessage = errorText || errorMessage;
           }
         } catch (parseError) {
-          // Error parsing delete error response
+          console.error('Error parsing delete response:', parseError);
+          // Error parsing delete error response - keep default error message
         }
+        console.error('Team delete error:', res.status, errorMessage);
         showToast(`Error deleting team member: ${errorMessage}`, 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Error deleting team
-      showToast('Error deleting team member. Please try again.', 'error');
+      console.error('Error deleting team member:', error);
+      showToast(`Error deleting team member: ${error.message || 'Please try again.'}`, 'error');
     }
   };
 
@@ -1897,7 +1904,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-100">
+    <main className="min-h-screen bg-white">
       <div className="flex relative">
         {/* Sidebar - Primary Green */}
         <aside className={`fixed left-0 top-0 ${isSidebarMinimized ? 'lg:w-20 w-64' : 'w-64'} ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-[#009f3b] shadow-lg h-screen overflow-y-auto flex flex-col transition-all duration-300 z-50`}>
@@ -1990,7 +1997,7 @@ export default function AdminDashboard() {
         </aside>
 
         {/* Main Content */}
-        <div className={`flex-1 p-4 md:p-6 transition-all duration-300 ${isSidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
+        <div className={`flex-1 p-4 md:p-6 transition-all duration-300 ${isSidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'} ml-0 bg-white`}>
           {/* Header */}
           <div className="flex justify-between items-center mb-4 md:mb-6">
             <div className="flex items-center gap-3">
@@ -3856,6 +3863,11 @@ export default function AdminDashboard() {
                                           <span className="font-medium">Phone:</span> {member.phone}
                                         </p>
                                       )}
+                                      {member.email && (
+                                        <p className="text-xs text-gray-600 mb-1">
+                                          <span className="font-medium">Email:</span> {member.email}
+                                        </p>
+                                      )}
                                       {member.linkedin && (
                                         <a 
                                           href={member.linkedin} 
@@ -3953,6 +3965,7 @@ export default function AdminDashboard() {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Position</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Phone</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Email</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">LinkedIn</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Actions</th>
                                   </tr>
@@ -3973,6 +3986,7 @@ export default function AdminDashboard() {
                                       <td className="px-4 py-3 text-sm text-gray-900 font-medium">{member.name}</td>
                                       <td className="px-4 py-3 text-sm text-gray-600">{member.position}</td>
                                       <td className="px-4 py-3 text-sm text-gray-600">{member.phone || '-'}</td>
+                                      <td className="px-4 py-3 text-sm text-gray-600">{member.email || '-'}</td>
                                       <td className="px-4 py-3 text-sm">
                                         {member.linkedin ? (
                                           <a 
@@ -4323,8 +4337,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  {/* Experience, Education, and Certification */}
-                  <div className="grid grid-cols-1 gap-4">
+                  {/* Experience and Education - Side by Side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Experience <span className="text-gray-400">(Optional)</span>
@@ -4349,6 +4363,10 @@ export default function AdminDashboard() {
                         className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] resize-y text-black placeholder:text-black"
                       />
                     </div>
+                  </div>
+                  
+                  {/* Certification */}
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Certification <span className="text-gray-400">(Optional)</span>
