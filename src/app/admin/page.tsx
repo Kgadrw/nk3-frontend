@@ -740,6 +740,65 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSaveNewCategory = async (newCategory: string): Promise<boolean> => {
+    if (!newCategory.trim()) {
+      return false;
+    }
+
+    const trimmedCategory = newCategory.trim();
+    
+    // Check if category already exists
+    if (teamCategories.includes(trimmedCategory)) {
+      showToast(`Category "${trimmedCategory}" already exists`, 'warning');
+      return false;
+    }
+
+    try {
+      // Create a minimal placeholder team member to save the category in the backend
+      // This ensures the category exists before the user proceeds
+      const placeholderData = {
+        name: `_category_placeholder_${Date.now()}`,
+        position: 'Category Placeholder',
+        category: [trimmedCategory],
+        image: 'https://via.placeholder.com/150',
+        phone: '',
+        email: '',
+        linkedin: '',
+        description: '',
+        experience: '',
+        education: '',
+        certification: ''
+      };
+
+      const res = await fetch('/api/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(placeholderData),
+      });
+
+      if (res.ok) {
+        // Category is now saved in the backend via the placeholder member
+        // Update local state
+        const updatedCategories = [...teamCategories, trimmedCategory].sort();
+        setTeamCategories(updatedCategories);
+        // Add to selected categories if creating a new member
+        if (!editingTeam) {
+          setTeamCategory([...teamCategory, trimmedCategory]);
+        }
+        showToast(`Category "${trimmedCategory}" saved successfully. You can now proceed with creating the team member.`, 'success');
+        return true;
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        showToast(`Failed to save category: ${errorData.error || 'Unknown error'}`, 'error');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Error saving category:', error);
+      showToast(`Failed to save category: ${error.message || 'Please try again'}`, 'error');
+      return false;
+    }
+  };
+
   const handleUpdateCategoryName = async (oldCategory: string, newCategory: string) => {
     if (!newCategory.trim() || newCategory.trim() === oldCategory) {
       setEditingCategory(null);
@@ -4142,11 +4201,8 @@ export default function AdminDashboard() {
                           setTeamExperience(member.experience || '');
                           setTeamEducation(member.education || '');
                           setTeamCertification(member.certification || '');
-                          // Set categories as array
-                          const memberCategories = Array.isArray(member.category) 
-                            ? member.category 
-                            : (member.category ? [member.category] : []);
-                          setTeamCategory(memberCategories);
+                          // Don't copy categories - allow user to select different category for new member
+                          setTeamCategory([]);
                         }
                       }
                     }}
@@ -4216,32 +4272,55 @@ export default function AdminDashboard() {
                                   className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
                                 />
                                   {editingCategory === cat ? (
-                                    <input
-                                      type="text"
-                                      value={editingCategoryName}
-                                      onChange={(e) => setEditingCategoryName(e.target.value)}
-                                      onBlur={() => {
-                                        if (editingCategoryName.trim()) {
-                                          handleUpdateCategoryName(cat, editingCategoryName);
-                                        } else {
-                                          setEditingCategory(null);
-                                          setEditingCategoryName('');
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          if (editingCategoryName.trim()) {
-                                            handleUpdateCategoryName(cat, editingCategoryName);
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="text"
+                                        value={editingCategoryName}
+                                        onChange={(e) => setEditingCategoryName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (editingCategoryName.trim() && editingCategoryName.trim() !== cat) {
+                                              handleUpdateCategoryName(cat, editingCategoryName);
+                                            } else if (editingCategoryName.trim() === cat) {
+                                              setEditingCategory(null);
+                                              setEditingCategoryName('');
+                                            }
+                                          } else if (e.key === 'Escape') {
+                                            setEditingCategory(null);
+                                            setEditingCategoryName('');
                                           }
-                                        } else if (e.key === 'Escape') {
+                                        }}
+                                        autoFocus
+                                        className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (editingCategoryName.trim() && editingCategoryName.trim() !== cat) {
+                                            handleUpdateCategoryName(cat, editingCategoryName);
+                                          } else {
+                                            setEditingCategory(null);
+                                            setEditingCategoryName('');
+                                          }
+                                        }}
+                                        className="px-2 py-1 text-xs bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors"
+                                        title="Save category"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
                                           setEditingCategory(null);
                                           setEditingCategoryName('');
-                                        }
-                                      }}
-                                      autoFocus
-                                      className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-                                    />
+                                        }}
+                                        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                                        title="Cancel"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
                                   ) : (
                                 <span className="text-sm text-gray-700">{cat}</span>
                                   )}
@@ -4266,22 +4345,49 @@ export default function AdminDashboard() {
                           <p className="text-sm text-gray-500">No categories available. Add a new category below.</p>
                         )}
                         <div className="mt-3 pt-3 border-t">
-                          <input
-                            type="text"
-                            placeholder="Add new category"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const newCat = (e.target as HTMLInputElement).value.trim();
-                                if (newCat && !teamCategories.includes(newCat)) {
-                                  setTeamCategories([...teamCategories, newCat].sort());
-                                  setTeamCategory([...teamCategory, newCat]);
-                                  (e.target as HTMLInputElement).value = '';
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Add new category"
+                              onKeyDown={async (e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const newCat = (e.target as HTMLInputElement).value.trim();
+                                  if (newCat && !teamCategories.includes(newCat)) {
+                                    // Save the new category to backend before proceeding
+                                    const saved = await handleSaveNewCategory(newCat);
+                                    if (saved) {
+                                      (e.target as HTMLInputElement).value = '';
+                                    }
+                                  } else if (newCat && teamCategories.includes(newCat)) {
+                                    showToast(`Category "${newCat}" already exists`, 'warning');
+                                  }
                                 }
-                              }
-                            }}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                          />
+                              }}
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
+                            />
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                                const newCat = input?.value.trim();
+                                if (newCat && !teamCategories.includes(newCat)) {
+                                  // Save the new category to backend before proceeding
+                                  const saved = await handleSaveNewCategory(newCat);
+                                  if (saved) {
+                                    input.value = '';
+                                  }
+                                } else if (newCat && teamCategories.includes(newCat)) {
+                                  showToast(`Category "${newCat}" already exists`, 'warning');
+                                }
+                              }}
+                              className="px-3 py-1 text-sm bg-[#009f3b] text-white hover:bg-[#00782d] transition-colors"
+                            >
+                              Save
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Press Enter or click Save to save the category</p>
                         </div>
                       </div>
                     </div>
