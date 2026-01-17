@@ -44,35 +44,65 @@ function TeamRedirect() {
           return normalizedMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
         };
 
-        let targetMember = null;
-
-        if (category && category !== 'all') {
-          // Filter by category
-          const normalizedParam = normalizeCategory(category);
-          const filtered = allMembers.filter((member: any) => {
+        // If no category provided, redirect to first available category
+        if (!category || category === 'all') {
+          const allCategories = new Set<string>();
+          allMembers.forEach((member: any) => {
             const categories = Array.isArray(member.category) 
               ? member.category 
-              : (member.category ? [member.category] : []);
-            
-            return categories.some((cat: string) => {
-              const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
-              return normalizedCategory === normalizedParam;
+              : (member.category ? [member.category] : ['Uncategorized']);
+            categories.forEach((cat: string) => {
+              if (cat && cat.trim()) {
+                allCategories.add(normalizeCategory(cat.trim()));
+              }
             });
           });
           
-          if (filtered.length > 0) {
-            targetMember = filtered[0];
+          if (allCategories.size > 0) {
+            // Get first category and redirect to it
+            const firstCategory = Array.from(allCategories).sort()[0];
+            const filtered = allMembers.filter((member: any) => {
+              const categories = Array.isArray(member.category) 
+                ? member.category 
+                : (member.category ? [member.category] : []);
+              
+              return categories.some((cat: string) => {
+                const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
+                return normalizedCategory === firstCategory;
+              });
+            });
+            
+            if (filtered.length > 0) {
+              const targetMember = filtered[0];
+              const memberId = targetMember._id || targetMember.id;
+              if (memberId) {
+                router.replace(`/team/${memberId}?category=${encodeURIComponent(firstCategory)}`);
+                return;
+              }
+            }
           }
-        } else {
-          // No category or 'all', use first member
-          targetMember = allMembers[0];
+          // If no categories found, stay on page (will show loading)
+          return;
         }
 
-        if (targetMember) {
+        // Filter by category
+        const normalizedParam = normalizeCategory(category);
+        const filtered = allMembers.filter((member: any) => {
+          const categories = Array.isArray(member.category) 
+            ? member.category 
+            : (member.category ? [member.category] : []);
+          
+          return categories.some((cat: string) => {
+            const normalizedCategory = normalizeCategory(cat || 'Uncategorized');
+            return normalizedCategory === normalizedParam;
+          });
+        });
+        
+        if (filtered.length > 0) {
+          const targetMember = filtered[0];
           const memberId = targetMember._id || targetMember.id;
           if (memberId) {
-            const categoryParam = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-            router.replace(`/team/${memberId}${categoryParam}`);
+            router.replace(`/team/${memberId}?category=${encodeURIComponent(category)}`);
           }
         }
       } catch (error) {

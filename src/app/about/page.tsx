@@ -12,6 +12,7 @@ export default function AboutPage() {
     aboutImage: '',
     description: '',
   });
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,7 +43,18 @@ export default function AboutPage() {
       }
     };
 
+    const fetchServices = async () => {
+      try {
+        const { cachedFetch } = await import('@/lib/apiCache');
+        const servicesData = await cachedFetch<any[]>('/api/services');
+        setServices(servicesData || []);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+
     fetchAboutContent();
+    fetchServices();
   }, []);
 
   if (loading) {
@@ -258,7 +270,7 @@ export default function AboutPage() {
                 {/* Left - Heading */}
               <div>
                   <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">
-                    WHY CHOOSE US
+                    OUR SERVICES
                   </h3>
                 </div>
                 {/* Right - Description */}
@@ -270,127 +282,65 @@ export default function AboutPage() {
               </div>
               
               {/* Feature Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-                {/* Card 1 - Proven Track Record */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
-                >
-                  <Image
-                    src="/1.jpg"
-                    alt="Proven Track Record"
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
-                  <div className="relative z-10">
-                    <Award className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                    <p className="text-white text-sm md:text-base font-medium">
-                      Proven track record of successful projects
-                    </p>
+              {(() => {
+                // Default services
+                const defaultServices = [
+                  'Feasibility Studies & Project Planning',
+                  'Architectural & Structural Design',
+                  'Construction Supervision & Project Management',
+                  'Environmental & Social Impact Assessments (ESIA)',
+                  'MEP (Mechanical, Electrical & Plumbing) Engineering',
+                  'Quantity Surveying & Cost Estimation',
+                  'Construction Permit Processing & Legal Compliance'
+                ];
+
+                // Merge API services and default services, limit to 5 total
+                const allServices = [
+                  ...services,
+                  ...defaultServices.slice(0, Math.max(0, 5 - services.length)).map(title => ({ title }))
+                ].slice(0, 5);
+
+                // Icons array for cards
+                const icons = [Award, Handshake, Crown, Users, Lightbulb];
+                // Image sources array
+                const imageSources = ['/1.jpg', '/2.jpg', '/3.jpg', '/aboutt.jpg', '/5.jpg'];
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+                    {allServices.map((service: any, index: number) => {
+                      const IconComponent = icons[index] || Award;
+                      const imageSrc = imageSources[index] || '/1.jpg';
+                      const serviceTitle = service.title || service.name || 'Service';
+                      
+                      return (
+                        <motion.div
+                          key={service._id || service.id || `service-${index}`}
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
+                          className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
+                        >
+                          <Image
+                            src={imageSrc}
+                            alt={serviceTitle}
+                            fill
+                            className="object-cover"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
+                          <div className="relative z-10">
+                            <IconComponent className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
+                            <p className="text-white text-sm md:text-base font-medium">
+                              {serviceTitle}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                </motion.div>
-                
-                {/* Card 2 - Strategic Partnerships */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
-                >
-                  <Image
-                    src="/2.jpg"
-                    alt="Strategic Partnerships"
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
-                  <div className="relative z-10">
-                    <Handshake className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                    <p className="text-white text-sm md:text-base font-medium">
-                      Strategic partnerships with industry leaders
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {/* Card 3 - Comprehensive Services */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
-                >
-                  <Image
-                    src="/3.jpg"
-                    alt="Comprehensive Services"
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
-                  <div className="relative z-10">
-                    <Crown className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                    <p className="text-white text-sm md:text-base font-medium">
-                      Comprehensive service offerings
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {/* Card 4 - Experienced Team */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
-                >
-                  <Image
-                    src="/aboutt.jpg"
-                    alt="Experienced Team"
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
-                  <div className="relative z-10">
-                    <Users className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                    <p className="text-white text-sm md:text-base font-medium">
-                      Dedicated and experienced team
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {/* Card 5 - Innovation */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                  className="relative p-6 flex flex-col items-center text-center min-h-[200px] overflow-hidden"
-                >
-                  <Image
-                    src="/5.jpg"
-                    alt="Innovation"
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-[#009f3b] opacity-85"></div>
-                  <div className="relative z-10">
-                    <Lightbulb className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" strokeWidth={1.5} />
-                    <p className="text-white text-sm md:text-base font-medium">
-                      Commitment to innovation and sustainability
-                    </p>
-                  </div>
-                </motion.div>
-            </div>
+                );
+              })()}
           </div>
 
         </div>

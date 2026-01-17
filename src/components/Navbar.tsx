@@ -136,7 +136,7 @@ const Navbar = () => {
 
           // Helper function to format category name for display
           const formatCategoryLabel = (category: string): string => {
-            if (!category || category === 'All') return 'All';
+            if (!category) return 'Uncategorized';
             const categoryLower = category.toLowerCase();
             const labelMap: { [key: string]: string } = {
               'founder': 'Company Founder',
@@ -185,13 +185,8 @@ const Navbar = () => {
             formattedCategoriesSet.add(formatted);
           });
           
-          // Add "All" and sort categories: "All" first, then alphabetical
-          const allCategories = ['All', ...Array.from(formattedCategoriesSet)];
-          const sortedCategories = allCategories.sort((a, b) => {
-            if (a === 'All') return -1;
-            if (b === 'All') return 1;
-            return a.localeCompare(b);
-          });
+          // Sort categories alphabetically
+          const sortedCategories = Array.from(formattedCategoriesSet).sort((a, b) => a.localeCompare(b));
           
           setTeamCategories(sortedCategories);
         }
@@ -453,12 +448,15 @@ const Navbar = () => {
                   }, 200);
                 }}
               >
-              <Link 
-                href="/team" 
+              <button 
+                type="button"
                 className={`relative text-[#009f3b] font-medium transition-all duration-300 py-1 group ${
                   pathname?.startsWith('/team') ? 'text-[#009f3b] font-semibold' : ''
                 }`}
-                  onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTeamDropdownOpen(!teamDropdownOpen);
+                  }}
               >
                 Team
                   <svg 
@@ -474,7 +472,7 @@ const Navbar = () => {
                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
                   pathname?.startsWith('/team') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
                 }`}></span>
-              </Link>
+              </button>
                 
                 {/* Dropdown Menu */}
                 {teamDropdownOpen && teamCategories.length > 0 && (() => {
@@ -493,9 +491,8 @@ const Navbar = () => {
                           'uncategorized': 'uncategorized',
                         };
                         const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
-                        const href = category === 'All' ? '/team' : `/team?category=${encodeURIComponent(categoryParam)}`;
-                        const isActive = (category === 'All' && (!currentCategory || currentCategory === 'all')) ||
-                                        (category !== 'All' && currentCategory === categoryParam);
+                        const href = `/team?category=${encodeURIComponent(categoryParam)}`;
+                        const isActive = currentCategory === categoryParam;
                         
                         return (
                           <Link
@@ -659,15 +656,13 @@ const Navbar = () => {
                   
                   return (
                     <>
-                <Link
-                  href="/team"
-                  onClick={() => setMobileMenuOpen(false)}
+                <div
                   className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
-                            pathname === '/team' && (!currentCategory || currentCategory === 'all') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                            pathname?.startsWith('/team') ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
                   }`}
                 >
                   Team
-                </Link>
+                </div>
                       {teamCategories.length > 0 && (
                         <div className="pl-6 space-y-1">
                           {teamCategories.map((category, index) => {
@@ -681,9 +676,8 @@ const Navbar = () => {
                               'uncategorized': 'uncategorized',
                             };
                             const categoryParam = categoryMap[categoryLower] || categoryLower.replace(/\s+/g, '-');
-                            const href = category === 'All' ? '/team' : `/team?category=${encodeURIComponent(categoryParam)}`;
-                            const isActive = (category === 'All' && (!currentCategory || currentCategory === 'all')) ||
-                                            (category !== 'All' && currentCategory === categoryParam);
+                            const href = `/team?category=${encodeURIComponent(categoryParam)}`;
+                            const isActive = currentCategory === categoryParam;
                             
                             return (
                               <Link
