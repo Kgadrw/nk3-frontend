@@ -137,6 +137,7 @@ export default function AdminDashboard() {
   const [editingCategoryName, setEditingCategoryName] = useState<string>('');
   const [copyFromMember, setCopyFromMember] = useState<string>('');
   const [teamPhone, setTeamPhone] = useState('');
+  const [teamEmail, setTeamEmail] = useState('');
   const [teamLinkedin, setTeamLinkedin] = useState('');
   const [teamDescription, setTeamDescription] = useState('');
   const [teamExperience, setTeamExperience] = useState('');
@@ -673,6 +674,7 @@ export default function AdminDashboard() {
         category: Array.isArray(teamCategory) && teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
         image: teamImage.trim(),
         phone: teamPhone?.trim() || '',
+        email: teamEmail?.trim() || '',
         linkedin: teamLinkedin?.trim() || '',
         description: teamDescription?.trim() || '',
         experience: teamExperience?.trim() || '',
@@ -705,6 +707,7 @@ export default function AdminDashboard() {
         setTeamPosition('');
         setTeamCategory([]);
         setTeamPhone('');
+        setTeamEmail('');
         setTeamLinkedin('');
         setTeamDescription('');
         setTeamExperience('');
@@ -3779,6 +3782,7 @@ export default function AdminDashboard() {
                       setTeamPosition('');
                       setTeamCategory([]);
                       setTeamPhone('');
+                      setTeamEmail('');
                       setTeamLinkedin('');
                       setTeamDescription('');
                       setTeamExperience('');
@@ -3887,6 +3891,7 @@ export default function AdminDashboard() {
                                           : (member.category ? [member.category] : []);
                                         setTeamCategory(memberCategories);
                                         setTeamPhone(member.phone || '');
+                                        setTeamEmail(member.email || '');
                                         setTeamLinkedin(member.linkedin || '');
                                         setTeamDescription(member.description || '');
                                         setTeamExperience(member.experience || '');
@@ -4006,8 +4011,12 @@ export default function AdminDashboard() {
                                           : (member.category ? [member.category] : []);
                                         setTeamCategory(memberCategories);
                                               setTeamPhone(member.phone || '');
+                                              setTeamEmail(member.email || '');
                                               setTeamLinkedin(member.linkedin || '');
                                               setTeamDescription(member.description || '');
+                                              setTeamExperience(member.experience || '');
+                                              setTeamEducation(member.education || '');
+                                              setTeamCertification(member.certification || '');
                                               setTeamImage(member.image || '');
                                               setShowTeamForm(true);
                                             }}
@@ -4080,6 +4089,7 @@ export default function AdminDashboard() {
                         setTeamPosition('');
                         setTeamCategory([]);
                         setTeamPhone('');
+                        setTeamEmail('');
                         setTeamLinkedin('');
                         setTeamDescription('');
                         setTeamExperience('');
@@ -4112,6 +4122,7 @@ export default function AdminDashboard() {
                           setTeamPosition(member.position || '');
                           setTeamImage(member.image || '');
                           setTeamPhone(member.phone || '');
+                          setTeamEmail(member.email || '');
                           setTeamLinkedin(member.linkedin || '');
                           setTeamDescription(member.description || '');
                           setTeamExperience(member.experience || '');
@@ -4271,6 +4282,18 @@ export default function AdminDashboard() {
                         placeholder="e.g., +250 788 123 456"
                         value={teamPhone}
                         onChange={(e) => setTeamPhone(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Email <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                      </label>
+                      <input 
+                        type="email" 
+                        placeholder="e.g., name@example.com"
+                        value={teamEmail}
+                        onChange={(e) => setTeamEmail(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                       />
                     </div>
