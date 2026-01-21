@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender.com';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const teamId = resolvedParams?.id;
     
     if (!teamId) {
@@ -32,10 +32,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Handle params as either a Promise or direct object (Next.js 13+ vs 15+)
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const rawId = resolvedParams?.id;
     
     // Validate ID - ensure it's a valid MongoDB ObjectId format
@@ -104,10 +103,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Handle params as either a Promise or direct object (Next.js 13+ vs 15+)
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const rawId = resolvedParams?.id;
     
     // Validate ID - be very lenient, let MongoDB handle validation

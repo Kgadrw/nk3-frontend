@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Turbopack configuration
+  turbopack: {
+    // Set the root directory to the project root to avoid workspace root warning
+    root: process.cwd(),
+  },
   // Webpack configuration to ensure modules resolve from project directory
   webpack: (config) => {
     const projectRoot = process.cwd();

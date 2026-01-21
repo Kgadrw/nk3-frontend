@@ -4,10 +4,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nk3-backend.onrender
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const orderId = resolvedParams?.id;
     
     if (!orderId) {
@@ -39,10 +39,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const orderId = resolvedParams?.id;
     
     if (!orderId) {

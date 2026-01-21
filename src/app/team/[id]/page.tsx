@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText, Search, MapPin } from 'lucide-react';
-import Footer from '@/components/Footer';
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -231,7 +230,7 @@ export default function TeamDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-[#009f3b]">
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
           <Image
             src="/loader.gif"
@@ -248,23 +247,25 @@ export default function TeamDetailPage() {
 
   if (!member) {
     return (
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-[#009f3b]">
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold text-gray-700 mb-4">Team Member Not Found</h1>
-          <p className="text-gray-600 mb-8">The team member you're looking for doesn't exist.</p>
-          <Link 
-            href={category ? `/team?category=${category}` : '/team'} 
-            className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
+          <div className="bg-white rounded-lg p-8 max-w-2xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-700 mb-4">Team Member Not Found</h1>
+            <p className="text-gray-600 mb-8">The team member you're looking for doesn't exist.</p>
+            <Link 
+              href={category ? `/team?category=${category}` : '/team'} 
+              className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#009f3b]">
       {/* Main Content - Layout with Sidebar and Center Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
@@ -404,13 +405,13 @@ export default function TeamDetailPage() {
           )}
 
           {/* Main Content Area - Profile Image and Information */}
-          <div className={`${teamMembers.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'} order-1 lg:order-2`}>
+          <div className={`${teamMembers.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'} order-1 lg:order-2 bg-white border-2 border-[#009f3b] rounded-lg p-6 md:p-8`}>
             <div className="flex flex-col items-center">
               {/* Profile Image - Centered in Circle */}
-              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-[#009f3b] bg-gray-100 mb-8">
+              <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-[#009f3b] bg-gray-100 mb-8">
                 {imageError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <span className="text-gray-400 text-6xl md:text-8xl font-bold">
+                    <span className="text-gray-400 text-4xl md:text-6xl font-bold">
                       {member.name.charAt(0)}
                     </span>
                   </div>
@@ -423,7 +424,7 @@ export default function TeamDetailPage() {
                     onError={() => setImageError(true)}
                     unoptimized
                     loading="lazy"
-                    sizes="(max-width: 768px) 256px, 320px"
+                    sizes="(max-width: 768px) 192px, 224px"
                   />
                 )}
               </div>
@@ -456,9 +457,7 @@ export default function TeamDetailPage() {
                   {member.email && (
                     <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
                       <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-white" />
-                        </div>
+                        <Mail className="w-5 h-5 text-[#009f3b] flex-shrink-0" />
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-[#009f3b] mb-1">Email:</p>
                           <a
@@ -569,7 +568,6 @@ export default function TeamDetailPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </main>
   );
 }
