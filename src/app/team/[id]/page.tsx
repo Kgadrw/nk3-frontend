@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText, Search, MapPin } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function TeamDetailPage() {
@@ -17,6 +17,7 @@ export default function TeamDetailPage() {
   const [allTeamMembersData, setAllTeamMembersData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Helper function to normalize category to canonical form
   const normalizeCategory = (category: string): string => {
@@ -264,25 +265,64 @@ export default function TeamDetailPage() {
 
   return (
     <main className="min-h-screen bg-white">
-
-      {/* Main Content - Three Column Layout with Sidebar */}
+      {/* Main Content - Layout with Sidebar and Center Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
           {/* Left Sidebar - Other Team Members in Same Category */}
           {teamMembers.length > 0 && (
             <div className="lg:col-span-3 order-3 lg:order-1">
               <div className="sticky top-24">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200">
-                    Other Team Members
+                <div className="bg-white border-2 border-[#009f3b] rounded-lg p-4">
+                  {/* Category Title */}
+                  <h3 className="text-xl font-bold text-[#009f3b] mb-4">
+                    {(() => {
+                      let categories: string[] = [];
+                      if (Array.isArray(member.category) && member.category.length > 0) {
+                        const normalized = member.category.map((cat: string) => cat.toLowerCase().trim());
+                        const unique = Array.from(new Set(normalized));
+                        categories = unique.map(cat => {
+                          const original = member.category.find((c: string) => c.toLowerCase().trim() === cat);
+                          return original || cat;
+                        });
+                      } else if (member.category) {
+                        categories = [member.category];
+                      }
+                      return categories.length > 0 ? categories[0] : 'Team Members';
+                    })()}
                   </h3>
-                  <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  
+                  {/* Search Bar */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search team members..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
                     {/* Current Member - Active */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[#009f3b] text-white">
-                      <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden bg-white/20 border-2 border-white">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[#009f3b] border-2 border-[#009f3b]">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white text-[#009f3b] flex items-center justify-center font-bold text-sm">
+                        1
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {member.name}
+                        </p>
+                        {member.position && (
+                          <p className="text-xs text-white/90 truncate">
+                            {member.position}
+                          </p>
+                        )}
+                      </div>
+                      <div className="relative w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-white/20 border-2 border-white">
                         {imageError ? (
                           <div className="w-full h-full flex items-center justify-center bg-white/10">
-                            <span className="text-white text-lg font-bold">
+                            <span className="text-white text-xs font-bold">
                               {member.name.charAt(0)}
                             </span>
                           </div>
@@ -295,79 +335,79 @@ export default function TeamDetailPage() {
                             onError={() => setImageError(true)}
                             unoptimized
                             loading="lazy"
-                            sizes="48px"
+                            sizes="40px"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-white/10">
-                            <span className="text-white text-lg font-bold">
+                            <span className="text-white text-xs font-bold">
                               {member.name.charAt(0)}
                             </span>
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {member.name}
-                        </p>
-                        {member.position && (
-                          <p className="text-xs text-white/80 truncate">
-                            {member.position}
-                          </p>
-                        )}
-                        <span className="inline-block mt-1 text-xs bg-white/20 text-white px-2 py-0.5 rounded">
-                          Current
-                        </span>
-                      </div>
                     </div>
                     
                     {/* Other Team Members */}
-                    {teamMembers.map((teamMember: any) => (
-                      <div
-                        key={teamMember.id}
-                        onClick={() => switchTeamMember(teamMember.id)}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
-                      >
-                        <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
-                          {teamMember.image ? (
-                            <Image
-                              src={teamMember.image}
-                              alt={teamMember.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                              loading="lazy"
-                              sizes="48px"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-gray-400 text-lg font-bold">
-                                {teamMember.name.charAt(0)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-800 group-hover:text-[#009f3b] transition-colors truncate">
-                            {teamMember.name}
-                          </p>
-                          {teamMember.position && (
-                            <p className="text-xs text-gray-500 truncate">
-                              {teamMember.position}
+                    {teamMembers
+                      .filter((teamMember: any) => {
+                        if (!searchQuery) return true;
+                        const query = searchQuery.toLowerCase();
+                        return (
+                          teamMember.name.toLowerCase().includes(query) ||
+                          (teamMember.position && teamMember.position.toLowerCase().includes(query))
+                        );
+                      })
+                      .map((teamMember: any, index: number) => (
+                        <div
+                          key={teamMember.id}
+                          onClick={() => switchTeamMember(teamMember.id)}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer border border-transparent hover:border-[#009f3b]/30"
+                        >
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#009f3b] text-white flex items-center justify-center font-bold text-sm">
+                            {index + 2}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 group-hover:text-[#009f3b] transition-colors truncate">
+                              {teamMember.name}
                             </p>
-                          )}
+                            {teamMember.position && (
+                              <p className="text-xs text-gray-600 truncate">
+                                {teamMember.position}
+                              </p>
+                            )}
+                          </div>
+                          <div className="relative w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
+                            {teamMember.image ? (
+                              <Image
+                                src={teamMember.image}
+                                alt={teamMember.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                                loading="lazy"
+                                sizes="40px"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-gray-400 text-xs font-bold">
+                                  {teamMember.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Center Column - Image */}
-          <div className={`${teamMembers.length > 0 ? 'lg:col-span-3' : 'lg:col-span-4'} order-1 lg:order-2`}>
-            <div className="sticky top-24">
-              <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
+          {/* Main Content Area - Profile Image and Information */}
+          <div className={`${teamMembers.length > 0 ? 'lg:col-span-9' : 'lg:col-span-12'} order-1 lg:order-2`}>
+            <div className="flex flex-col items-center">
+              {/* Profile Image - Centered in Circle */}
+              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-[#009f3b] bg-gray-100 mb-8">
                 {imageError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
                     <span className="text-gray-400 text-6xl md:text-8xl font-bold">
@@ -379,221 +419,156 @@ export default function TeamDetailPage() {
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                     onError={() => setImageError(true)}
                     unoptimized
                     loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 256px, 320px"
                   />
                 )}
               </div>
-              {/* Name and Position under image */}
-              <div className="mt-4 space-y-1 text-center">
-                <h1 className="text-sm md:text-base font-medium text-gray-700">
-                  {member.name}
-                </h1>
-                <p className="text-xs md:text-sm text-[#009f3b]">
-                  {member.role || member.position}
-                </p>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Column - Bio, Experience, and Contact Info */}
-          <div className={`${teamMembers.length > 0 ? 'lg:col-span-6' : 'lg:col-span-8'} order-2 lg:order-3 space-y-8`}>
-            {/* Categories */}
-            <div className="flex flex-wrap gap-2">
-              {(() => {
-                // Get unique categories
-                let categories: string[] = [];
-                if (Array.isArray(member.category) && member.category.length > 0) {
-                  // Remove duplicates by normalizing and using Set
-                  const normalized = member.category.map((cat: string) => cat.toLowerCase().trim());
-                  const unique = Array.from(new Set(normalized));
-                  categories = unique.map(cat => {
-                    // Find original case from member.category
-                    const original = member.category.find((c: string) => c.toLowerCase().trim() === cat);
-                    return original || cat;
-                  });
-                } else if (member.category) {
-                  categories = [member.category];
-                }
-                
-                if (categories.length > 0) {
-                  return categories.map((cat: string, index: number) => (
-                    <span key={index} className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
-                      {cat}
-                    </span>
-                  ));
-                } else {
-                  return (
-                    <span className="inline-block bg-gray-200 text-gray-700 px-4 py-1 text-xs font-semibold uppercase">
-                      Team Member
-                    </span>
-                  );
-                }
-              })()}
-            </div>
+              {/* All Information Below Image */}
+              <div className="w-full max-w-4xl space-y-6">
+                {/* Contact Information Cards */}
+                <div className="space-y-4">
+                  {/* Phone Card */}
+                  {member.phone && (
+                    <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                          <Phone className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#009f3b] mb-1">Phone:</p>
+                          <a
+                            href={`tel:${member.phone}`}
+                            className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors"
+                          >
+                            {member.phone}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Email Card */}
+                  {member.email && (
+                    <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                          <Mail className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#009f3b] mb-1">Email:</p>
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors break-all"
+                          >
+                            {member.email}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* LinkedIn Card */}
+                  {member.linkedin && (
+                    <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                          <Linkedin className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#009f3b] mb-1">LinkedIn:</p>
+                          <a
+                            href={member.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors break-all"
+                          >
+                            View Profile
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-            {/* Personal Information Table */}
-            {(member.position || member.description || member.experience || member.education || member.certification || member.phone || member.email || member.linkedin) && (
-              <div className="space-y-4">
-                <div className="border border-gray-200 overflow-hidden">
-                  <table className="w-full">
-                    <tbody className="divide-y divide-gray-200">
-                      {/* Position */}
-                      {(member.position || member.role) && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 w-32">
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4 text-gray-600" />
-                              Position
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p className="text-sm text-gray-700">
-                              {member.position || member.role}
-                            </p>
-                          </td>
-                        </tr>
-                      )}
-
-                      {/* Description/Bio */}
-                      {member.description && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-gray-600" />
-                              Description
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
+                {/* Additional Information Cards */}
+                {(member.description || member.experience || member.education || member.certification) && (
+                  <div className="space-y-4 pt-4 border-t border-gray-200">
+                    {/* Description Card */}
+                    {member.description && (
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-start gap-3">
+                          <FileText className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800 mb-2">Description</p>
                             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                               {member.description}
                             </p>
-                          </td>
-                        </tr>
-                      )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
-                      {/* Experience */}
-                      {member.experience && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
-                            <div className="flex items-center gap-2">
-                              <Briefcase className="w-4 h-4 text-gray-600" />
-                              Experience
+                    {/* Experience and Education Side by Side */}
+                    {(member.experience || member.education) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Experience Card */}
+                        {member.experience && (
+                          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="flex items-start gap-3">
+                              <Briefcase className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-gray-800 mb-2">Experience</p>
+                                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                                  {member.experience}
+                                </p>
+                              </div>
                             </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                              {member.experience}
-                            </p>
-                          </td>
-                        </tr>
-                      )}
+                          </div>
+                        )}
 
-                      {/* Education */}
-                      {member.education && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
-                            <div className="flex items-center gap-2">
-                              <GraduationCap className="w-4 h-4 text-gray-600" />
-                              Education
+                        {/* Education Card */}
+                        {member.education && (
+                          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="flex items-start gap-3">
+                              <GraduationCap className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-gray-800 mb-2">Education</p>
+                                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                                  {member.education}
+                                </p>
+                              </div>
                             </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                              {member.education}
-                            </p>
-                          </td>
-                        </tr>
-                      )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                      {/* Certification */}
-                      {member.certification && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 align-top">
-                            <div className="flex items-center gap-2">
-                              <Award className="w-4 h-4 text-gray-600" />
-                              Certification
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
+                    {/* Certification Card */}
+                    {member.certification && (
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-start gap-3">
+                          <Award className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800 mb-2">Certification</p>
                             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                               {member.certification}
                             </p>
-                          </td>
-                        </tr>
-                      )}
-
-                      {/* Contact Information */}
-                      {member.phone && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-gray-600" />
-                              Phone
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <a
-                              href={`tel:${member.phone}`}
-                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
-                            >
-                              {member.phone}
-                            </a>
-                          </td>
-                        </tr>
-                      )}
-                      
-                      {member.email && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4 text-gray-600" />
-                              Email
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <a
-                              href={`mailto:${member.email}`}
-                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors break-all"
-                            >
-                              {member.email}
-                            </a>
-                          </td>
-                        </tr>
-                      )}
-                      
-                      {member.linkedin && (
-                        <tr className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50">
-                            <div className="flex items-center gap-2">
-                              <Linkedin className="w-4 h-4 text-gray-600" />
-                              LinkedIn
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <a
-                              href={member.linkedin}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-gray-700 hover:text-gray-900 transition-colors break-all"
-                            >
-                              View Profile
-                            </a>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
-
       <Footer />
     </main>
   );

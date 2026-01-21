@@ -1,8 +1,18 @@
-// Cloudinary configuration
-const CLOUD_NAME = 'dgmexpa8v';
-const UPLOAD_PRESET = 'nk3archtecture';
+// Cloudinary configuration - check at runtime, not module load time
+const getCloudinaryConfig = () => {
+  const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'nk3archtecture';
+
+  if (!CLOUD_NAME) {
+    throw new Error('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required');
+  }
+
+  return { CLOUD_NAME, UPLOAD_PRESET };
+};
 
 export const uploadToCloudinary = async (file: File, folder: string = 'nk3d'): Promise<string> => {
+  const { CLOUD_NAME, UPLOAD_PRESET } = getCloudinaryConfig();
+  
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append('file', file);

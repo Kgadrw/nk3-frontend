@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
@@ -9,6 +10,16 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  // Webpack configuration to ensure modules resolve from project directory
+  webpack: (config) => {
+    const projectRoot = process.cwd();
+    config.resolve = config.resolve || {};
+    config.resolve.modules = [
+      path.resolve(projectRoot, 'node_modules'),
+      ...(config.resolve.modules || []),
+    ];
+    return config;
   },
 };
 

@@ -657,20 +657,20 @@ export default function AdminDashboard() {
     const isEdit = !!teamId;
     
     // Prepare data
-    const data = {
-      name: teamName.trim(),
-      position: teamPosition.trim(),
+      const data = {
+        name: teamName.trim(),
+        position: teamPosition.trim(),
       category: teamCategory.length > 0 ? teamCategory : ['Uncategorized'],
-      image: teamImage.trim(),
-      phone: teamPhone?.trim() || '',
+        image: teamImage.trim(),
+        phone: teamPhone?.trim() || '',
       email: teamEmail?.trim() || '',
-      linkedin: teamLinkedin?.trim() || '',
-      description: teamDescription?.trim() || '',
-      experience: teamExperience?.trim() || '',
-      education: teamEducation?.trim() || '',
-      certification: teamCertification?.trim() || ''
-    };
-    
+        linkedin: teamLinkedin?.trim() || '',
+        description: teamDescription?.trim() || '',
+        experience: teamExperience?.trim() || '',
+        education: teamEducation?.trim() || '',
+        certification: teamCertification?.trim() || ''
+      };
+      
     try {
       const url = teamId ? `/api/team/${teamId}` : '/api/team';
       const method = teamId ? 'PUT' : 'POST';
@@ -704,7 +704,7 @@ export default function AdminDashboard() {
         try {
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
-            const errorData = await res.json();
+        const errorData = await res.json();
             errorMessage = errorData.error || errorData.message || errorData.msg || errorMessage;
             console.error('Error response:', errorData);
           } else {
@@ -925,7 +925,7 @@ export default function AdminDashboard() {
         await fetchAllData();
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
         showToast(`Error: ${errorData.error || 'Failed to delete team member'}`, 'error');
-      }
+          }
     } catch (error: any) {
       // Revert optimistic update on error
       if (memberToDelete) {
@@ -1673,7 +1673,11 @@ export default function AdminDashboard() {
         formData.append('upload_preset', 'nk3d_pdfs');
         formData.append('folder', 'nk3d/pdfs');
 
-        const uploadRes = await fetch('https://api.cloudinary.com/v1_1/dgmexpa8v/raw/upload', {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        if (!cloudName) {
+          throw new Error('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required');
+        }
+        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, {
           method: 'POST',
           body: formData,
         });
@@ -3971,9 +3975,9 @@ export default function AdminDashboard() {
                                         showDeleteConfirmation(
                                                   `Delete ${member.name}?`,
                                                   () => deleteTeam(String(id))
-                                                );
+                                        );
                                               }
-                                            }}
+                                      }}
                                             className="px-3 py-1 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
                                     >
                                       Delete
@@ -4019,7 +4023,7 @@ export default function AdminDashboard() {
                                                 () => deleteTeam(String(id))
                                               );
                                             }
-                                          }}
+                                            }}
                                           className="flex-1 px-3 py-1.5 bg-red-600 text-white text-xs hover:bg-red-700 transition-colors"
                                           >
                                             Delete
@@ -4044,15 +4048,15 @@ export default function AdminDashboard() {
                   <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                     <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
                       <h3 className="text-xl font-bold text-[#009f3b]">
-                        {editingTeam ? 'Edit Team Member' : 'Add New Team Member'}
-                      </h3>
-                      <button 
+                      {editingTeam ? 'Edit Team Member' : 'Add New Team Member'}
+                    </h3>
+                    <button 
                         onClick={() => { resetTeamForm(); setShowTeamForm(false); }}
                         className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                      >
+                    >
                         ×
-                      </button>
-                    </div>
+                </button>
+              </div>
                     <div className="p-6">
               
               {/* Copy from Existing Member */}
@@ -4236,14 +4240,14 @@ export default function AdminDashboard() {
                                     const saved = await handleSaveNewCategory(newCat);
                                     if (saved) {
                                   (e.target as HTMLInputElement).value = '';
-                                    }
+                                }
                                   } else if (newCat && teamCategories.includes(newCat)) {
                                     showToast(`Category "${newCat}" already exists`, 'warning');
                                   }
                                 }
-                              }}
+                            }}
                               className="flex-1 px-2 py-1 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black"
-                            />
+                          />
                             <button
                               type="button"
                               onClick={async (e) => {
@@ -4365,24 +4369,24 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                       <div className="flex gap-3 pt-4 border-t border-gray-200">
-                        <button 
-                          type="submit"
+                      <button 
+                        type="submit"
                           className="bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors"
-                        >
-                          {editingTeam ? 'Update Team Member' : 'Add Team Member'}
-                        </button>
-                        <button 
+                      >
+                        {editingTeam ? 'Update Team Member' : 'Add Team Member'}
+                      </button>
+                      <button 
                           type="button"
                           onClick={() => { resetTeamForm(); setShowTeamForm(false); }}
                           className="bg-gray-200 text-gray-700 px-6 py-2 font-semibold hover:bg-gray-300 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
+                      >
+                        Cancel
+                  </button>
+                </div>
+                </form>
                     </div>
                   </div>
-                </div>
+              </div>
               )}
             </div>
           )}

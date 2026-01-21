@@ -8,11 +8,8 @@ Create a `.env.local` file in the root directory of your project with the follow
 
 ```env
 # Cloudinary Configuration
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dgmexpa8v
-NEXT_PUBLIC_CLOUDINARY_API_KEY=577674637224497
-NEXT_PUBLIC_CLOUDINARY_API_SECRET=_8Ks_XU3nurQTFUbVA3RxpbcXFE
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=nk3archtecture
-CLOUDINARY_URL=cloudinary://577674637224497:_8Ks_XU3nurQTFUbVA3RxpbcXFE@dgmexpa8v
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset_here
 ```
 
 ## 2. Backend Environment File
@@ -21,11 +18,10 @@ Update `backend/.env` with the same Cloudinary credentials:
 
 ```env
 # Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=dgmexpa8v
-CLOUDINARY_API_KEY=577674637224497
-CLOUDINARY_API_SECRET=_8Ks_XU3nurQTFUbVA3RxpbcXFE
-CLOUDINARY_UPLOAD_PRESET=nk3archtecture
-CLOUDINARY_URL=cloudinary://577674637224497:_8Ks_XU3nurQTFUbVA3RxpbcXFE@dgmexpa8v
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
+CLOUDINARY_UPLOAD_PRESET=your_upload_preset_here
 ```
 
 ## 3. How It Works
