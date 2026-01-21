@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
+import { Suspense } from "react";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +37,9 @@ export default function RootLayout({
       >
         <ConditionalNavbar />
         {children}
+        <Suspense fallback={null}>
+          <WhatsAppButton />
+        </Suspense>
       </body>
     </html>
   );
