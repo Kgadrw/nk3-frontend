@@ -720,9 +720,11 @@ const Navbar = () => {
                   Shop
                 </Link>
                 <Link 
-                  href="#" 
+                  href="/contact" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-[#009f3b] font-medium hover:bg-gray-50 transition-colors"
+                  className={`block px-4 py-2 text-[#009f3b] font-medium transition-colors ${
+                    pathname === '/contact' ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                  }`}
                 >
                   Contact Us
                 </Link>
