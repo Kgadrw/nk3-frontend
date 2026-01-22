@@ -520,7 +520,7 @@ const Navbar = () => {
                   pathname === '/academy' ? 'text-[#009f3b] font-semibold' : ''
                 }`}
               >
-                NK - 3D Academy
+                NK-3D Academy
                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#009f3b] transition-all duration-300 ${
                   pathname === '/academy' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 scale-x-0 group-hover:scale-x-100'
                 }`}></span>
@@ -708,7 +708,7 @@ const Navbar = () => {
                     pathname === '/academy' ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
                   }`}
                 >
-                  NK - 3D Academy
+                  NK-3D Academy
                 </Link>
                 <Link 
                   href="/shop" 
