@@ -151,6 +151,8 @@ export default function AdminDashboard() {
   const [shopPrice, setShopPrice] = useState('');
   const [shopCategory, setShopCategory] = useState('');
   const [shopDescription, setShopDescription] = useState('');
+  const [shopVariants, setShopVariants] = useState<Array<{ type: string; price: string; stock?: number }>>([]);
+  const [shopHasVariants, setShopHasVariants] = useState(false);
   
   // Academy management state
   const [academySubTab, setAcademySubTab] = useState<'research' | 'seminars' | 'internships'>('research');
@@ -353,6 +355,8 @@ export default function AdminDashboard() {
       setShopCategory('');
       setShopDescription('');
       setShopImage('');
+      setShopVariants([]);
+      setShopHasVariants(false);
     }
   }, [editingShop, products]);
 
@@ -938,9 +942,25 @@ export default function AdminDashboard() {
 
   const handleSaveShop = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !shopPrice || !shopCategory || !shopImage) {
-      showToast('Please fill in all required fields (Name, Price, Category, Image)', 'warning');
+    if (!shopName || !shopCategory || !shopImage) {
+      showToast('Please fill in all required fields (Name, Category, Image)', 'warning');
       return;
+    }
+    
+    // Validate: either price or variants must be provided
+    const hasVariants = shopHasVariants && shopVariants.length > 0;
+    if (!hasVariants && !shopPrice) {
+      showToast('Please provide either a price or add product variants with prices', 'warning');
+      return;
+    }
+    
+    // Validate variants if enabled
+    if (hasVariants) {
+      const invalidVariants = shopVariants.filter(v => !v.type.trim() || !v.price.trim());
+      if (invalidVariants.length > 0) {
+        showToast('Please fill in all variant types and prices', 'warning');
+        return;
+      }
     }
     
     // Ensure we have a valid Cloudinary URL (not base64)
@@ -957,10 +977,16 @@ export default function AdminDashboard() {
     try {
       const data = {
         name: shopName.trim(),
-        price: shopPrice.trim(),
+        price: shopPrice.trim() || '0', // Keep for backward compatibility
         category: shopCategory.trim(),
         description: shopDescription?.trim() || '',
-        image: shopImage // Should already be a Cloudinary URL from ImageUploadField
+        image: shopImage, // Should already be a Cloudinary URL from ImageUploadField
+        variants: hasVariants ? shopVariants.map(v => ({
+          type: v.type.trim(),
+          price: v.price.trim(),
+          stock: v.stock || 0
+        })) : [],
+        hasVariants: hasVariants
       };
       
       console.log('Shop POST - Sending data:', { ...data, image: 'Cloudinary URL (hidden)' });
@@ -1005,6 +1031,8 @@ export default function AdminDashboard() {
         setShopCategory('');
         setShopDescription('');
         setShopImage('');
+        setShopVariants([]);
+        setShopHasVariants(false);
         showToast(editingShop ? 'Product updated successfully!' : 'Product added successfully!', 'success');
       } else {
         const contentType = res.headers.get('content-type');
@@ -1967,7 +1995,7 @@ export default function AdminDashboard() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
+                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:ransparent text-black"
               />
             </div>
             <div>
@@ -1979,7 +2007,7 @@ export default function AdminDashboard() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:border-transparent text-black"
+                className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] focus:ransparent text-black"
               />
             </div>
             <button
@@ -2007,7 +2035,7 @@ export default function AdminDashboard() {
     <main className="min-h-screen bg-white">
       <div className="flex relative">
         {/* Sidebar - Primary Green */}
-        <aside className={`fixed left-0 top-0 ${isSidebarMinimized ? 'lg:w-20 w-64' : 'w-64'} ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-[#009f3b] shadow-lg h-screen overflow-y-auto flex flex-col transition-all duration-300 z-50`}>
+        <aside className={`fixed left-0 top-0 ${isSidebarMinimized ? 'lg:w-20 w-64' : 'w-64'} ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} bg-[#009f3b] shadow-lg h-[calc(100vh-2rem)] my-4 ml-4 rounded-2xl overflow-y-auto flex flex-col transition-all duration-300 z-50`}>
           {/* User Profile Section with Toggle Button */}
           <div className={`p-4 md:p-6 ${isSidebarMinimized ? 'px-4' : ''}`}>
             <div className="flex items-center justify-between gap-2">
@@ -2048,8 +2076,8 @@ export default function AdminDashboard() {
               }}
               className={`w-full ${isSidebarMinimized ? 'justify-center px-2' : 'text-left px-4'} py-3 transition-colors flex items-center gap-3 ${
                 activeTab === 'dashboard'
-                  ? 'bg-white text-[#009f3b]'
-                  : 'text-white hover:bg-[#00782d]'
+                  ? 'bg-white text-[#009f3b] rounded-lg'
+                  : 'text-white hover:bg-[#00782d] rounded-lg'
               }`}
               title={isSidebarMinimized ? 'Dashboard' : ''}
             >
@@ -2067,8 +2095,8 @@ export default function AdminDashboard() {
                   }}
                   className={`w-full ${isSidebarMinimized ? 'justify-center px-2' : 'text-left px-4'} py-3 transition-colors flex items-center gap-3 ${
                     activeTab === tab.id
-                      ? 'bg-white text-[#009f3b]'
-                      : 'text-white hover:bg-[#00782d]'
+                      ? 'bg-white text-[#009f3b] rounded-lg'
+                      : 'text-white hover:bg-[#00782d] rounded-lg'
                   }`}
                   title={isSidebarMinimized ? tab.label : ''}
                 >
@@ -2087,7 +2115,7 @@ export default function AdminDashboard() {
                 setUsername('');
                 setPassword('');
               }}
-              className={`w-full ${isSidebarMinimized ? 'justify-center px-2' : 'text-left px-4'} py-3 transition-colors flex items-center gap-3 text-white hover:bg-[#00782d] font-medium`}
+              className={`w-full ${isSidebarMinimized ? 'justify-center px-2' : 'text-left px-4'} py-3 transition-colors flex items-center gap-3 text-white hover:bg-[#00782d] rounded-lg font-medium`}
               title={isSidebarMinimized ? 'Logout' : ''}
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
@@ -2113,7 +2141,7 @@ export default function AdminDashboard() {
           {/* Summary Cards - Only show on dashboard tab */}
           {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
-            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
+            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Portfolio</p>
@@ -2122,7 +2150,7 @@ export default function AdminDashboard() {
                 <FolderOpen className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
                 </div>
                 </div>
-            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
+            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Team Members</p>
@@ -2131,7 +2159,7 @@ export default function AdminDashboard() {
                 <Users className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
                     </div>
                     </div>
-            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
+            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-xl">
               <div className="flex items-center justify-between">
                     <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Products</p>
@@ -2140,7 +2168,7 @@ export default function AdminDashboard() {
                 <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-white/80 flex-shrink-0" />
                     </div>
                   </div>
-            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-lg">
+            <div className="bg-[#009f3b] text-white p-4 md:p-6 rounded-xl">
               <div className="flex items-center justify-between">
                     <div>
                   <p className="text-white/80 text-xs md:text-sm mb-1">Publications</p>
@@ -2156,7 +2184,7 @@ export default function AdminDashboard() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* Social Media Links Management */}
-              <div className="bg-white p-4 md:p-6 rounded-lg">
+              <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-[#009f3b]">Social Media Links</h3>
                   {showSocialNotification && (
@@ -2221,7 +2249,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Contact Information Management */}
-              <div className="bg-white p-4 md:p-6 rounded-lg">
+              <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-[#009f3b]">Contact Information</h3>
                 </div>
@@ -2369,7 +2397,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Company Profile PDF Management */}
-              <div className="bg-white p-4 md:p-6 rounded-lg">
+              <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
                 <h3 className="text-lg font-bold text-[#009f3b] mb-4">Company Profile PDF</h3>
                 <div className="space-y-4">
                   <div>
@@ -2446,7 +2474,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Partners Logos Management */}
-              <div className="bg-white p-4 md:p-6 rounded-lg">
+              <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
                 <h3 className="text-lg font-bold text-[#009f3b] mb-4">Partner Logos</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2679,7 +2707,7 @@ export default function AdminDashboard() {
 
               {/* Add/Edit Form */}
               {showPortfolioForm && (
-                <div className="border-t pt-6">
+                <div className=" pt-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-[#009f3b]">
                       {editingPortfolio ? 'Edit Project' : 'Create New Project'}
@@ -2714,7 +2742,7 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="border-t pt-4">
+                  <div className=" pt-4">
                     <h4 className="text-sm font-bold text-gray-800 mb-4">Project Gallery (Additional Images)</h4>
                     <div className="space-y-4">
                       {/* Multiple Image Upload */}
@@ -2863,7 +2891,7 @@ export default function AdminDashboard() {
                         required
                       />
                   </div>
-                  <div className="border-t pt-4">
+                  <div className=" pt-4">
                     <h4 className="text-sm font-bold text-gray-800 mb-4">Project Details</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -3310,7 +3338,7 @@ export default function AdminDashboard() {
 
               {/* Add/Edit Form */}
               {showAcademyForm && (
-                <div className="border-t pt-6">
+                <div className=" pt-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-[#009f3b]">
                       {editingAcademy ? 'Edit Research Publication' : 'Publish New Research'}
@@ -3372,7 +3400,7 @@ export default function AdminDashboard() {
                         required
                       />
                   </div>
-                    <div className="border-t pt-4">
+                    <div className=" pt-4">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Publication Link (Optional)</label>
                       <input 
                         type="url" 
@@ -3585,7 +3613,7 @@ export default function AdminDashboard() {
 
                   {/* Add/Edit Seminar Form */}
                   {showSeminarForm && (
-                    <div className="border-t pt-6">
+                    <div className=" pt-6">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-[#009f3b]">
                           {editingSeminar ? 'Edit Seminar' : 'Create New Seminar'}
@@ -4249,7 +4277,7 @@ export default function AdminDashboard() {
                         ) : (
                           <p className="text-sm text-gray-500">No categories available. Add a new category below.</p>
                         )}
-                        <div className="mt-3 pt-3 border-t">
+                        <div className="mt-3 pt-3 ">
                           <div className="flex gap-2">
                           <input
                             type="text"
@@ -4391,7 +4419,7 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                      <div className="flex gap-3 pt-4 border-t border-gray-200">
+                      <div className="flex gap-3 pt-4">
                       <button 
                         type="submit"
                           className="bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors"
@@ -4509,7 +4537,7 @@ export default function AdminDashboard() {
                             <p className="text-xs text-gray-600">Category: <span className="font-medium">{product.category}</span></p>
                           </div>
                         </div>
-                        <div className="flex gap-2 pt-3 border-t border-gray-200">
+                        <div className="flex gap-2 pt-3">
                           <button 
                             onClick={() => {
                               setShowShopForm(true);
@@ -4534,7 +4562,8 @@ export default function AdminDashboard() {
 
               {/* Add/Edit Form */}
               {showShopForm && (
-                <div className="border-t pt-4 md:pt-6">
+                <div className="pt-4 md:pt-6">
+                  <div className="bg-white border border-gray-300 rounded-xl p-4 md:p-6">
                   <form onSubmit={handleSaveShop}>
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                     <h3 className="text-base md:text-lg font-bold text-[#009f3b]">
@@ -4550,6 +4579,8 @@ export default function AdminDashboard() {
                           setShopCategory('');
                           setShopDescription('');
                           setShopImage('');
+                          setShopVariants([]);
+                          setShopHasVariants(false);
                       }}
                       className="text-gray-600 hover:text-gray-800 text-sm"
                     >
@@ -4579,14 +4610,17 @@ export default function AdminDashboard() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Price {!shopHasVariants ? '*' : '(Optional - use variants below)'}
+                          </label>
                           <input 
                             type="text" 
                             value={shopPrice}
                             onChange={(e) => setShopPrice(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
                             placeholder="e.g., 100000 or $100"
-                            required
+                            required={!shopHasVariants}
+                            disabled={shopHasVariants}
                           />
                     </div>
                     <div>
@@ -4611,6 +4645,117 @@ export default function AdminDashboard() {
                           rows={4}
                         />
                       </div>
+                      
+                      {/* Product Variants Section */}
+                      <div className=" pt-4">
+                        <div className="flex items-center gap-3 mb-4">
+                          <input
+                            type="checkbox"
+                            id="hasVariants"
+                            checked={shopHasVariants}
+                            onChange={(e) => {
+                              setShopHasVariants(e.target.checked);
+                              if (!e.target.checked) {
+                                setShopVariants([]);
+                              } else if (shopVariants.length === 0) {
+                                setShopVariants([{ type: '', price: '', stock: 0 }]);
+                              }
+                            }}
+                            className="w-4 h-4 text-[#009f3b] border-gray-300 rounded focus:ring-[#009f3b]"
+                          />
+                          <label htmlFor="hasVariants" className="text-sm font-semibold text-gray-700 cursor-pointer">
+                            This product has multiple types/variants with different prices
+                          </label>
+                        </div>
+                        
+                        {shopHasVariants && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-sm font-semibold text-gray-700">Product Variants</label>
+                              <button
+                                type="button"
+                                onClick={() => setShopVariants([...shopVariants, { type: '', price: '', stock: 0 }])}
+                                className="text-sm text-[#009f3b] hover:text-[#00782d] font-medium"
+                              >
+                                + Add Variant
+                              </button>
+                            </div>
+                            
+                            {shopVariants.map((variant, index) => (
+                              <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded border border-gray-200">
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Type/Name *</label>
+                                  <input
+                                    type="text"
+                                    value={variant.type}
+                                    onChange={(e) => {
+                                      const updated = [...shopVariants];
+                                      updated[index].type = e.target.value;
+                                      setShopVariants(updated);
+                                    }}
+                                    placeholder="e.g., Small, Medium, Large, Red, Blue"
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                    required={shopHasVariants}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Price *</label>
+                                  <input
+                                    type="text"
+                                    value={variant.price}
+                                    onChange={(e) => {
+                                      const updated = [...shopVariants];
+                                      updated[index].price = e.target.value;
+                                      setShopVariants(updated);
+                                    }}
+                                    placeholder="e.g., 100000"
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                    required={shopHasVariants}
+                                  />
+                                </div>
+                                <div className="flex items-end gap-2">
+                                  <div className="flex-1">
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Stock (Optional)</label>
+                                    <input
+                                      type="number"
+                                      value={variant.stock || 0}
+                                      onChange={(e) => {
+                                        const updated = [...shopVariants];
+                                        updated[index].stock = parseInt(e.target.value) || 0;
+                                        setShopVariants(updated);
+                                      }}
+                                      min="0"
+                                      className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = shopVariants.filter((_, i) => i !== index);
+                                      setShopVariants(updated);
+                                    }}
+                                    className="px-3 py-2 text-red-600 hover:text-red-700 text-sm font-medium"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {shopHasVariants && shopVariants.length === 0 && (
+                              <p className="text-sm text-gray-500 italic">Click "Add Variant" to add product types with different prices</p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {!shopHasVariants && (
+                          <div className="text-sm text-gray-600">
+                            <p>If this product has multiple types (e.g., sizes, colors) with different prices, enable variants above.</p>
+                            <p className="mt-1">Otherwise, use the Price field above for a single price.</p>
+                          </div>
+                        )}
+                      </div>
+                      
                     <div className="flex flex-col sm:flex-row gap-3">
                 <button
                           type="submit"
@@ -4636,11 +4781,12 @@ export default function AdminDashboard() {
                     </div>
               </div>
                 </form>
-              </div>
+                  </div>
+                </div>
             )}
 
             {/* Payment Method Management */}
-            <div className="border-t pt-4 md:pt-6 mt-6 md:mt-8">
+            <div className="pt-4 md:pt-6 mt-6 md:mt-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
                 <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Payment Methods</h2>
                 <button 
@@ -4745,7 +4891,7 @@ export default function AdminDashboard() {
                                 <p className="text-xs text-gray-600">Account: <span className="font-medium">{method.accountNumber}</span></p>
                               )}
                             </div>
-                            <div className="flex gap-2 pt-3 border-t border-gray-200">
+                            <div className="flex gap-2 pt-3">
                               <button 
                                 onClick={() => {
                                   setShowPaymentForm(true);
@@ -4779,7 +4925,7 @@ export default function AdminDashboard() {
 
               {/* Add/Edit Payment Method Form */}
               {showPaymentForm && (
-                <div className="border-t pt-4 md:pt-6">
+                <div className=" pt-4 md:pt-6">
                   <form onSubmit={handleSavePayment}>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                       <h3 className="text-base md:text-lg font-bold text-[#009f3b]">
@@ -5045,7 +5191,7 @@ export default function AdminDashboard() {
                       )}
 
                       {/* Actions */}
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4">
                         <div className="flex-1 sm:flex-initial">
                           <select
                             value={order.status || 'pending'}
@@ -5309,7 +5455,7 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t">
+                  <div className="flex gap-3 pt-4 ">
                     {selectedInquiry.email && (
                       <a
                         href={`mailto:${selectedInquiry.email}?subject=Re: ${selectedInquiry.subject}`}
@@ -5395,7 +5541,7 @@ export default function AdminDashboard() {
                 title="PDF Viewer"
               />
             </div>
-            <div className="p-4 border-t flex justify-end gap-3">
+            <div className="p-4 flex justify-end gap-3">
               <a
                 href={currentPdfUrl}
                 target="_blank"

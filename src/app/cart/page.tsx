@@ -16,11 +16,14 @@ type Product = {
   price: number;
   image: string;
   category: string;
+  variants?: Array<{ type: string; price: string; stock?: number }>;
+  hasVariants?: boolean;
 };
 
 type CartItem = {
   product: Product;
   quantity: number;
+  selectedVariant?: { type: string; price: string } | null;
 };
 
 export default function CartPage() {
@@ -219,6 +222,11 @@ export default function CartPage() {
                             <Link href={`/shop/${item.product._id || item.product.id}`}>
                               <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-[#009f3b] transition-colors">
                                 {item.product.name}
+                                {item.selectedVariant && (
+                                  <span className="text-sm font-normal text-gray-600 ml-2">
+                                    ({item.selectedVariant.type})
+                                  </span>
+                                )}
                               </h3>
                             </Link>
                             <p className="text-sm text-gray-500 mb-2">{item.product.category}</p>
@@ -227,7 +235,7 @@ export default function CartPage() {
                             </p>
                           </div>
                           <button
-                            onClick={() => removeFromCart(item.product.id)}
+                            onClick={() => removeFromCart(item.product.id || item.product._id, item.selectedVariant?.type)}
                             className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2"
                             title="Remove item"
                           >
@@ -241,7 +249,7 @@ export default function CartPage() {
                             <span className="text-sm font-medium text-gray-700">Quantity:</span>
                             <div className="flex items-center gap-2 border border-gray-300 rounded-lg">
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.product.id || item.product._id, item.selectedVariant?.type, item.quantity - 1)}
                                 className="p-2 hover:bg-gray-100 transition-colors"
                                 disabled={item.quantity <= 1}
                               >
@@ -251,7 +259,7 @@ export default function CartPage() {
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.product.id || item.product._id, item.selectedVariant?.type, item.quantity + 1)}
                                 className="p-2 hover:bg-gray-100 transition-colors"
                               >
                                 <Plus className="w-4 h-4 text-gray-600" />

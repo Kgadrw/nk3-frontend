@@ -13,6 +13,8 @@ type Product = {
   price: number;
   image: string;
   category: string;
+  variants?: Array<{ type: string; price: string; stock?: number }>;
+  hasVariants?: boolean;
 };
 
 type CartItem = {
@@ -38,7 +40,9 @@ const Shop = () => {
         const productsData = (data || []).map((p: any) => ({
           ...p,
           id: p._id || p.id,
-          price: typeof p.price === 'string' ? parseFloat(p.price.replace(/[^0-9.]/g, '')) || 0 : p.price
+          price: typeof p.price === 'string' ? parseFloat(p.price.replace(/[^0-9.]/g, '')) || 0 : p.price,
+          variants: p.variants || [],
+          hasVariants: p.hasVariants || (p.variants && p.variants.length > 0)
         }));
         setProducts(productsData);
 
@@ -338,9 +342,30 @@ const Shop = () => {
                     {/* Price Section */}
                     <div className="mt-auto">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-base sm:text-lg font-bold text-[#FF6600]">
-                          {formatPrice(product.price)}
-                        </span>
+                        {product.hasVariants && product.variants && product.variants.length > 0 ? (
+                          <div>
+                            <span className="text-base sm:text-lg font-bold text-[#FF6600]">
+                              {(() => {
+                                const prices = product.variants.map((v: any) => 
+                                  parseFloat(v.price.replace(/[^0-9.]/g, '')) || 0
+                                );
+                                const minPrice = Math.min(...prices);
+                                const maxPrice = Math.max(...prices);
+                                if (minPrice === maxPrice) {
+                                  return formatPrice(minPrice);
+                                }
+                                return `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
+                              })()}
+                            </span>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {product.variants.length} type{product.variants.length > 1 ? 's' : ''} available
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-base sm:text-lg font-bold text-[#FF6600]">
+                            {formatPrice(product.price)}
+                          </span>
+                        )}
                       </div>
                     </div>
 

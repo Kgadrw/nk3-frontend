@@ -355,7 +355,7 @@ export default function TeamDetailPage() {
                         key={teamMember.id}
                         onClick={() => switchTeamMember(teamMember.id)}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer border border-transparent hover:border-[#009f3b]/30"
-                        >
+                      >
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#009f3b] text-white flex items-center justify-center font-bold text-sm">
                             {index + 2}
                           </div>
