@@ -942,14 +942,28 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Name, Price, Category, Image)', 'warning');
       return;
     }
+    
+    // Ensure we have a valid Cloudinary URL (not base64)
+    // ImageUploadField should have already uploaded it, but check just in case
+    if (shopImage.startsWith('data:image/')) {
+      showToast(
+        'Image upload failed. Please check your Cloudinary configuration in .env.local and try uploading the image again. ' +
+        'The image must be uploaded to Cloudinary before saving.',
+        'error'
+      );
+      return;
+    }
+    
     try {
       const data = {
         name: shopName.trim(),
         price: shopPrice.trim(),
         category: shopCategory.trim(),
-        description: shopDescription.trim(),
-        image: shopImage
+        description: shopDescription?.trim() || '',
+        image: shopImage // Should already be a Cloudinary URL from ImageUploadField
       };
+      
+      console.log('Shop POST - Sending data:', { ...data, image: 'Cloudinary URL (hidden)' });
       
       const url = editingShop ? `/api/shop/${editingShop}` : '/api/shop';
       const method = editingShop ? 'PUT' : 'POST';
@@ -960,7 +974,8 @@ export default function AdminDashboard() {
         body: JSON.stringify(data),
       });
       
-      console.log('Response status:', res.status, res.statusText);
+      console.log('Shop POST - Response status:', res.status, res.statusText);
+      console.log('Shop POST - Response URL:', url);
       
       const contentType = res.headers.get('content-type');
       
@@ -1816,13 +1831,18 @@ export default function AdminDashboard() {
       reader.readAsDataURL(file);
 
       // Upload to Cloudinary
+      showToast('Uploading image to Cloudinary...', 'info');
       try {
         const { uploadToCloudinary } = await import('@/lib/cloudinary');
         const cloudinaryUrl = await uploadToCloudinary(file, folder);
         setImage(cloudinaryUrl);
-      } catch (error) {
+        showToast('Image uploaded successfully!', 'success');
+      } catch (error: any) {
         // Failed to upload to Cloudinary
-        // Keep the local preview if upload fails
+        console.error('Cloudinary upload error:', error);
+        const errorMessage = error?.message || 'Failed to upload image to Cloudinary';
+        showToast(`Upload failed: ${errorMessage}. Please check your Cloudinary configuration.`, 'error');
+        // Keep the local preview if upload fails, but user will see the error
       }
     }
   };
@@ -4547,9 +4567,10 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <ImageUploadField
-                            label="Product Image *"
+                        label="Product Image *"
                         imageUrl={shopImage}
                         onImageChange={setShopImage}
+                        folder="nk3d/shop"
                       />
                     </div>
                   </div>

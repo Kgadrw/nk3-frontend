@@ -4,7 +4,11 @@ const getCloudinaryConfig = () => {
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'nk3archtecture';
 
   if (!CLOUD_NAME) {
-    throw new Error('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required');
+    throw new Error(
+      'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required. ' +
+      'Please create a .env.local file in the project root with your Cloudinary credentials. ' +
+      'See CLOUDINARY_SETUP.md for instructions.'
+    );
   }
 
   return { CLOUD_NAME, UPLOAD_PRESET };

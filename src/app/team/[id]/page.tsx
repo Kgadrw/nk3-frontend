@@ -250,14 +250,14 @@ export default function TeamDetailPage() {
       <main className="min-h-screen bg-[#009f3b]">
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-lg p-8 max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-700 mb-4">Team Member Not Found</h1>
-            <p className="text-gray-600 mb-8">The team member you're looking for doesn't exist.</p>
-            <Link 
-              href={category ? `/team?category=${category}` : '/team'} 
-              className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+          <h1 className="text-3xl font-bold text-gray-700 mb-4">Team Member Not Found</h1>
+          <p className="text-gray-600 mb-8">The team member you're looking for doesn't exist.</p>
+          <Link 
+            href={category ? `/team?category=${category}` : '/team'} 
+            className="inline-flex items-center gap-2 bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
           </div>
         </div>
       </main>
@@ -359,9 +359,9 @@ export default function TeamDetailPage() {
                         );
                       })
                       .map((teamMember: any, index: number) => (
-                        <div
-                          key={teamMember.id}
-                          onClick={() => switchTeamMember(teamMember.id)}
+                      <div
+                        key={teamMember.id}
+                        onClick={() => switchTeamMember(teamMember.id)}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer border border-transparent hover:border-[#009f3b]/30"
                         >
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#009f3b] text-white flex items-center justify-center font-bold text-sm">
@@ -378,26 +378,26 @@ export default function TeamDetailPage() {
                             )}
                           </div>
                           <div className="relative w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
-                            {teamMember.image ? (
-                              <Image
-                                src={teamMember.image}
-                                alt={teamMember.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                                loading="lazy"
+                          {teamMember.image ? (
+                            <Image
+                              src={teamMember.image}
+                              alt={teamMember.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                              loading="lazy"
                                 sizes="40px"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
                                 <span className="text-gray-400 text-xs font-bold">
-                                  {teamMember.name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                                {teamMember.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -432,24 +432,24 @@ export default function TeamDetailPage() {
               {/* All Information Below Image */}
               <div className="w-full max-w-4xl space-y-6">
                 {/* Contact Information Cards */}
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {/* Phone Card */}
-                  {member.phone && (
+                {member.phone && (
                     <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
                           <Phone className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
+                    </div>
+                    <div className="flex-1">
                           <p className="text-sm font-semibold text-[#009f3b] mb-1">Phone:</p>
-                          <a
-                            href={`tel:${member.phone}`}
+                      <a
+                        href={`tel:${member.phone}`}
                             className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors"
-                          >
-                            {member.phone}
-                          </a>
-                        </div>
-                      </div>
+                      >
+                        {member.phone}
+                      </a>
+                    </div>
+                  </div>
                     </div>
                   )}
                   
@@ -458,41 +458,41 @@ export default function TeamDetailPage() {
                     <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
                       <div className="flex items-center gap-3">
                         <Mail className="w-5 h-5 text-[#009f3b] flex-shrink-0" />
-                        <div className="flex-1">
+                    <div className="flex-1">
                           <p className="text-sm font-semibold text-[#009f3b] mb-1">Email:</p>
-                          <a
-                            href={`mailto:${member.email}`}
+                      <a
+                        href={`mailto:${member.email}`}
                             className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors break-all"
-                          >
-                            {member.email}
-                          </a>
+                      >
+                        {member.email}
+                      </a>
                         </div>
-                      </div>
                     </div>
-                  )}
-                  
+                  </div>
+                )}
+                
                   {/* LinkedIn Card */}
-                  {member.linkedin && (
+                {member.linkedin && (
                     <div className="bg-[#009f3b]/10 rounded-lg p-4 border border-[#009f3b]/20">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
                           <Linkedin className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-[#009f3b] mb-1">LinkedIn:</p>
-                          <a
-                            href={member.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors break-all"
-                          >
-                            View Profile
-                          </a>
-                        </div>
-                      </div>
                     </div>
-                  )}
-                </div>
+                    <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#009f3b] mb-1">LinkedIn:</p>
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                            className="text-sm text-gray-700 hover:text-[#009f3b] transition-colors break-all"
+                      >
+                        View Profile
+                      </a>
+                        </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
                 {/* Additional Information Cards */}
                 {(member.description || member.experience || member.education || member.certification) && (
@@ -507,9 +507,9 @@ export default function TeamDetailPage() {
                             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                               {member.description}
                             </p>
-                          </div>
-                        </div>
-                      </div>
+              </div>
+            </div>
+          </div>
                     )}
 
                     {/* Experience and Education Side by Side */}
@@ -525,9 +525,9 @@ export default function TeamDetailPage() {
                                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                                   {member.experience}
                                 </p>
-                              </div>
-                            </div>
-                          </div>
+        </div>
+      </div>
+                    </div>
                         )}
 
                         {/* Education Card */}
@@ -535,18 +535,18 @@ export default function TeamDetailPage() {
                           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                             <div className="flex items-start gap-3">
                               <GraduationCap className="w-5 h-5 text-[#009f3b] flex-shrink-0 mt-0.5" />
-                              <div className="flex-1">
+                    <div className="flex-1">
                                 <p className="text-sm font-semibold text-gray-800 mb-2">Education</p>
                                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                                   {member.education}
                                 </p>
                               </div>
-                            </div>
+                    </div>
                           </div>
                         )}
-                      </div>
-                    )}
-
+                  </div>
+                )}
+                
                     {/* Certification Card */}
                     {member.certification && (
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -557,11 +557,11 @@ export default function TeamDetailPage() {
                             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                               {member.certification}
                             </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    </div>
+                    </div>
                   </div>
+                )}
+              </div>
                 )}
               </div>
             </div>
