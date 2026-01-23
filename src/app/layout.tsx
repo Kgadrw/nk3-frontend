@@ -29,14 +29,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nk3dstudio.rw'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nk3darchitects19.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://nk3dstudio.rw',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://nk3darchitects19.com',
     siteName: 'NK-3D Architecture Studio',
     title: 'NK-3D Architecture Studio - Architectural Design & Engineering Services',
     description: 'Leading architectural design, engineering services, and construction solutions in Rwanda. Specializing in residential, commercial, and institutional projects.',
@@ -88,6 +88,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/png" href="/logo.png" />
+        <link rel="shortcut icon" type="image/png" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <meta name="keywords" content="NK-3D Architecture Studio, Architecture Rwanda, Architectural Design Rwanda, Engineering Services Rwanda, Construction Rwanda, Building Design, Architectural Services, 3D Architecture, Sustainable Architecture, Residential Architecture, Commercial Architecture, Institutional Architecture, Urban Planning, Interior Design, Landscaping, Project Management, Civil Engineering, MEP Engineering, Environmental Impact Assessment, ESIA, NK-3Darchitects.19, NK-3Dengineering.19, NK-3D Academy.19, Architecture Academy, Architecture Education, Kigali Architecture, Rwanda Construction, Green Building, Eco-friendly Architecture" />
         <meta name="author" content="NK-3D Architecture Studio" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
