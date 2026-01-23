@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { CardSkeleton } from '@/components/skeletons';
 
 type Project = {
   _id?: string;
@@ -89,16 +90,11 @@ const Portfolio = () => {
     return (
       <section className="py-8 md:py-16 px-4 bg-white min-h-screen">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <Image
-              src="/loader.gif"
-              alt="Loading..."
-              width={100}
-              height={100}
-              className="mx-auto"
-              unoptimized
-            />
+          <div className="mb-8 animate-pulse">
+            <div className="h-10 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
           </div>
+          <CardSkeleton count={6} />
         </div>
       </section>
     );

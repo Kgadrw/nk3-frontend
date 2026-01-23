@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, ArrowLeft, Trash2, Plus, Minus, X } from 'lucide-react';
 import Footer from '@/components/Footer';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { ListSkeleton } from '@/components/skeletons';
 
 type Product = {
   id: number | string;
@@ -118,15 +119,11 @@ export default function CartPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <Image
-            src="/loader.gif"
-            alt="Loading..."
-            width={100}
-            height={100}
-            className="mx-auto"
-            unoptimized
-          />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="mb-8 animate-pulse">
+            <div className="h-10 bg-gray-200 rounded w-1/3 mb-4"></div>
+          </div>
+          <ListSkeleton count={3} showImage={true} />
         </div>
         <Footer />
       </main>

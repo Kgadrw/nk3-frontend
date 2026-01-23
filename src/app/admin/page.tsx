@@ -993,6 +993,9 @@ export default function AdminDashboard() {
           }
         }
         
+        // Invalidate cache before fetching fresh data
+        const { apiCache } = await import('@/lib/apiCache');
+        apiCache.invalidatePattern('GET_/api/shop');
         await fetchAllData();
         setShowShopForm(false);
         setEditingShop(null);

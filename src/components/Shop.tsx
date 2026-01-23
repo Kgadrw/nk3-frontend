@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { CardSkeleton } from '@/components/skeletons';
 
 type Product = {
   id: number | string;

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, Lock, CheckCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
+import { FormSkeleton } from '@/components/skeletons';
 
 type Product = {
   id: number | string;
@@ -199,19 +200,10 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <Image
-            src="/loader.gif"
-            alt="Loading..."
-            width={100}
-            height={100}
-            className="mx-auto"
-            unoptimized
-          />
-        </div>
+      <>
+        <FormSkeleton />
         <Footer />
-      </main>
+      </>
     );
   }
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Phone, Mail, Linkedin, User, Briefcase, GraduationCap, Award, FileText, Search, MapPin } from 'lucide-react';
+import { DetailSkeleton } from '@/components/skeletons';
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -231,16 +232,7 @@ export default function TeamDetailPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[#009f3b]">
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <Image
-            src="/loader.gif"
-            alt="Loading..."
-            width={100}
-            height={100}
-            className="mx-auto"
-            unoptimized
-          />
-        </div>
+        <DetailSkeleton />
       </main>
     );
   }

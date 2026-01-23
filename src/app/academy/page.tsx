@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import Footer from '@/components/Footer';
 import { Maximize, Minimize, X } from 'lucide-react';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
+import { CardSkeleton } from '@/components/skeletons';
 
 type ActiveSection = 'research' | 'seminars' | 'internship';
 
@@ -275,17 +276,8 @@ export default function AcademyPage() {
           </div>
 
             {publicationsLoading ? (
-            <div className="text-center py-12">
-              <Image
-                src="/loader.gif"
-                alt="Loading..."
-                width={100}
-                height={100}
-                className="mx-auto"
-                unoptimized
-              />
-            </div>
-          ) : (
+              <CardSkeleton count={6} />
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {researchPublications.map((publication) => (
               <div key={publication._id || publication.id} className="bg-white border border-gray-200 p-6">
@@ -367,16 +359,7 @@ export default function AcademyPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-[#009f3b] mb-6">Seminars & Workshops</h2>
             
             {seminarsLoading ? (
-              <div className="text-center py-12">
-                <Image
-                  src="/loader.gif"
-                  alt="Loading..."
-                  width={100}
-                  height={100}
-                  className="mx-auto"
-                  unoptimized
-                />
-              </div>
+              <CardSkeleton count={6} />
             ) : seminars.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {seminars.map((seminar) => (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
+import { FormSkeleton } from '@/components/skeletons';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

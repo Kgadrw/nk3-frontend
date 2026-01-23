@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import { Award, Handshake, Crown, Users, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AboutSkeleton } from '@/components/skeletons';
 
 export default function AboutPage() {
   const [aboutContent, setAboutContent] = useState({
@@ -59,21 +60,10 @@ export default function AboutPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8 py-8 md:py-12">
-          <div className="text-center py-12">
-            <Image
-              src="/loader.gif"
-              alt="Loading..."
-              width={100}
-              height={100}
-              className="mx-auto"
-              unoptimized
-            />
-          </div>
-        </div>
+      <>
+        <AboutSkeleton />
         <Footer />
-      </main>
+      </>
     );
   }
 

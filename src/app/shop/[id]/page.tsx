@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
+import { DetailSkeleton } from '@/components/skeletons';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -92,19 +93,10 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <Image
-            src="/loader.gif"
-            alt="Loading..."
-            width={100}
-            height={100}
-            className="mx-auto"
-            unoptimized
-          />
-        </div>
+      <>
+        <DetailSkeleton />
         <Footer />
-      </main>
+      </>
     );
   }
 
