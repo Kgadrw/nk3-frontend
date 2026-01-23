@@ -62,22 +62,36 @@ export default function CartPage() {
     };
   }, []);
 
-  const updateQuantity = (productId: string | number, quantity: number) => {
+  const updateQuantity = (productId: string | number, quantity: number, variantType?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, variantType);
       return;
     }
-    const updatedCart = cart.map(item =>
-      (item.product.id || item.product._id) === productId
-        ? { ...item, quantity }
-        : item
-    );
+    const updatedCart = cart.map(item => {
+      const itemId = item.product.id || item.product._id;
+      const matchesProduct = itemId === productId;
+      const matchesVariant = variantType !== undefined
+        ? (item.selectedVariant?.type === variantType)
+        : !item.selectedVariant;
+      
+      if (matchesProduct && matchesVariant) {
+        return { ...item, quantity };
+      }
+      return item;
+    });
     setCart(updatedCart);
     saveCart(updatedCart);
   };
 
-  const removeFromCart = (productId: string | number) => {
-    const updatedCart = cart.filter(item => (item.product.id || item.product._id) !== productId);
+  const removeFromCart = (productId: string | number, variantType?: string) => {
+    const updatedCart = cart.filter(item => {
+      const itemId = item.product.id || item.product._id;
+      const matchesProduct = itemId === productId;
+      const matchesVariant = variantType !== undefined
+        ? (item.selectedVariant?.type === variantType)
+        : !item.selectedVariant;
+      return !(matchesProduct && matchesVariant);
+    });
     setCart(updatedCart);
     saveCart(updatedCart);
   };
@@ -235,7 +249,12 @@ export default function CartPage() {
                             </p>
                           </div>
                           <button
-                            onClick={() => removeFromCart(item.product.id || item.product._id, item.selectedVariant?.type)}
+                            onClick={() => {
+                              const itemId: string | number | undefined = item.product.id || item.product._id;
+                              if (itemId !== undefined) {
+                                removeFromCart(itemId, item.selectedVariant?.type);
+                              }
+                            }}
                             className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2"
                             title="Remove item"
                           >
@@ -249,7 +268,12 @@ export default function CartPage() {
                             <span className="text-sm font-medium text-gray-700">Quantity:</span>
                             <div className="flex items-center gap-2 border border-gray-300 rounded-lg">
                               <button
-                                onClick={() => updateQuantity(item.product.id || item.product._id, item.selectedVariant?.type, item.quantity - 1)}
+                                onClick={() => {
+                                  const itemId: string | number | undefined = item.product.id || item.product._id;
+                                  if (itemId !== undefined) {
+                                    updateQuantity(itemId, item.quantity - 1, item.selectedVariant?.type);
+                                  }
+                                }}
                                 className="p-2 hover:bg-gray-100 transition-colors"
                                 disabled={item.quantity <= 1}
                               >
@@ -259,7 +283,12 @@ export default function CartPage() {
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => updateQuantity(item.product.id || item.product._id, item.selectedVariant?.type, item.quantity + 1)}
+                                onClick={() => {
+                                  const itemId: string | number | undefined = item.product.id || item.product._id;
+                                  if (itemId !== undefined) {
+                                    updateQuantity(itemId, item.quantity + 1, item.selectedVariant?.type);
+                                  }
+                                }}
                                 className="p-2 hover:bg-gray-100 transition-colors"
                               >
                                 <Plus className="w-4 h-4 text-gray-600" />

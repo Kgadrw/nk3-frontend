@@ -1,0 +1,24 @@
+{
+  "name": "NK-3D Architecture Studio",
+  "short_name": "NK-3D",
+  "description": "NK-3D Architecture Studio - Leading architectural design, engineering services, and construction solutions in Rwanda",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#009f3b",
+  "background_color": "#000000",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait-primary"
+}
