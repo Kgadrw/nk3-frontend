@@ -974,7 +974,7 @@ export default function AdminDashboard() {
     // ImageUploadField should have already uploaded it, but check just in case
     if (shopImage.startsWith('data:image/')) {
       showToast(
-        'Image upload failed. Please check your Cloudinary configuration in .env.local and try uploading the image again. ' +
+        'Image upload failed. Please check your Cloudinary configuration in .env and try uploading the image again. ' +
         'The image must be uploaded to Cloudinary before saving.',
         'error'
       );

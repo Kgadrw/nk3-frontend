@@ -4,7 +4,7 @@ Cloudinary has been integrated for image and PDF uploads. Follow these steps to 
 
 ## 1. Create Environment File
 
-Create a `.env.local` file in the root directory of your project with the following content:
+Create a `.env` file in the root directory of your project with the following content:
 
 ```env
 # Cloudinary Configuration

@@ -13,7 +13,7 @@ The backend server runs on `http://localhost:5000`
 
 ## 2. Environment Variables
 
-Make sure your `.env.local` file includes:
+Make sure your `.env` file includes:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000

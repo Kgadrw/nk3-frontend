@@ -6,10 +6,10 @@ const getCloudinaryConfig = () => {
   if (!CLOUD_NAME) {
     throw new Error(
       'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required. ' +
-      'Please ensure .env.local file exists in the project root with: ' +
+      'Please ensure .env file exists in the project root with: ' +
       'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dgmexpa8v\n' +
       'NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=nk3archtecture\n\n' +
-      'After creating/updating .env.local, you MUST:\n' +
+      'After creating/updating .env, you MUST:\n' +
       '1. Stop the dev server completely (Ctrl+C)\n' +
       '2. Delete the .next folder (cache cleared)\n' +
       '3. Restart the dev server (npm run dev)\n\n' +
