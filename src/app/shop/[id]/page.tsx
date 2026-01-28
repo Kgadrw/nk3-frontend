@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
 import { DetailSkeleton } from '@/components/skeletons';
@@ -16,6 +16,10 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
   
   // Toast notifications
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -46,6 +50,9 @@ export default function ProductDetailPage() {
           // Set first variant as default if variants exist
           if (productData.hasVariants && productData.variants.length > 0) {
             setSelectedVariant(productData.variants[0]);
+            setCurrentSlideIndex(1); // Start at first variant (index 0 is main product image)
+          } else {
+            setCurrentSlideIndex(0); // Start at main product image
           }
         }
       } catch (error) {
@@ -58,6 +65,105 @@ export default function ProductDetailPage() {
       fetchProduct();
     }
   }, [id]);
+
+  // Update selected variant when slide changes
+  useEffect(() => {
+    if (!product) return;
+    
+    if (currentSlideIndex === 0) {
+      // Main product image - no variant selected
+      setSelectedVariant(null);
+    } else if (product.hasVariants && product.variants && product.variants.length > 0) {
+      // Variant image - set corresponding variant
+      const variantIndex = currentSlideIndex - 1;
+      if (variantIndex >= 0 && variantIndex < product.variants.length) {
+        setSelectedVariant(product.variants[variantIndex]);
+      }
+    }
+  }, [currentSlideIndex, product]);
+
+  // Sync carousel scroll with currentSlideIndex
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({
+        left: currentSlideIndex * carouselRef.current.offsetWidth,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentSlideIndex]);
+
+  // Get all images for carousel (main product + variants)
+  const getCarouselImages = () => {
+    if (!product) return [];
+    
+    const images: Array<{ src: string; alt: string; variant?: any }> = [
+      { src: product.image, alt: product.name, variant: null }
+    ];
+    
+    if (product.hasVariants && product.variants && product.variants.length > 0) {
+      product.variants.forEach((variant: any) => {
+        images.push({
+          src: variant.image || product.image,
+          alt: `${product.name} - ${variant.type}`,
+          variant: variant
+        });
+      });
+    }
+    
+    return images;
+  };
+
+  const carouselImages = getCarouselImages();
+
+  // Navigation functions
+  const goToSlide = (index: number) => {
+    if (index >= 0 && index < carouselImages.length) {
+      setCurrentSlideIndex(index);
+      if (carouselRef.current) {
+        carouselRef.current.scrollTo({
+          left: index * carouselRef.current.offsetWidth,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  const nextSlide = () => {
+    const nextIndex = (currentSlideIndex + 1) % carouselImages.length;
+    goToSlide(nextIndex);
+  };
+
+  const prevSlide = () => {
+    const prevIndex = currentSlideIndex === 0 ? carouselImages.length - 1 : currentSlideIndex - 1;
+    goToSlide(prevIndex);
+  };
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      // Swipe left - next slide
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      // Swipe right - previous slide
+      prevSlide();
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -176,25 +282,98 @@ export default function ProductDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Product Image */}
-          <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
-            <Image
-              src={
-                product.hasVariants && selectedVariant && selectedVariant.image
-                  ? selectedVariant.image
-                  : product.image
-              }
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-            />
-            {/* Variant Badge */}
-            {product.hasVariants && selectedVariant && (
-              <div className="absolute top-4 left-4 bg-[#009f3b] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                {selectedVariant.type}
+          {/* Product Image Carousel */}
+          <div className="relative w-full">
+            <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              {/* Image Carousel */}
+              <div
+                ref={carouselRef}
+                className="flex overflow-hidden snap-x snap-mandatory scrollbar-hide"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onScroll={(e) => {
+                  const target = e.currentTarget;
+                  const slideWidth = target.offsetWidth;
+                  const scrollLeft = target.scrollLeft;
+                  const newIndex = Math.round(scrollLeft / slideWidth);
+                  if (newIndex !== currentSlideIndex && newIndex >= 0 && newIndex < carouselImages.length) {
+                    setCurrentSlideIndex(newIndex);
+                  }
+                }}
+              >
+                {carouselImages.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative w-full aspect-square flex-shrink-0 snap-center"
+                  >
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                    />
+                    {/* Variant Badge */}
+                    {image.variant && (
+                      <div className="absolute top-4 left-4 bg-[#009f3b] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                        {image.variant.type}
+                      </div>
+                    )}
+                    {!image.variant && currentSlideIndex === 0 && (
+                      <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                        Main Product
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+
+              {/* Navigation Arrows */}
+              {carouselImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-800 rounded-full p-2 shadow-lg transition-all z-10"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-800 rounded-full p-2 shadow-lg transition-all z-10"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Slide Indicators */}
+              {carouselImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                  {carouselImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToSlide(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        index === currentSlideIndex
+                          ? 'bg-[#009f3b] w-8'
+                          : 'bg-white bg-opacity-50 w-2 hover:bg-opacity-75'
+                      }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Product Info */}
@@ -206,31 +385,81 @@ export default function ProductDetailPage() {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">
                 {product.name}
               </h1>
-              <div className="text-3xl md:text-4xl font-bold text-[#009f3b] mb-6">
-                {formatPrice(getCurrentPrice())}
-                {product.hasVariants && product.variants.length > 1 && (
-                  <span className="text-lg text-gray-600 font-normal ml-2">
-                    (Select type below)
-                  </span>
-                )}
-              </div>
+              
+              {/* Dynamic Variant Info */}
+              {currentSlideIndex === 0 ? (
+                // Main product info
+                <div className="space-y-2 mb-6">
+                  <div className="text-3xl md:text-4xl font-bold text-[#009f3b]">
+                    {formatPrice(product.price)}
+                  </div>
+                  {product.hasVariants && product.variants.length > 0 && (
+                    <p className="text-lg text-gray-600">
+                      Slide through images to see {product.variants.length} variant{product.variants.length > 1 ? 's' : ''} available
+                    </p>
+                  )}
+                </div>
+              ) : (
+                // Variant info
+                selectedVariant && (
+                  <div className="space-y-2 mb-6">
+                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-2">
+                      {selectedVariant.type}
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold text-[#009f3b]">
+                      {formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)}
+                    </div>
+                    {selectedVariant.stock !== undefined && selectedVariant.stock > 0 && (
+                      <div className="text-sm text-gray-600 mt-2">
+                        Stock: {selectedVariant.stock} available
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
             </div>
             
-            {/* Variant Selection */}
+            {/* Variant Thumbnails - Quick Navigation */}
             {product.hasVariants && product.variants && product.variants.length > 0 && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Select Type/Variant *
+                  Available Variants ({product.variants.length})
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {/* Main product thumbnail */}
+                  <button
+                    onClick={() => goToSlide(0)}
+                    className={`group relative border-2 rounded-lg overflow-hidden transition-all ${
+                      currentSlideIndex === 0
+                        ? 'border-[#009f3b] shadow-lg ring-2 ring-[#009f3b] ring-opacity-50'
+                        : 'border-gray-300 hover:border-[#009f3b] hover:shadow-md'
+                    }`}
+                  >
+                    <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, 33vw"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="p-2 text-center bg-white">
+                      <div className="text-xs font-semibold text-gray-900">Main</div>
+                    </div>
+                  </button>
+                  
+                  {/* Variant thumbnails */}
                   {product.variants.map((variant: any, index: number) => {
-                    const isSelected = selectedVariant?.type === variant.type;
+                    const slideIndex = index + 1;
+                    const isSelected = currentSlideIndex === slideIndex;
                     const variantImage = variant.image || product.image;
                     
                     return (
                       <button
                         key={index}
-                        onClick={() => setSelectedVariant(variant)}
+                        onClick={() => goToSlide(slideIndex)}
                         className={`group relative border-2 rounded-lg overflow-hidden transition-all ${
                           isSelected
                             ? 'border-[#009f3b] shadow-lg ring-2 ring-[#009f3b] ring-opacity-50'
@@ -258,21 +487,17 @@ export default function ProductDetailPage() {
                             sizes="(max-width: 640px) 50vw, 33vw"
                             unoptimized
                           />
-                          {/* Overlay on hover/select */}
                           {isSelected && (
                             <div className="absolute inset-0 bg-[#009f3b] bg-opacity-10" />
                           )}
                         </div>
                         
                         {/* Variant Info */}
-                        <div className={`p-3 text-left ${isSelected ? 'bg-[#90EE90] bg-opacity-20' : 'bg-white'}`}>
-                          <div className="font-semibold text-gray-900 mb-1 text-sm">{variant.type}</div>
-                          <div className="text-sm font-bold text-[#009f3b]">
+                        <div className={`p-2 text-center ${isSelected ? 'bg-[#90EE90] bg-opacity-20' : 'bg-white'}`}>
+                          <div className="font-semibold text-gray-900 text-xs">{variant.type}</div>
+                          <div className="text-xs font-bold text-[#009f3b]">
                             {formatPrice(parseFloat(variant.price.replace(/[^0-9.]/g, '')) || 0)}
                           </div>
-                          {variant.stock !== undefined && variant.stock > 0 && (
-                            <div className="text-xs text-gray-500 mt-1">Stock: {variant.stock}</div>
-                          )}
                         </div>
                       </button>
                     );
