@@ -20,6 +20,7 @@ export default function ProductDetailPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const isScrollingRef = useRef(false);
   
   // Toast notifications
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -81,10 +82,24 @@ export default function ProductDetailPage() {
   // Sync carousel scroll with currentSlideIndex
   useEffect(() => {
     if (carouselRef.current) {
-      carouselRef.current.scrollTo({
-        left: currentSlideIndex * carouselRef.current.offsetWidth,
-        behavior: 'smooth'
+      isScrollingRef.current = true;
+      const slideWidth = carouselRef.current.offsetWidth;
+      const targetScroll = currentSlideIndex * slideWidth;
+      
+      // Use requestAnimationFrame for smoother animation
+      requestAnimationFrame(() => {
+        if (carouselRef.current) {
+          carouselRef.current.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+          });
+        }
       });
+      
+      // Reset flag after scroll completes
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 600);
     }
   }, [currentSlideIndex]);
 
@@ -113,14 +128,29 @@ export default function ProductDetailPage() {
 
   // Navigation functions
   const goToSlide = (index: number) => {
-    if (index >= 0 && index < carouselImages.length) {
+    if (index >= 0 && index < carouselImages.length && index !== currentSlideIndex) {
+      isScrollingRef.current = true;
       setCurrentSlideIndex(index);
+      
       if (carouselRef.current) {
-        carouselRef.current.scrollTo({
-          left: index * carouselRef.current.offsetWidth,
-          behavior: 'smooth'
+        const slideWidth = carouselRef.current.offsetWidth;
+        const targetScroll = index * slideWidth;
+        
+        // Use requestAnimationFrame for smoother animation
+        requestAnimationFrame(() => {
+          if (carouselRef.current) {
+            carouselRef.current.scrollTo({
+              left: targetScroll,
+              behavior: 'smooth'
+            });
+          }
         });
       }
+      
+      // Reset flag after scroll completes
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 600);
     }
   };
 
@@ -291,15 +321,20 @@ export default function ProductDetailPage() {
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
                   WebkitOverflowScrolling: 'touch',
+                  scrollBehavior: 'smooth',
                 }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onScroll={(e) => {
+                  // Only update if not programmatically scrolling
+                  if (isScrollingRef.current) return;
+                  
                   const target = e.currentTarget;
                   const slideWidth = target.offsetWidth;
                   const scrollLeft = target.scrollLeft;
                   const newIndex = Math.round(scrollLeft / slideWidth);
+                  
                   if (newIndex !== currentSlideIndex && newIndex >= 0 && newIndex < carouselImages.length) {
                     setCurrentSlideIndex(newIndex);
                   }
@@ -308,7 +343,11 @@ export default function ProductDetailPage() {
                 {carouselImages.map((image, index) => (
                   <div
                     key={index}
-                    className="relative w-full aspect-square flex-shrink-0 snap-center"
+                    className="relative w-full aspect-square flex-shrink-0 snap-center transition-opacity duration-300"
+                    style={{
+                      minWidth: '100%',
+                      width: '100%',
+                    }}
                   >
                     <Image
                       src={image.src}
@@ -418,16 +457,16 @@ export default function ProductDetailPage() {
             {product.hasVariants && product.variants && product.variants.length > 0 && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Available Variants ({product.variants.length + 1})
+                  Available Variants ({product.variants.length})
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {/* Main product thumbnail */}
                   <button
                     onClick={() => goToSlide(0)}
-                    className={`group relative rounded-lg overflow-hidden transition-all ${
+                    className={`group relative rounded-lg overflow-hidden transition-all duration-300 ${
                       currentSlideIndex === 0
-                        ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg'
-                        : 'hover:shadow-md'
+                        ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg scale-105'
+                        : 'hover:shadow-md hover:scale-105'
                     }`}
                   >
                     <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
@@ -460,10 +499,10 @@ export default function ProductDetailPage() {
                       <button
                         key={index}
                         onClick={() => goToSlide(slideIndex)}
-                        className={`group relative rounded-lg overflow-hidden transition-all ${
+                        className={`group relative rounded-lg overflow-hidden transition-all duration-300 ${
                           isSelected
-                            ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg'
-                            : 'hover:shadow-md'
+                            ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg scale-105'
+                            : 'hover:shadow-md hover:scale-105'
                         }`}
                       >
                         {/* Selection Indicator */}
