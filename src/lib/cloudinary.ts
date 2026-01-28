@@ -1,19 +1,11 @@
 // Cloudinary configuration - check at runtime, not module load time
 const getCloudinaryConfig = () => {
-  const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dgmexpa8v';
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'nk3archtecture';
 
   if (!CLOUD_NAME) {
     throw new Error(
-      'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required. ' +
-      'Please ensure .env file exists in the project root with: ' +
-      'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dgmexpa8v\n' +
-      'NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=nk3archtecture\n\n' +
-      'After creating/updating .env, you MUST:\n' +
-      '1. Stop the dev server completely (Ctrl+C)\n' +
-      '2. Delete the .next folder (cache cleared)\n' +
-      '3. Restart the dev server (npm run dev)\n\n' +
-      'Environment variables are embedded at build time, so a full restart is required.'
+      'retry again'
     );
   }
 
