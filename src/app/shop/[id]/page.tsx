@@ -47,13 +47,9 @@ export default function ProductDetailPage() {
             hasVariants: data.hasVariants || (data.variants && data.variants.length > 0)
           };
           setProduct(productData);
-          // Set first variant as default if variants exist
-          if (productData.hasVariants && productData.variants.length > 0) {
-            setSelectedVariant(productData.variants[0]);
-            setCurrentSlideIndex(1); // Start at first variant (index 0 is main product image)
-          } else {
-            setCurrentSlideIndex(0); // Start at main product image
-          }
+          // Start at main product image (index 0)
+          setCurrentSlideIndex(0);
+          setSelectedVariant(null);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -178,32 +174,32 @@ export default function ProductDetailPage() {
   const addToCart = () => {
     if (!product) return;
     
-    // If product has variants, require variant selection
-    if (product.hasVariants && !selectedVariant) {
-      showToast('Please select a product type/variant', 'warning');
-      return;
-    }
-    
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     
-    // Determine the price to use
-    const itemPrice = product.hasVariants && selectedVariant
-      ? parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0
-      : product.price;
+    // Determine the price and image to use based on current slide
+    const isMainProduct = currentSlideIndex === 0;
+    const itemPrice = isMainProduct 
+      ? product.price
+      : (selectedVariant ? parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0 : product.price);
+    
+    const itemImage = isMainProduct
+      ? product.image
+      : (selectedVariant && selectedVariant.image ? selectedVariant.image : product.image);
     
     // Create unique key for cart item (product ID + variant type if applicable)
-    const itemKey = product.hasVariants && selectedVariant
-      ? `${product._id || product.id}_${selectedVariant.type}`
-      : (product._id || product.id);
+    const itemKey = isMainProduct
+      ? `${product._id || product.id}_main`
+      : `${product._id || product.id}_${selectedVariant?.type || 'variant'}`;
     
     // Check if this exact item (with same variant) already exists in cart
     const existingItem = cart.find((item: any) => {
       const itemId = item.product._id || item.product.id;
       const itemVariant = item.selectedVariant?.type;
-      if (product.hasVariants && selectedVariant) {
-        return itemId === (product._id || product.id) && itemVariant === selectedVariant.type;
+      if (isMainProduct) {
+        return itemId === (product._id || product.id) && !item.selectedVariant;
+      } else {
+        return itemId === (product._id || product.id) && itemVariant === selectedVariant?.type;
       }
-      return itemId === (product._id || product.id) && !item.selectedVariant;
     });
     
     if (existingItem) {
@@ -215,14 +211,14 @@ export default function ProductDetailPage() {
           id: product._id || product.id,
           name: product.name,
           price: itemPrice,
-          image: (product.hasVariants && selectedVariant && selectedVariant.image) ? selectedVariant.image : product.image,
+          image: itemImage,
           category: product.category
         },
-        selectedVariant: product.hasVariants && selectedVariant ? {
+        selectedVariant: isMainProduct ? null : (selectedVariant ? {
           type: selectedVariant.type,
           price: selectedVariant.price,
           image: selectedVariant.image || ''
-        } : null,
+        } : null),
         quantity: quantity
       });
     }
@@ -232,7 +228,8 @@ export default function ProductDetailPage() {
     localStorage.setItem('cartCount', totalItems.toString());
     window.dispatchEvent(new Event('cartUpdated'));
     
-    showToast('Product added to cart!', 'success');
+    const itemName = isMainProduct ? product.name : `${product.name} - ${selectedVariant?.type || 'Variant'}`;
+    showToast(`${itemName} added to cart!`, 'success');
   };
   
   // Get current price based on selected variant
@@ -283,7 +280,7 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Image Carousel */}
-          <div className="relative w-full">
+          <div className="relative w-full space-y-4">
             <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
               {/* Image Carousel */}
               <div
@@ -321,17 +318,6 @@ export default function ProductDetailPage() {
                       priority={index === 0}
                       sizes="(max-width: 1024px) 100vw, 50vw"
                     />
-                    {/* Variant Badge */}
-                    {image.variant && (
-                      <div className="absolute top-4 left-4 bg-[#009f3b] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                        {image.variant.type}
-                      </div>
-                    )}
-                    {!image.variant && currentSlideIndex === 0 && (
-                      <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                        Main Product
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -374,39 +360,31 @@ export default function ProductDetailPage() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <span className="inline-block bg-[#90EE90] text-[#009f3b] px-3 py-1 text-sm font-semibold uppercase mb-4">
-                {product.category}
-              </span>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">
-                {product.name}
-              </h1>
-              
-              {/* Dynamic Variant Info */}
+            {/* Variant Type Display Below Image */}
+            <div className="text-center">
               {currentSlideIndex === 0 ? (
-                // Main product info
-                <div className="space-y-2 mb-6">
-                  <div className="text-3xl md:text-4xl font-bold text-[#009f3b]">
+                <div className="space-y-2">
+                  <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">
+                    {product.name}
+                  </div>
+                  <div className="text-xl md:text-2xl font-semibold text-gray-700">
+                    Main Product
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">
                     {formatPrice(product.price)}
                   </div>
-                  {product.hasVariants && product.variants.length > 0 && (
-                    <p className="text-lg text-gray-600">
-                      Slide through images to see {product.variants.length} variant{product.variants.length > 1 ? 's' : ''} available
-                    </p>
-                  )}
                 </div>
               ) : (
-                // Variant info
                 selectedVariant && (
-                  <div className="space-y-2 mb-6">
-                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b] mb-2">
-                      {selectedVariant.type}
+                  <div className="space-y-2">
+                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">
+                      {product.name}
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold text-[#009f3b]">
+                    <div className="text-xl md:text-2xl font-semibold text-gray-700">
+                      Type: {selectedVariant.type}
+                    </div>
+                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">
                       {formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)}
                     </div>
                     {selectedVariant.stock !== undefined && selectedVariant.stock > 0 && (
@@ -418,21 +396,38 @@ export default function ProductDetailPage() {
                 )
               )}
             </div>
+          </div>
+
+          {/* Product Info */}
+          <div className="space-y-6">
+            <div>
+              <span className="inline-block bg-[#90EE90] text-[#009f3b] px-3 py-1 text-sm font-semibold uppercase mb-4">
+                {product.category}
+              </span>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">
+                {product.name}
+              </h1>
+              {product.hasVariants && product.variants.length > 0 && (
+                <p className="text-lg text-gray-600 mb-6">
+                  Slide through images to see {product.variants.length} variant{product.variants.length > 1 ? 's' : ''} available
+                </p>
+              )}
+            </div>
             
             {/* Variant Thumbnails - Quick Navigation */}
             {product.hasVariants && product.variants && product.variants.length > 0 && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Available Variants ({product.variants.length})
+                  Available Variants ({product.variants.length + 1})
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {/* Main product thumbnail */}
                   <button
                     onClick={() => goToSlide(0)}
-                    className={`group relative border-2 rounded-lg overflow-hidden transition-all ${
+                    className={`group relative rounded-lg overflow-hidden transition-all ${
                       currentSlideIndex === 0
-                        ? 'border-[#009f3b] shadow-lg ring-2 ring-[#009f3b] ring-opacity-50'
-                        : 'border-gray-300 hover:border-[#009f3b] hover:shadow-md'
+                        ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg'
+                        : 'hover:shadow-md'
                     }`}
                   >
                     <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
@@ -440,12 +435,17 @@ export default function ProductDetailPage() {
                         src={product.image}
                         alt={product.name}
                         fill
-                        className="object-cover"
+                        className={`object-cover transition-transform ${
+                          currentSlideIndex === 0 ? 'scale-105' : 'group-hover:scale-105'
+                        }`}
                         sizes="(max-width: 640px) 50vw, 33vw"
                         unoptimized
                       />
+                      {currentSlideIndex === 0 && (
+                        <div className="absolute inset-0 bg-[#009f3b] bg-opacity-10" />
+                      )}
                     </div>
-                    <div className="p-2 text-center bg-white">
+                    <div className={`p-2 text-center ${currentSlideIndex === 0 ? 'bg-[#90EE90] bg-opacity-20' : 'bg-white'}`}>
                       <div className="text-xs font-semibold text-gray-900">Main</div>
                     </div>
                   </button>
@@ -460,10 +460,10 @@ export default function ProductDetailPage() {
                       <button
                         key={index}
                         onClick={() => goToSlide(slideIndex)}
-                        className={`group relative border-2 rounded-lg overflow-hidden transition-all ${
+                        className={`group relative rounded-lg overflow-hidden transition-all ${
                           isSelected
-                            ? 'border-[#009f3b] shadow-lg ring-2 ring-[#009f3b] ring-opacity-50'
-                            : 'border-gray-300 hover:border-[#009f3b] hover:shadow-md'
+                            ? 'ring-2 ring-[#009f3b] ring-opacity-50 shadow-lg'
+                            : 'hover:shadow-md'
                         }`}
                       >
                         {/* Selection Indicator */}
@@ -542,19 +542,17 @@ export default function ProductDetailPage() {
               </div>
               <button
                 onClick={addToCart}
-                disabled={product.hasVariants && !selectedVariant}
-                className={`w-full px-6 py-4 rounded-none font-semibold transition-colors flex items-center justify-center gap-2 text-lg ${
-                  product.hasVariants && !selectedVariant
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-[#009f3b] text-white hover:bg-[#00782d]'
-                }`}
+                className="w-full px-6 py-4 rounded-none font-semibold transition-colors flex items-center justify-center gap-2 text-lg bg-[#009f3b] text-white hover:bg-[#00782d]"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
               </button>
-              {product.hasVariants && !selectedVariant && (
-                <p className="text-sm text-red-600 mt-2 text-center">Please select a type/variant first</p>
-              )}
+              <p className="text-sm text-gray-600 mt-2 text-center">
+                {currentSlideIndex === 0 
+                  ? 'Adding main product to cart'
+                  : `Adding ${selectedVariant?.type || 'variant'} to cart`
+                }
+              </p>
             </div>
           </div>
         </div>
