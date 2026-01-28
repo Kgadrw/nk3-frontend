@@ -13,7 +13,7 @@ type Product = {
   price: number;
   image: string;
   category: string;
-  variants?: Array<{ type: string; price: string; stock?: number }>;
+  variants?: Array<{ type: string; price: string; stock?: number; image?: string }>;
   hasVariants?: boolean;
 };
 

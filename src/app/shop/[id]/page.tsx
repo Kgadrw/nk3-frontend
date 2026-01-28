@@ -109,12 +109,13 @@ export default function ProductDetailPage() {
           id: product._id || product.id,
           name: product.name,
           price: itemPrice,
-          image: product.image,
+          image: (product.hasVariants && selectedVariant && selectedVariant.image) ? selectedVariant.image : product.image,
           category: product.category
         },
         selectedVariant: product.hasVariants && selectedVariant ? {
           type: selectedVariant.type,
-          price: selectedVariant.price
+          price: selectedVariant.price,
+          image: selectedVariant.image || ''
         } : null,
         quantity: quantity
       });

@@ -16,14 +16,14 @@ type Product = {
   price: number;
   image: string;
   category: string;
-  variants?: Array<{ type: string; price: string; stock?: number }>;
+  variants?: Array<{ type: string; price: string; stock?: number; image?: string }>;
   hasVariants?: boolean;
 };
 
 type CartItem = {
   product: Product;
   quantity: number;
-  selectedVariant?: { type: string; price: string } | null;
+  selectedVariant?: { type: string; price: string; image?: string } | null;
 };
 
 export default function CartPage() {

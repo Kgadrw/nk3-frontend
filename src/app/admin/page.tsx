@@ -151,7 +151,7 @@ export default function AdminDashboard() {
   const [shopPrice, setShopPrice] = useState('');
   const [shopCategory, setShopCategory] = useState('');
   const [shopDescription, setShopDescription] = useState('');
-  const [shopVariants, setShopVariants] = useState<Array<{ type: string; price: string; stock?: number }>>([]);
+  const [shopVariants, setShopVariants] = useState<Array<{ type: string; price: string; stock?: number; image?: string }>>([]);
   const [shopHasVariants, setShopHasVariants] = useState(false);
   
   // Academy management state
@@ -347,6 +347,13 @@ export default function AdminDashboard() {
         setShopCategory(product.category || '');
         setShopDescription(product.description || '');
         setShopImage(product.image || '');
+        setShopHasVariants(!!product.hasVariants || (product.variants && product.variants.length > 0));
+        setShopVariants(Array.isArray(product.variants) ? product.variants.map((v: any) => ({
+          type: v.type || '',
+          price: v.price || '',
+          stock: typeof v.stock === 'number' ? v.stock : 0,
+          image: v.image || ''
+        })) : []);
       }
     } else if (!editingShop) {
       // Reset form when not editing
@@ -984,7 +991,8 @@ export default function AdminDashboard() {
         variants: hasVariants ? shopVariants.map(v => ({
           type: v.type.trim(),
           price: v.price.trim(),
-          stock: v.stock || 0
+          stock: v.stock || 0,
+          image: v.image || ''
         })) : [],
         hasVariants: hasVariants
       };
@@ -4682,7 +4690,7 @@ export default function AdminDashboard() {
                             </div>
                             
                             {shopVariants.map((variant, index) => (
-                              <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded border border-gray-200">
+                              <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-gray-50 rounded border border-gray-200">
                                 <div>
                                   <label className="block text-xs font-semibold text-gray-600 mb-1">Type/Name *</label>
                                   <input
@@ -4712,6 +4720,21 @@ export default function AdminDashboard() {
                                     className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
                                     required={shopHasVariants}
                                   />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Variant Image (Optional)</label>
+                                  <div className="border border-gray-300 rounded">
+                                    <ImageUploadField
+                                      label=""
+                                      imageUrl={variant.image || ''}
+                                      onImageChange={(url) => {
+                                        const updated = [...shopVariants];
+                                        updated[index].image = url;
+                                        setShopVariants(updated);
+                                      }}
+                                      folder="nk3d/shop/variants"
+                                    />
+                                  </div>
                                 </div>
                                 <div className="flex items-end gap-2">
                                   <div className="flex-1">
