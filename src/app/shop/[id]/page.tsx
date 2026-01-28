@@ -527,7 +527,7 @@ export default function ProductDetailPage() {
                             unoptimized
                           />
                           {isSelected && (
-                            <div className="absolute inset-0 bg-[#009f3b] bg-opacity-10" />
+                            <div className="absolute inset-0 bg-white bg-opacity-0" />
                           )}
                         </div>
                         
