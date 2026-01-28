@@ -179,12 +179,22 @@ export default function ProductDetailPage() {
           {/* Product Image */}
           <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
             <Image
-              src={product.image}
+              src={
+                product.hasVariants && selectedVariant && selectedVariant.image
+                  ? selectedVariant.image
+                  : product.image
+              }
               alt={product.name}
               fill
               className="object-cover"
               priority
             />
+            {/* Variant Badge */}
+            {product.hasVariants && selectedVariant && (
+              <div className="absolute top-4 left-4 bg-[#009f3b] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                {selectedVariant.type}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -212,26 +222,61 @@ export default function ProductDetailPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Select Type/Variant *
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {product.variants.map((variant: any, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedVariant(variant)}
-                      className={`p-3 border-2 rounded-lg text-left transition-all ${
-                        selectedVariant?.type === variant.type
-                          ? 'border-[#009f3b] bg-[#90EE90] bg-opacity-20'
-                          : 'border-gray-300 hover:border-[#009f3b] hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="font-semibold text-gray-900 mb-1">{variant.type}</div>
-                      <div className="text-sm font-bold text-[#009f3b]">
-                        {formatPrice(parseFloat(variant.price.replace(/[^0-9.]/g, '')) || 0)}
-                      </div>
-                      {variant.stock !== undefined && variant.stock > 0 && (
-                        <div className="text-xs text-gray-500 mt-1">Stock: {variant.stock}</div>
-                      )}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {product.variants.map((variant: any, index: number) => {
+                    const isSelected = selectedVariant?.type === variant.type;
+                    const variantImage = variant.image || product.image;
+                    
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedVariant(variant)}
+                        className={`group relative border-2 rounded-lg overflow-hidden transition-all ${
+                          isSelected
+                            ? 'border-[#009f3b] shadow-lg ring-2 ring-[#009f3b] ring-opacity-50'
+                            : 'border-gray-300 hover:border-[#009f3b] hover:shadow-md'
+                        }`}
+                      >
+                        {/* Selection Indicator */}
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 z-10 bg-[#009f3b] text-white rounded-full p-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                        
+                        {/* Variant Image */}
+                        <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
+                          <Image
+                            src={variantImage}
+                            alt={`${product.name} - ${variant.type}`}
+                            fill
+                            className={`object-cover transition-transform ${
+                              isSelected ? 'scale-105' : 'group-hover:scale-105'
+                            }`}
+                            sizes="(max-width: 640px) 50vw, 33vw"
+                            unoptimized
+                          />
+                          {/* Overlay on hover/select */}
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-[#009f3b] bg-opacity-10" />
+                          )}
+                        </div>
+                        
+                        {/* Variant Info */}
+                        <div className={`p-3 text-left ${isSelected ? 'bg-[#90EE90] bg-opacity-20' : 'bg-white'}`}>
+                          <div className="font-semibold text-gray-900 mb-1 text-sm">{variant.type}</div>
+                          <div className="text-sm font-bold text-[#009f3b]">
+                            {formatPrice(parseFloat(variant.price.replace(/[^0-9.]/g, '')) || 0)}
+                          </div>
+                          {variant.stock !== undefined && variant.stock > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">Stock: {variant.stock}</div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
