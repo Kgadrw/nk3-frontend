@@ -6,10 +6,14 @@ const getCloudinaryConfig = () => {
   if (!CLOUD_NAME) {
     throw new Error(
       'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is required. ' +
-      'Please create a .env.local file in the project root with your Cloudinary credentials: ' +
-      'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name\n' +
-      'NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset\n\n' +
-      'After creating/updating .env.local, restart your Next.js dev server (stop with Ctrl+C and run "npm run dev" again).'
+      'Please ensure .env.local file exists in the project root with: ' +
+      'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dgmexpa8v\n' +
+      'NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=nk3archtecture\n\n' +
+      'After creating/updating .env.local, you MUST:\n' +
+      '1. Stop the dev server completely (Ctrl+C)\n' +
+      '2. Delete the .next folder (cache cleared)\n' +
+      '3. Restart the dev server (npm run dev)\n\n' +
+      'Environment variables are embedded at build time, so a full restart is required.'
     );
   }
 
