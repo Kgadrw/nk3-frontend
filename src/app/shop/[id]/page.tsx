@@ -306,7 +306,7 @@ export default function ProductDetailPage() {
           <div className="flex flex-col md:flex-row gap-4">
             {/* Thumbnail Strip - Left Side (Only show if variants exist) */}
             {product.hasVariants && product.variants?.length > 0 && (
-              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 md:order-1 order-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
+              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 order-2 md:order-1 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
                 {/* Main product thumbnail */}
                 <button
                   onClick={() => {
@@ -370,7 +370,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Main Product Image - Right Side (or top on mobile) */}
-            <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+            <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 order-1 md:order-2">
               <Image
                 src={
                   currentSlideIndex === 0

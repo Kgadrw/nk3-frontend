@@ -10,25 +10,65 @@ export async function GET(
     const resolvedParams = await params;
     const productId = resolvedParams?.id;
     
+    console.log('Shop GET - Fetching product ID:', productId);
+    console.log('Shop GET - Backend URL:', `${API_URL}/api/shop/${productId}`);
+    
     if (!productId) {
+      console.error('Shop GET - Product ID is missing');
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
     
-    const res = await fetch(`${API_URL}/api/shop/${productId}`);
+    const res = await fetch(`${API_URL}/api/shop/${productId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    console.log('Shop GET - Response status:', res.status, res.statusText);
+    console.log('Shop GET - Response URL:', res.url);
     
     if (!res.ok) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      const contentType = res.headers.get('content-type');
+      let errorMessage = `Product not found (${res.status})`;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+          console.error('Shop GET error (JSON):', errorData);
+        } catch (e) {
+          console.error('Error parsing JSON error response:', e);
+        }
+      } else {
+        try {
+          const errorText = await res.text();
+          console.error('Shop GET error (text):', errorText);
+          if (errorText) errorMessage = errorText;
+        } catch (e) {
+          console.error('Error parsing text error response:', e);
+        }
+      }
+      
+      return NextResponse.json({ error: errorMessage }, { status: res.status >= 400 && res.status < 500 ? res.status : 404 });
     }
     
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
+      console.error('Shop GET - Invalid content type:', contentType);
       return NextResponse.json({ error: 'Invalid response from backend' }, { status: 500 });
     }
     
     const data = await res.json();
+    console.log('Shop GET - Success, product data received');
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Shop GET - Error:', error);
+    console.error('Shop GET - Error stack:', error.stack);
+    return NextResponse.json({ 
+      error: error.message || 'Failed to fetch product',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }
 
