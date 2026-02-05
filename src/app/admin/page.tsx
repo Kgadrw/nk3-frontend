@@ -249,6 +249,21 @@ export default function AdminDashboard() {
   const [heroButtonLink, setHeroButtonLink] = useState('/contact');
   const [heroIsActive, setHeroIsActive] = useState(true);
   
+  // Loading states for save operations
+  const [isSavingPortfolio, setIsSavingPortfolio] = useState(false);
+  const [isSavingTeam, setIsSavingTeam] = useState(false);
+  const [isSavingShop, setIsSavingShop] = useState(false);
+  const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const [isSavingService, setIsSavingService] = useState(false);
+  const [isSavingValue, setIsSavingValue] = useState(false);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [isSavingAcademic, setIsSavingAcademic] = useState(false);
+  const [isSavingSeminar, setIsSavingSeminar] = useState(false);
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [isSavingSocialLinks, setIsSavingSocialLinks] = useState(false);
+  const [isSavingContactInfo, setIsSavingContactInfo] = useState(false);
+  const [isSavingCompanyProfile, setIsSavingCompanyProfile] = useState(false);
+  
   // Contact information state
   const [contactInfo, setContactInfo] = useState({
     phoneNumbers: [] as string[],
@@ -578,6 +593,7 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Title, Category, Year, Description, Image)', 'warning');
       return;
     }
+    setIsSavingPortfolio(true);
     try {
       const data = {
         title: portfolioTitle,
@@ -634,6 +650,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error saving portfolio:', error);
       showToast('Error saving portfolio. Please try again.', 'error');
+    } finally {
+      setIsSavingPortfolio(false);
     }
   };
 
@@ -664,6 +682,7 @@ export default function AdminDashboard() {
       return;
     }
     
+    setIsSavingTeam(true);
     const teamId = editingTeam ? String(editingTeam).trim() : null;
     const isEdit = !!teamId;
     
@@ -731,6 +750,8 @@ export default function AdminDashboard() {
     } catch (error: any) {
       console.error('Error saving team member:', error);
       showToast(`Error: ${error.message || 'Network error. Please try again.'}`, 'error');
+    } finally {
+      setIsSavingTeam(false);
     }
   };
 
@@ -981,6 +1002,7 @@ export default function AdminDashboard() {
       return;
     }
     
+    setIsSavingShop(true);
     try {
       const data = {
         name: shopName.trim(),
@@ -1068,6 +1090,8 @@ export default function AdminDashboard() {
     } catch (error: any) {
       // Error saving shop
       showToast(`Error saving product: ${error.message || 'Please try again'}`, 'error');
+    } finally {
+      setIsSavingShop(false);
     }
   };
 
@@ -1077,6 +1101,7 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Name, Type)', 'warning');
       return;
     }
+    setIsSavingPayment(true);
     try {
       const data = {
         name: paymentName.trim(),
@@ -1112,6 +1137,8 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       showToast(`Error saving payment method: ${error.message || 'Please try again'}`, 'error');
+    } finally {
+      setIsSavingPayment(false);
     }
   };
 
@@ -1198,6 +1225,7 @@ export default function AdminDashboard() {
       showToast('Please fill in the required field (Title)', 'warning');
       return;
     }
+    setIsSavingService(true);
     try {
       const data: any = {
         title: serviceTitle.trim(),
@@ -1247,6 +1275,8 @@ export default function AdminDashboard() {
     } catch (error: any) {
       console.error('Error saving service:', error);
       showToast(`Error: ${error.message || 'Failed to save service'}`, 'error');
+    } finally {
+      setIsSavingService(false);
     }
   };
 
@@ -1273,6 +1303,7 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Label, Description)', 'warning');
       return;
     }
+    setIsSavingValue(true);
     try {
       const data = {
         label: valueLabel,
@@ -1301,6 +1332,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error saving value:', error);
       showToast('Error saving value. Please try again.', 'error');
+    } finally {
+      setIsSavingValue(false);
     }
   };
 
@@ -1327,6 +1360,7 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Title Part 1, Title Part 2, Description)', 'warning');
       return;
     }
+    setIsSavingHero(true);
     try {
       const data = {
         titlePart1: heroTitlePart1,
@@ -1361,6 +1395,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error saving hero text:', error);
       showToast('Error saving hero text. Please try again.', 'error');
+    } finally {
+      setIsSavingHero(false);
     }
   };
 
@@ -1393,6 +1429,7 @@ export default function AdminDashboard() {
       showToast('Please provide either a publication link or a PDF document', 'warning');
       return;
     }
+    setIsSavingAcademic(true);
     try {
       let finalPdfLink = pdfLink?.trim() || '';
       
@@ -1468,6 +1505,8 @@ export default function AdminDashboard() {
     } catch (error) {
       // Error saving academic
       showToast('Error saving publication. Please try again.', 'error');
+    } finally {
+      setIsSavingAcademic(false);
     }
   };
 
@@ -1524,6 +1563,7 @@ export default function AdminDashboard() {
       showToast('Please fill in all required fields (Title, Description, Date)', 'warning');
       return;
     }
+    setIsSavingSeminar(true);
     try {
       const data = {
         title: seminarTitle.trim(),
@@ -1578,6 +1618,8 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       showToast('Error saving seminar. Please try again.', 'error');
+    } finally {
+      setIsSavingSeminar(false);
     }
   };
 
@@ -1627,11 +1669,12 @@ export default function AdminDashboard() {
   };
 
   const saveContactInfo = async () => {
+    if (!contactInfo.email || contactInfo.phoneNumbers.length === 0) {
+      showToast('Please add at least one phone number and email address', 'warning');
+      return;
+    }
+    setIsSavingContactInfo(true);
     try {
-      if (!contactInfo.email || contactInfo.phoneNumbers.length === 0) {
-        showToast('Please add at least one phone number and email address', 'warning');
-        return;
-      }
       const res = await fetch('/api/contact', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -1647,6 +1690,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error saving contact info:', error);
       showToast('Error saving contact information. Please try again.', 'error');
+    } finally {
+      setIsSavingContactInfo(false);
     }
   };
 
@@ -1668,6 +1713,7 @@ export default function AdminDashboard() {
   };
 
   const saveSocialLinks = async () => {
+    setIsSavingSocialLinks(true);
     try {
       const res = await fetch('/api/social', {
         method: 'PUT',
@@ -1687,6 +1733,8 @@ export default function AdminDashboard() {
     } catch (error) {
       // Error saving social links
       showToast('Error saving social media links', 'error');
+    } finally {
+      setIsSavingSocialLinks(false);
     }
   };
 
@@ -1718,6 +1766,7 @@ export default function AdminDashboard() {
       return;
     }
     
+    setIsSavingCompanyProfile(true);
     // If a new file is selected, upload it first
     let pdfUrl = companyProfilePdf;
     if (companyProfilePdfFile) {
@@ -1768,6 +1817,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error saving company profile:', error);
       showToast('Error saving company profile PDF', 'error');
+    } finally {
+      setIsSavingCompanyProfile(false);
     }
   };
 
@@ -2249,9 +2300,16 @@ export default function AdminDashboard() {
                   </div>
                   <button
                     onClick={saveSocialLinks}
-                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                    disabled={isSavingSocialLinks}
+                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    Save Social Links
+                    {isSavingSocialLinks && (
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {isSavingSocialLinks ? 'Saving...' : 'Save Social Links'}
                   </button>
                 </div>
               </div>
@@ -2397,9 +2455,16 @@ export default function AdminDashboard() {
 
                   <button
                     onClick={saveContactInfo}
-                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                    disabled={isSavingContactInfo}
+                    className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    Save Contact Information
+                    {isSavingContactInfo && (
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {isSavingContactInfo ? 'Saving...' : 'Save Contact Information'}
                   </button>
                 </div>
               </div>
@@ -2430,10 +2495,23 @@ export default function AdminDashboard() {
                       {(companyProfilePdfFile || companyProfilePdf) && (
                         <button
                           onClick={saveCompanyProfile}
-                          className="bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex items-center gap-2"
+                          disabled={isSavingCompanyProfile}
+                          className="bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Upload className="w-4 h-4" />
-                          {companyProfilePdfFile ? 'Update PDF' : 'Save PDF'}
+                          {isSavingCompanyProfile ? (
+                            <>
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4" />
+                              {companyProfilePdfFile ? 'Update PDF' : 'Save PDF'}
+                            </>
+                          )}
                         </button>
                       )}
                     </div>
@@ -3185,9 +3263,16 @@ export default function AdminDashboard() {
                     <div className="flex gap-3">
                       <button 
                         type="submit"
-                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                        disabled={isSavingPortfolio}
+                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
-                        {editingPortfolio ? 'Update Project' : 'Create Project'}
+                        {isSavingPortfolio && (
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        )}
+                        {isSavingPortfolio ? 'Saving...' : (editingPortfolio ? 'Update Project' : 'Create Project')}
                       </button>
                       <button 
                         type="button"
@@ -3487,9 +3572,16 @@ export default function AdminDashboard() {
                     <div className="flex gap-3">
                       <button 
                         type="submit"
-                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                        disabled={isSavingAcademic}
+                        className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
-                        {editingAcademy ? 'Update Publication' : 'Publish Research'}
+                        {isSavingAcademic && (
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        )}
+                        {isSavingAcademic ? 'Saving...' : (editingAcademy ? 'Update Publication' : 'Publish Research')}
                       </button>
                       <button 
                         type="button"
@@ -3764,9 +3856,16 @@ export default function AdminDashboard() {
                         <div className="flex gap-3">
                           <button 
                             type="submit"
-                            className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                            disabled={isSavingSeminar}
+                            className="bg-[#009f3b] text-white px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
-                            {editingSeminar ? 'Update Seminar' : 'Create Seminar'}
+                            {isSavingSeminar && (
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            )}
+                            {isSavingSeminar ? 'Saving...' : (editingSeminar ? 'Update Seminar' : 'Create Seminar')}
                           </button>
                           <button 
                             type="button"
@@ -4430,9 +4529,16 @@ export default function AdminDashboard() {
                       <div className="flex gap-3 pt-4">
                       <button 
                         type="submit"
-                          className="bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors"
+                        disabled={isSavingTeam}
+                          className="bg-[#009f3b] text-white px-6 py-2 font-semibold hover:bg-[#00782d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
-                        {editingTeam ? 'Update Team Member' : 'Add Team Member'}
+                        {isSavingTeam && (
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        )}
+                        {isSavingTeam ? 'Saving...' : (editingTeam ? 'Update Team Member' : 'Add Team Member')}
                       </button>
                       <button 
                           type="button"
@@ -4782,9 +4888,16 @@ export default function AdminDashboard() {
                     <div className="flex flex-col sm:flex-row gap-3">
                 <button
                           type="submit"
-                        className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
+                        disabled={isSavingShop}
+                        className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        {editingShop ? 'Update Product' : 'Add Product'}
+                        {isSavingShop && (
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        )}
+                        {isSavingShop ? 'Saving...' : (editingShop ? 'Update Product' : 'Add Product')}
                 </button>
                 <button
                           type="button"
@@ -5058,9 +5171,16 @@ export default function AdminDashboard() {
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           type="submit"
-                          className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
+                          disabled={isSavingPayment}
+                          className="bg-[#009f3b] text-white px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                          {editingPayment ? 'Update Payment Method' : 'Add Payment Method'}
+                          {isSavingPayment && (
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          )}
+                          {isSavingPayment ? 'Saving...' : (editingPayment ? 'Update Payment Method' : 'Add Payment Method')}
                         </button>
                         <button
                           type="button"
