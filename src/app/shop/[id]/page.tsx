@@ -302,242 +302,167 @@ export default function ProductDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Product Image Carousel */}
-          <div className="relative w-full space-y-4">
-            {/* ✅ No bg color */}
-            <div className="relative w-full aspect-square bg-transparent rounded-lg overflow-hidden">
-              <div
-                ref={carouselRef}
-                className="flex overflow-hidden snap-x snap-mandatory scrollbar-hide"
-                style={{
-                  scrollSnapType: 'x mandatory',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollBehavior: 'smooth',
-                }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onScroll={(e) => {
-                  if (isScrollingRef.current) return;
+          {/* Product Images with Thumbnails */}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Thumbnail Strip - Left Side (Only show if variants exist) */}
+            {product.hasVariants && product.variants?.length > 0 && (
+              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 md:order-1 order-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
+                {/* Main product thumbnail */}
+                <button
+                  onClick={() => {
+                    setCurrentSlideIndex(0);
+                    setSelectedVariant(null);
+                  }}
+                  className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
+                    currentSlideIndex === 0
+                      ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
+                      : 'border-gray-300 hover:border-[#009f3b]/50'
+                  }`}
+                >
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                </button>
 
-                  const target = e.currentTarget;
-                  const slideWidth = target.offsetWidth;
-                  const scrollLeft = target.scrollLeft;
-                  const newIndex = Math.round(scrollLeft / slideWidth);
+                {/* Variant thumbnails */}
+                {product.variants.map((variant: any, index: number) => {
+                  const slideIndex = index + 1;
+                  const isSelected = currentSlideIndex === slideIndex;
+                  const variantImage = variant.image || product.image;
 
-                  if (newIndex !== currentSlideIndex && newIndex >= 0 && newIndex < carouselImages.length) {
-                    setCurrentSlideIndex(newIndex);
-                  }
-                }}
-              >
-                {carouselImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative w-full aspect-square flex-shrink-0 snap-center"
-                    style={{ minWidth: '100%', width: '100%' }}
-                  >
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      className="object-cover"
-                      priority={index === 0}
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Navigation Arrows */}
-              {carouselImages.length > 1 && (
-                <>
-                  <button
-                    onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all z-10"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all z-10"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
-
-              {/* Slide Indicators */}
-              {carouselImages.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                  {carouselImages.map((_, index) => (
+                  return (
                     <button
                       key={index}
-                      onClick={() => goToSlide(index)}
-                      className={`h-2 rounded-full transition-all ${
-                        index === currentSlideIndex ? 'bg-[#009f3b] w-8' : 'bg-white/50 w-2 hover:bg-white/75'
+                      onClick={() => {
+                        setCurrentSlideIndex(slideIndex);
+                        setSelectedVariant(variant);
+                      }}
+                      className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
+                        isSelected
+                          ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
+                          : 'border-gray-300 hover:border-[#009f3b]/50'
                       }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+                    >
+                      <Image
+                        src={variantImage}
+                        alt={`${product.name} - ${variant.type}`}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-[#009f3b]/10 flex items-center justify-center">
+                          <div className="w-4 h-4 bg-[#009f3b] rounded-full flex items-center justify-center">
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-            {/* Variant Type Display Below Image */}
-            <div className="text-center">
-              {currentSlideIndex === 0 ? (
-                <div className="space-y-2">
-                  <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">{product.name}</div>
-                  <div className="text-xl md:text-2xl font-semibold text-gray-700">Main Product</div>
-                  <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">{formatPrice(product.price)}</div>
-                </div>
-              ) : (
-                selectedVariant && (
-                  <div className="space-y-2">
-                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">{product.name}</div>
-                    <div className="text-xl md:text-2xl font-semibold text-gray-700">Type: {selectedVariant.type}</div>
-                    <div className="text-2xl md:text-3xl font-bold text-[#009f3b]">
-                      {formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)}
-                    </div>
-                    {selectedVariant.stock !== undefined && selectedVariant.stock > 0 && (
-                      <div className="text-sm text-gray-600 mt-2">Stock: {selectedVariant.stock} available</div>
-                    )}
-                  </div>
-                )
-              )}
+            {/* Main Product Image - Right Side (or top on mobile) */}
+            <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+              <Image
+                src={
+                  currentSlideIndex === 0
+                    ? product.image
+                    : selectedVariant?.image || product.image
+                }
+                alt={
+                  currentSlideIndex === 0
+                    ? product.name
+                    : `${product.name} - ${selectedVariant?.type || 'Variant'}`
+                }
+                fill
+                className="object-contain"
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
+            {/* Product Name */}
             <div>
-              <span className="inline-block bg-[#90EE90] text-[#009f3b] px-3 py-1 text-sm font-semibold uppercase mb-4">
-                {product.category}
-              </span>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#009f3b] mb-4">{product.name}</h1>
-              {product.hasVariants && product.variants.length > 0 && (
-                <p className="text-lg text-gray-600 mb-6">
-                  Slide through images to see {product.variants.length} variant{product.variants.length > 1 ? 's' : ''} available
-                </p>
-              )}
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+                {product.name}
+              </h1>
             </div>
 
-            {/* Variant Thumbnails - Quick Navigation */}
-            {product.hasVariants && product.variants?.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Available Variants ({product.variants.length})
-                </label>
+            {/* Price Section */}
+            <div className="border-b border-gray-200 pb-4">
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-3xl md:text-4xl font-bold text-[#009f3b]">
+                  {currentSlideIndex === 0
+                    ? formatPrice(product.price)
+                    : selectedVariant
+                      ? formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)
+                      : formatPrice(product.price)}
+                </span>
+              </div>
+              
+              {/* Stock/Quantity Info */}
+              <div className="text-sm text-gray-600">
+                {currentSlideIndex === 0 ? (
+                  product.stock !== undefined && product.stock > 0 ? (
+                    <span className="text-green-600 font-medium">{product.stock} available</span>
+                  ) : product.stock === 0 ? (
+                    <span className="text-red-600 font-medium">Out of stock</span>
+                  ) : null
+                ) : (
+                  selectedVariant?.stock !== undefined && selectedVariant.stock > 0 ? (
+                    <span className="text-green-600 font-medium">{selectedVariant.stock} available</span>
+                  ) : selectedVariant?.stock === 0 ? (
+                    <span className="text-red-600 font-medium">Out of stock</span>
+                  ) : null
+                )}
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {/* Main product thumbnail */}
-                  <button
-                    onClick={() => goToSlide(0)}
-                    className={`group relative rounded-lg overflow-hidden transition-all duration-300 ${
-                      currentSlideIndex === 0
-                        ? 'ring-2 ring-[#009f3b]/50 shadow-lg scale-105'
-                        : 'hover:shadow-md hover:scale-105'
-                    }`}
-                  >
-                    <div className="relative w-full aspect-square bg-transparent overflow-hidden">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className={`object-cover transition-transform ${
-                          currentSlideIndex === 0 ? 'scale-105' : 'group-hover:scale-105'
-                        }`}
-                        sizes="(max-width: 640px) 50vw, 33vw"
-                        unoptimized
-                      />
-                    </div>
-
-                    {/* ✅ label without bg */}
-                    <div className="p-2 text-center">
-                      <div className="text-xs font-semibold text-gray-900">Main</div>
-                    </div>
-                  </button>
-
-                  {/* Variant thumbnails */}
-                  {product.variants.map((variant: any, index: number) => {
-                    const slideIndex = index + 1;
-                    const isSelected = currentSlideIndex === slideIndex;
-                    const variantImage = variant.image || product.image;
-
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => goToSlide(slideIndex)}
-                        className={`group relative rounded-lg overflow-hidden transition-all duration-300 ${
-                          isSelected ? 'ring-2 ring-[#009f3b]/50 shadow-lg scale-105' : 'hover:shadow-md hover:scale-105'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 z-10 bg-[#009f3b] text-white rounded-full p-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-
-                        <div className="relative w-full aspect-square bg-transparent overflow-hidden">
-                          <Image
-                            src={variantImage}
-                            alt={`${product.name} - ${variant.type}`}
-                            fill
-                            className={`object-cover transition-transform ${
-                              isSelected ? 'scale-105' : 'group-hover:scale-105'
-                            }`}
-                            sizes="(max-width: 640px) 50vw, 33vw"
-                            unoptimized
-                          />
-                          {/* ✅ removed selected bg overlay */}
-                        </div>
-
-                        <div className="p-2 text-center bg-transparent">
-                          <div className="font-semibold text-gray-900 text-xs">{variant.type}</div>
-                          <div className="text-xs font-bold text-[#009f3b]">
-                            {formatPrice(parseFloat(variant.price.replace(/[^0-9.]/g, '')) || 0)}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* Selected Variant Info */}
+            {selectedVariant && (
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Selected Variant</h2>
+                <p className="text-gray-700 font-medium">{selectedVariant.type}</p>
               </div>
             )}
 
             {/* Description */}
             {product.description && (
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
+              <div className="border-b border-gray-200 pb-4">
+                <h2 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h2>
+                <p className="text-gray-700 leading-relaxed text-sm">{product.description}</p>
               </div>
             )}
 
+
             {/* Quantity and Add to Cart */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-4 mb-6">
-                <label className="text-sm font-semibold text-gray-700">Quantity:</label>
-                <div className="flex items-center gap-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-semibold text-gray-700 min-w-[80px]">Quantity:</label>
+                <div className="flex items-center gap-2 border border-gray-300 rounded">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-600 hover:text-gray-900"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                     </svg>
                   </button>
-
-                  <span className="w-12 text-center font-semibold">{quantity}</span>
-
+                  <span className="w-12 text-center font-semibold text-gray-900">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-600 hover:text-gray-900"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -548,15 +473,11 @@ export default function ProductDetailPage() {
 
               <button
                 onClick={addToCart}
-                className="w-full px-6 py-4 rounded-none font-semibold transition-colors flex items-center justify-center gap-2 text-lg bg-[#009f3b] text-white hover:bg-[#00782d]"
+                className="w-full px-6 py-4 rounded-none font-semibold transition-colors flex items-center justify-center gap-2 text-lg bg-[#009f3b] text-white hover:bg-[#00782d] shadow-md hover:shadow-lg"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
               </button>
-
-              <p className="text-sm text-gray-600 mt-2 text-center">
-                {currentSlideIndex === 0 ? 'Adding main product to cart' : `Adding ${selectedVariant?.type || 'variant'} to cart`}
-              </p>
             </div>
           </div>
         </div>
