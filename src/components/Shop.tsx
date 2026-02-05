@@ -327,9 +327,18 @@ const Shop = () => {
 
                   {/* Product Info - Alibaba Style */}
                   <div className="p-3 flex-1 flex flex-col bg-white">
-                    {/* Product Name - 2 lines max */}
+                    {/* Product Name - 2 lines max, includes variant names */}
                     <h3 className="text-xs sm:text-sm text-gray-800 mb-1 line-clamp-2 min-h-[2.5rem] group-hover:text-[#009f3b] transition-colors leading-tight">
-                      {product.name}
+                      {(() => {
+                        let displayName = product.name;
+                        if (product.hasVariants && product.variants && product.variants.length > 0) {
+                          const variantNames = product.variants.map((v: any) => v.type).filter(Boolean);
+                          if (variantNames.length > 0) {
+                            displayName = `${product.name} (${variantNames.join(', ')})`;
+                          }
+                        }
+                        return displayName;
+                      })()}
                     </h3>
                     
                     {/* Description - Show a bit */}
@@ -349,8 +358,18 @@ const Shop = () => {
                                 const prices = product.variants.map((v: any) => 
                                   parseFloat(v.price.replace(/[^0-9.]/g, '')) || 0
                                 );
-                                const minPrice = Math.min(...prices);
-                                const maxPrice = Math.max(...prices);
+                                const mainPrice = typeof product.price === 'string' 
+                                  ? parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0 
+                                  : product.price || 0;
+                                
+                                // Include main product price in the range calculation
+                                const allPrices = [...prices, mainPrice].filter(p => p > 0);
+                                
+                                if (allPrices.length === 0) return formatPrice(0);
+                                
+                                const minPrice = Math.min(...allPrices);
+                                const maxPrice = Math.max(...allPrices);
+                                
                                 if (minPrice === maxPrice) {
                                   return formatPrice(minPrice);
                                 }
