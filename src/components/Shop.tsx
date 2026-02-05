@@ -10,7 +10,7 @@ type Product = {
   _id?: string;
   name: string;
   description: string;
-  price: number;
+  price: number | string;
   image: string;
   category: string;
   variants?: Array<{ type: string; price: string; stock?: number; image?: string }>;
@@ -73,6 +73,14 @@ const Shop = () => {
     fetchProducts();
   }, []);
 
+  // Helper function to convert price to number
+  const getPriceAsNumber = (price: number | string): number => {
+    if (typeof price === 'string') {
+      return parseFloat(price.replace(/[^0-9.]/g, '')) || 0;
+    }
+    return price || 0;
+  };
+
   // Filter and sort products
   const filteredProducts = (() => {
     let filtered = products;
@@ -96,10 +104,10 @@ const Shop = () => {
     const sorted = [...filtered];
     switch (sortBy) {
       case 'price-low':
-        sorted.sort((a, b) => a.price - b.price);
+        sorted.sort((a, b) => getPriceAsNumber(a.price) - getPriceAsNumber(b.price));
         break;
       case 'price-high':
-        sorted.sort((a, b) => b.price - a.price);
+        sorted.sort((a, b) => getPriceAsNumber(b.price) - getPriceAsNumber(a.price));
         break;
       case 'name-asc':
         sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -187,7 +195,7 @@ const Shop = () => {
   };
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    return cart.reduce((total, item) => total + (getPriceAsNumber(item.product.price) * item.quantity), 0);
   };
 
   const formatPrice = (price: number) => {
@@ -360,12 +368,7 @@ const Shop = () => {
                                 );
                                 
                                 // Handle main product price with proper type checking
-                                let mainPrice = 0;
-                                if (typeof product.price === 'string') {
-                                  mainPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
-                                } else if (typeof product.price === 'number') {
-                                  mainPrice = product.price || 0;
-                                }
+                                const mainPrice = getPriceAsNumber(product.price);
                                 
                                 // Include main product price in the range calculation
                                 const allPrices = [...prices, mainPrice].filter(p => p > 0);
@@ -387,7 +390,7 @@ const Shop = () => {
                           </div>
                         ) : (
                           <span className="text-base sm:text-lg font-bold text-[#FF6600]">
-                            {formatPrice(product.price)}
+                            {formatPrice(getPriceAsNumber(product.price))}
                           </span>
                         )}
                       </div>
@@ -466,7 +469,7 @@ const Shop = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-700 text-sm mb-1">{item.product.name}</h4>
-                    <p className="text-[#009f3b] font-bold mb-2">{formatPrice(item.product.price)}</p>
+                    <p className="text-[#009f3b] font-bold mb-2">{formatPrice(getPriceAsNumber(item.product.price))}</p>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
