@@ -358,9 +358,14 @@ const Shop = () => {
                                 const prices = product.variants.map((v: any) => 
                                   parseFloat(v.price.replace(/[^0-9.]/g, '')) || 0
                                 );
-                                const mainPrice = typeof product.price === 'string' 
-                                  ? parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0 
-                                  : product.price || 0;
+                                
+                                // Handle main product price with proper type checking
+                                let mainPrice = 0;
+                                if (typeof product.price === 'string') {
+                                  mainPrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
+                                } else if (typeof product.price === 'number') {
+                                  mainPrice = product.price || 0;
+                                }
                                 
                                 // Include main product price in the range calculation
                                 const allPrices = [...prices, mainPrice].filter(p => p > 0);
