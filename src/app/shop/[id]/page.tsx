@@ -68,6 +68,9 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id]);
 
+  // State to track if an optional image is selected
+  const [selectedOptionalImage, setSelectedOptionalImage] = useState<string | null>(null);
+
   // Separate images into main carousel images and optional images
   const { carouselImages, optionalImages } = useMemo(() => {
     if (!product) return { carouselImages: [], optionalImages: [] };
@@ -121,9 +124,20 @@ export default function ProductDetailPage() {
     };
   }, [product]);
 
+  // Handle clicking on optional image
+  const handleOptionalImageClick = (imgSrc: string) => {
+    setSelectedOptionalImage(imgSrc);
+    setSelectedVariant(null); // Clear variant selection when showing optional image
+  };
+
   // Update selected variant when slide changes
   useEffect(() => {
     if (!product) return;
+
+    // If an optional image is selected, don't update variant
+    if (selectedOptionalImage) {
+      return;
+    }
 
     const currentImage = carouselImages[currentSlideIndex];
     
@@ -139,7 +153,17 @@ export default function ProductDetailPage() {
       // Otherwise, it's a main product image
       setSelectedVariant(null);
     }
-  }, [currentSlideIndex, product, carouselImages]);
+  }, [currentSlideIndex, product, carouselImages, selectedOptionalImage]);
+
+  // Clear optional image selection when carousel slide changes
+  useEffect(() => {
+    if (currentSlideIndex !== 0 || carouselImages.length > 0) {
+      // Only clear if user manually changes carousel (not on initial load)
+      if (selectedOptionalImage) {
+        setSelectedOptionalImage(null);
+      }
+    }
+  }, [currentSlideIndex]);
 
   // Sync carousel scroll with currentSlideIndex
   useEffect(() => {
@@ -342,25 +366,26 @@ export default function ProductDetailPage() {
               {carouselImages.length > 1 && (
                 <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 order-2 md:order-1 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
                   {/* All carousel image thumbnails */}
-                  {carouselImages.map((img, index: number) => {
-                    const isSelected = currentSlideIndex === index;
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setCurrentSlideIndex(index);
-                          if (img.variant) {
-                            setSelectedVariant(img.variant);
-                          } else {
-                            setSelectedVariant(null);
-                          }
-                        }}
-                        className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
-                          isSelected
-                            ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
-                            : 'border-gray-300 hover:border-[#009f3b]/50'
-                        }`}
-                      >
+                {carouselImages.map((img, index: number) => {
+                  const isSelected = currentSlideIndex === index && !selectedOptionalImage;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentSlideIndex(index);
+                        setSelectedOptionalImage(null); // Clear optional image selection
+                        if (img.variant) {
+                          setSelectedVariant(img.variant);
+                        } else {
+                          setSelectedVariant(null);
+                        }
+                      }}
+                      className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
+                        isSelected
+                          ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
+                          : 'border-gray-300 hover:border-[#009f3b]/50'
+                      }`}
+                    >
                         <Image
                           src={img.src}
                           alt={img.alt}
@@ -383,19 +408,28 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Main Product Image - Right Side (or top on mobile) */}
-              <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 order-1 md:order-2">
-                {carouselImages.length > 0 && (
-                  <Image
-                    src={carouselImages[currentSlideIndex]?.src || product.image}
-                    alt={carouselImages[currentSlideIndex]?.alt || product.name}
-                    fill
-                    className="object-contain"
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                )}
-              </div>
+            {/* Main Product Image - Right Side (or top on mobile) */}
+            <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 order-1 md:order-2">
+              {selectedOptionalImage ? (
+                <Image
+                  src={selectedOptionalImage}
+                  alt={`${product.name} - Additional Image`}
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              ) : carouselImages.length > 0 ? (
+                <Image
+                  src={carouselImages[currentSlideIndex]?.src || product.image}
+                  alt={carouselImages[currentSlideIndex]?.alt || product.name}
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              ) : null}
+            </div>
             </div>
 
             {/* Optional Images Gallery - Horizontal Scrolling */}
@@ -412,20 +446,35 @@ export default function ProductDetailPage() {
                     }}
                   >
                     <div className="flex gap-3" style={{ width: 'max-content' }}>
-                      {optionalImages.map((imgSrc: string, index: number) => (
-                        <div
-                          key={index}
-                          className="relative flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 cursor-pointer hover:border-[#009f3b] hover:shadow-md transition-all"
-                        >
-                          <Image
-                            src={imgSrc}
-                            alt={`${product.name} - Additional Image ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="160px"
-                          />
-                        </div>
-                      ))}
+                      {optionalImages.map((imgSrc: string, index: number) => {
+                        const isSelected = selectedOptionalImage === imgSrc;
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => handleOptionalImageClick(imgSrc)}
+                            className={`relative flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border-2 bg-gray-50 cursor-pointer hover:border-[#009f3b] hover:shadow-md transition-all ${
+                              isSelected ? 'border-[#009f3b] ring-2 ring-[#009f3b]/20' : 'border-gray-200'
+                            }`}
+                          >
+                            <Image
+                              src={imgSrc}
+                              alt={`${product.name} - Additional Image ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="160px"
+                            />
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-[#009f3b]/10 flex items-center justify-center">
+                                <div className="w-4 h-4 bg-[#009f3b] rounded-full flex items-center justify-center">
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
