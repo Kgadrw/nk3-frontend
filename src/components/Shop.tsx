@@ -241,14 +241,6 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Shop</h1>
-          <p className="text-gray-600">Browse our collection of products</p>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">

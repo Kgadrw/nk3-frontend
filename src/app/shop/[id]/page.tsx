@@ -435,10 +435,10 @@ export default function ProductDetailPage() {
 
           {/* Product Info */}
           <div className="space-y-6">
-            {/* Product Name */}
+            {/* Product Name - Show variant name if selected, otherwise product name */}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
-                {product.name}
+                {selectedVariant ? selectedVariant.type : product.name}
               </h1>
             </div>
 
@@ -469,14 +469,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-
-            {/* Selected Variant Info */}
-            {selectedVariant && (
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Selected Variant</h2>
-                <p className="text-gray-700 font-medium">{selectedVariant.type}</p>
-              </div>
-            )}
 
             {/* Description */}
             {product.description && (
