@@ -26,7 +26,6 @@ type CartItem = {
 const Shop = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('default');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cartOpen, setCartOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -102,27 +101,8 @@ const Shop = () => {
       );
     }
 
-    // Sort products
-    const sorted = [...filtered];
-    switch (sortBy) {
-      case 'price-low':
-        sorted.sort((a, b) => getPriceAsNumber(a.price) - getPriceAsNumber(b.price));
-        break;
-      case 'price-high':
-        sorted.sort((a, b) => getPriceAsNumber(b.price) - getPriceAsNumber(a.price));
-        break;
-      case 'name-asc':
-        sorted.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'name-desc':
-        sorted.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      default:
-        // Keep original order
-        break;
-    }
-
-    return sorted;
+    // Return filtered products (no sorting)
+    return filtered;
   })();
 
   const addToCart = (product: Product) => {
@@ -242,51 +222,40 @@ const Shop = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Search Products</label>
+        {/* Search and Category Filter */}
+        <div className="mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+            {/* Search - Left End */}
+            <div className="w-full md:w-auto md:flex-shrink-0">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, description..."
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                placeholder="Search products..."
+                className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-gray-400"
               />
             </div>
 
-            {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
-              >
-                <option value="default">Default</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="name-asc">Name: A to Z</option>
-                <option value="name-desc">Name: Z to A</option>
-              </select>
+            {/* Category Filter - Buttons like Portfolio */}
+            <div className="flex-1 w-full">
+              <div className="flex flex-wrap justify-start gap-2">
+                {categories.map((category) => {
+                  const isActive = selectedCategory.toLowerCase() === category.id.toLowerCase();
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold uppercase transition-colors ${
+                        isActive
+                          ? 'bg-[#009f3b] text-white'
+                          : 'bg-gray-200 text-[#009f3b] hover:bg-gray-300'
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
