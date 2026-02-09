@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { ToastContainer, Toast, ToastType } from '@/components/Toast';
@@ -68,22 +68,78 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id]);
 
+  // Separate images into main carousel images and optional images
+  const { carouselImages, optionalImages } = useMemo(() => {
+    if (!product) return { carouselImages: [], optionalImages: [] };
+
+    const mainCarouselImages: Array<{ src: string; alt: string; variant?: any }> = [];
+    const optionalImagesList: string[] = [];
+    
+    // Get all product images (from images array or fall back to single image)
+    const productImages = (product.images && Array.isArray(product.images) && product.images.length > 0) 
+      ? product.images 
+      : (product.image ? [product.image] : []);
+    
+    // Main product image (first image) - always in carousel
+    const mainImage = productImages[0] || product.image || '';
+    if (mainImage) {
+      mainCarouselImages.push({
+        src: mainImage,
+        alt: product.name,
+        variant: null,
+      });
+    }
+
+    // Collect variant images for carousel
+    const variantImages: string[] = [];
+    if (product.hasVariants && product.variants?.length) {
+      product.variants.forEach((variant: any) => {
+        const variantImage = variant.image || mainImage;
+        // Only add variant if it has a different image than the main product image
+        if (variantImage && variantImage !== mainImage && !variantImages.includes(variantImage)) {
+          variantImages.push(variantImage);
+          mainCarouselImages.push({
+            src: variantImage,
+            alt: `${product.name} - ${variant.type}`,
+            variant,
+          });
+        }
+      });
+    }
+
+    // Optional images: all other images from productImages that are not main or variant images
+    const usedImages = new Set([mainImage, ...variantImages]);
+    productImages.forEach((imgSrc: string, index: number) => {
+      if (imgSrc && !usedImages.has(imgSrc)) {
+        optionalImagesList.push(imgSrc);
+      }
+    });
+
+    return {
+      carouselImages: mainCarouselImages,
+      optionalImages: optionalImagesList
+    };
+  }, [product]);
+
   // Update selected variant when slide changes
   useEffect(() => {
     if (!product) return;
 
-    if (currentSlideIndex === 0) {
+    const currentImage = carouselImages[currentSlideIndex];
+    
+    if (!currentImage) {
       setSelectedVariant(null);
       return;
     }
 
-    if (product.hasVariants && product.variants?.length) {
-      const variantIndex = currentSlideIndex - 1;
-      if (variantIndex >= 0 && variantIndex < product.variants.length) {
-        setSelectedVariant(product.variants[variantIndex]);
-      }
+    // If the current image has a variant, set it as selected
+    if (currentImage.variant) {
+      setSelectedVariant(currentImage.variant);
+    } else {
+      // Otherwise, it's a main product image
+      setSelectedVariant(null);
     }
-  }, [currentSlideIndex, product]);
+  }, [currentSlideIndex, product, carouselImages]);
 
   // Sync carousel scroll with currentSlideIndex
   useEffect(() => {
@@ -106,28 +162,6 @@ export default function ProductDetailPage() {
 
     return () => clearTimeout(t);
   }, [currentSlideIndex]);
-
-  const getCarouselImages = () => {
-    if (!product) return [];
-
-    const images: Array<{ src: string; alt: string; variant?: any }> = [
-      { src: product.image, alt: product.name, variant: null },
-    ];
-
-    if (product.hasVariants && product.variants?.length) {
-      product.variants.forEach((variant: any) => {
-        images.push({
-          src: variant.image || product.image,
-          alt: `${product.name} - ${variant.type}`,
-          variant,
-        });
-      });
-    }
-
-    return images;
-  };
-
-  const carouselImages = getCarouselImages();
 
   const goToSlide = (index: number) => {
     if (index < 0 || index >= carouselImages.length || index === currentSlideIndex) return;
@@ -199,18 +233,17 @@ export default function ProductDetailPage() {
 
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-    const isMainProduct = currentSlideIndex === 0;
+    // Get current image from carousel
+    const currentImage = carouselImages[currentSlideIndex];
+    const isMainProduct = !currentImage?.variant;
+    
     const itemPrice = isMainProduct
       ? product.price
       : selectedVariant
         ? parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0
         : product.price;
 
-    const itemImage = isMainProduct
-      ? product.image
-      : selectedVariant?.image
-        ? selectedVariant.image
-        : product.image;
+    const itemImage = currentImage?.src || product.image;
 
     const existingItem = cart.find((item: any) => {
       const itemId = item.product._id || item.product.id;
@@ -303,91 +336,101 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Images with Thumbnails */}
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Thumbnail Strip - Left Side (Only show if variants exist) */}
-            {product.hasVariants && product.variants?.length > 0 && (
-              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 order-2 md:order-1 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
-                {/* Main product thumbnail */}
-                <button
-                  onClick={() => {
-                    setCurrentSlideIndex(0);
-                    setSelectedVariant(null);
-                  }}
-                  className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
-                    currentSlideIndex === 0
-                      ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
-                      : 'border-gray-300 hover:border-[#009f3b]/50'
-                  }`}
-                >
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </button>
-
-                {/* Variant thumbnails */}
-                {product.variants.map((variant: any, index: number) => {
-                  const slideIndex = index + 1;
-                  const isSelected = currentSlideIndex === slideIndex;
-                  const variantImage = variant.image || product.image;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setCurrentSlideIndex(slideIndex);
-                        setSelectedVariant(variant);
-                      }}
-                      className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
-                        isSelected
-                          ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
-                          : 'border-gray-300 hover:border-[#009f3b]/50'
-                      }`}
-                    >
-                      <Image
-                        src={variantImage}
-                        alt={`${product.name} - ${variant.type}`}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-[#009f3b]/10 flex items-center justify-center">
-                          <div className="w-4 h-4 bg-[#009f3b] rounded-full flex items-center justify-center">
-                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Thumbnail Strip - Left Side (Show if multiple images or variants exist) */}
+              {carouselImages.length > 1 && (
+                <div className="flex flex-row md:flex-col gap-2 flex-shrink-0 order-2 md:order-1 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
+                  {/* All carousel image thumbnails */}
+                  {carouselImages.map((img, index: number) => {
+                    const isSelected = currentSlideIndex === index;
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setCurrentSlideIndex(index);
+                          if (img.variant) {
+                            setSelectedVariant(img.variant);
+                          } else {
+                            setSelectedVariant(null);
+                          }
+                        }}
+                        className={`relative w-16 h-16 md:w-20 md:h-20 border rounded overflow-hidden transition-all flex-shrink-0 ${
+                          isSelected
+                            ? 'border-[#009f3b] ring-1 ring-[#009f3b]/20'
+                            : 'border-gray-300 hover:border-[#009f3b]/50'
+                        }`}
+                      >
+                        <Image
+                          src={img.src}
+                          alt={img.alt}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-[#009f3b]/10 flex items-center justify-center">
+                            <div className="w-4 h-4 bg-[#009f3b] rounded-full flex items-center justify-center">
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
                           </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Main Product Image - Right Side (or top on mobile) */}
+              <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 order-1 md:order-2">
+                {carouselImages.length > 0 && (
+                  <Image
+                    src={carouselImages[currentSlideIndex]?.src || product.image}
+                    alt={carouselImages[currentSlideIndex]?.alt || product.name}
+                    fill
+                    className="object-contain"
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Optional Images Gallery - Horizontal Scrolling */}
+            {optionalImages.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">More Images</h3>
+                <div className="relative">
+                  <div 
+                    className="overflow-x-auto scroll-smooth pb-2 scrollbar-hide" 
+                    style={{ 
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none',
+                      WebkitOverflowScrolling: 'touch'
+                    }}
+                  >
+                    <div className="flex gap-3" style={{ width: 'max-content' }}>
+                      {optionalImages.map((imgSrc: string, index: number) => (
+                        <div
+                          key={index}
+                          className="relative flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 cursor-pointer hover:border-[#009f3b] hover:shadow-md transition-all"
+                        >
+                          <Image
+                            src={imgSrc}
+                            alt={`${product.name} - Additional Image ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="160px"
+                          />
                         </div>
-                      )}
-                    </button>
-                  );
-                })}
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
-
-            {/* Main Product Image - Right Side (or top on mobile) */}
-            <div className="relative flex-1 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 order-1 md:order-2">
-              <Image
-                src={
-                  currentSlideIndex === 0
-                    ? product.image
-                    : selectedVariant?.image || product.image
-                }
-                alt={
-                  currentSlideIndex === 0
-                    ? product.name
-                    : `${product.name} - ${selectedVariant?.type || 'Variant'}`
-                }
-                fill
-                className="object-contain"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
           </div>
 
           {/* Product Info */}
@@ -403,26 +446,24 @@ export default function ProductDetailPage() {
             <div className="border-b border-gray-200 pb-4">
               <div className="flex items-baseline gap-3 mb-2">
                 <span className="text-3xl md:text-4xl font-bold text-[#009f3b]">
-                  {currentSlideIndex === 0
-                    ? formatPrice(product.price)
-                    : selectedVariant
-                      ? formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)
-                      : formatPrice(product.price)}
+                  {selectedVariant
+                    ? formatPrice(parseFloat(selectedVariant.price.replace(/[^0-9.]/g, '')) || 0)
+                    : formatPrice(product.price)}
                 </span>
               </div>
               
               {/* Stock/Quantity Info */}
               <div className="text-sm text-gray-600">
-                {currentSlideIndex === 0 ? (
-                  product.stock !== undefined && product.stock > 0 ? (
-                    <span className="text-green-600 font-medium">{product.stock} available</span>
-                  ) : product.stock === 0 ? (
+                {selectedVariant ? (
+                  selectedVariant.stock !== undefined && selectedVariant.stock > 0 ? (
+                    <span className="text-green-600 font-medium">{selectedVariant.stock} available</span>
+                  ) : selectedVariant.stock === 0 ? (
                     <span className="text-red-600 font-medium">Out of stock</span>
                   ) : null
                 ) : (
-                  selectedVariant?.stock !== undefined && selectedVariant.stock > 0 ? (
-                    <span className="text-green-600 font-medium">{selectedVariant.stock} available</span>
-                  ) : selectedVariant?.stock === 0 ? (
+                  product.stock !== undefined && product.stock > 0 ? (
+                    <span className="text-green-600 font-medium">{product.stock} available</span>
+                  ) : product.stock === 0 ? (
                     <span className="text-red-600 font-medium">Out of stock</span>
                   ) : null
                 )}

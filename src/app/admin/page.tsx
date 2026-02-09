@@ -81,7 +81,8 @@ export default function AdminDashboard() {
   const [portfolioImage, setPortfolioImage] = useState('');
   const [academyImage, setAcademyImage] = useState('');
   const [teamImage, setTeamImage] = useState('');
-  const [shopImage, setShopImage] = useState('');
+  const [shopImage, setShopImage] = useState(''); // Keep for backward compatibility
+  const [shopImages, setShopImages] = useState<string[]>([]); // Array of image URLs
   // PDF state for academic section
   const [pdfLink, setPdfLink] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -362,6 +363,15 @@ export default function AdminDashboard() {
         setShopCategory(product.category || '');
         setShopDescription(product.description || '');
         setShopImage(product.image || '');
+        // Handle images array - use images if available, otherwise fall back to image
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+          setShopImages(product.images);
+        } else if (product.image) {
+          // For backward compatibility, if only image exists, use it as the first image
+          setShopImages([product.image]);
+        } else {
+          setShopImages([]);
+        }
         setShopHasVariants(!!product.hasVariants || (product.variants && product.variants.length > 0));
         setShopVariants(Array.isArray(product.variants) ? product.variants.map((v: any) => ({
           type: v.type || '',
@@ -377,6 +387,7 @@ export default function AdminDashboard() {
       setShopCategory('');
       setShopDescription('');
       setShopImage('');
+      setShopImages([]);
       setShopVariants([]);
       setShopHasVariants(false);
     }
@@ -970,8 +981,11 @@ export default function AdminDashboard() {
 
   const handleSaveShop = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !shopCategory || !shopImage) {
-      showToast('Please fill in all required fields (Name, Category, Image)', 'warning');
+    
+    // Validate: at least one image is required (either in images array or single image for backward compatibility)
+    const hasImages = shopImages.length > 0 || (shopImage && !shopImage.startsWith('data:image/'));
+    if (!shopName || !shopCategory || !hasImages) {
+      showToast('Please fill in all required fields (Name, Category, and at least one Image)', 'warning');
       return;
     }
     
@@ -991,12 +1005,13 @@ export default function AdminDashboard() {
       }
     }
     
-    // Ensure we have a valid Cloudinary URL (not base64)
-    // ImageUploadField should have already uploaded it, but check just in case
-    if (shopImage.startsWith('data:image/')) {
+    // Validate images - ensure all are valid Cloudinary URLs (not base64)
+    const allImages = shopImages.length > 0 ? shopImages : (shopImage ? [shopImage] : []);
+    const invalidImages = allImages.filter(img => img.startsWith('data:image/'));
+    if (invalidImages.length > 0) {
       showToast(
-        'Image upload failed. Please check your Cloudinary configuration in .env and try uploading the image again. ' +
-        'The image must be uploaded to Cloudinary before saving.',
+        'Some images failed to upload. Please check your Cloudinary configuration in .env and try uploading the images again. ' +
+        'All images must be uploaded to Cloudinary before saving.',
         'error'
       );
       return;
@@ -1004,12 +1019,17 @@ export default function AdminDashboard() {
     
     setIsSavingShop(true);
     try {
+      // Use images array if available, otherwise fall back to single image for backward compatibility
+      const finalImages = shopImages.length > 0 ? shopImages : (shopImage ? [shopImage] : []);
+      const primaryImage = finalImages[0] || shopImage || ''; // First image as primary for backward compatibility
+      
       const data = {
         name: shopName.trim(),
         price: shopPrice.trim() || '0', // Keep for backward compatibility
         category: shopCategory.trim(),
         description: shopDescription?.trim() || '',
-        image: shopImage, // Should already be a Cloudinary URL from ImageUploadField
+        image: primaryImage, // Keep for backward compatibility
+        images: finalImages, // Array of images
         variants: hasVariants ? shopVariants.map(v => ({
           type: v.type.trim(),
           price: v.price.trim(),
@@ -1061,6 +1081,7 @@ export default function AdminDashboard() {
         setShopCategory('');
         setShopDescription('');
         setShopImage('');
+        setShopImages([]);
         setShopVariants([]);
         setShopHasVariants(false);
         showToast(editingShop ? 'Product updated successfully!' : 'Product added successfully!', 'success');
@@ -1973,6 +1994,149 @@ export default function AdminDashboard() {
       console.error('Error uploading multiple images:', error);
       showToast('Error uploading images. Please try again.', 'error');
     }
+  };
+
+  // Handle multiple shop image uploads
+  const handleShopMultipleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, folder: string = 'nk3d/shop') => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    showToast(`Uploading ${fileArray.length} image(s)...`, 'info');
+
+    try {
+      const { uploadToCloudinary } = await import('@/lib/cloudinary');
+      const uploadPromises = fileArray.map(async (file) => {
+        try {
+          const cloudinaryUrl = await uploadToCloudinary(file, folder);
+          return cloudinaryUrl;
+        } catch (error) {
+          console.error('Failed to upload image:', error);
+          return null;
+        }
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      
+      if (validUrls.length > 0) {
+        setShopImages([...shopImages, ...validUrls]);
+        showToast(`Successfully uploaded ${validUrls.length} image(s)!`, 'success');
+      } else {
+        showToast('Failed to upload images. Please try again.', 'error');
+      }
+
+      // Reset file input
+      e.target.value = '';
+    } catch (error) {
+      console.error('Error uploading multiple images:', error);
+      showToast('Error uploading images. Please try again.', 'error');
+    }
+  };
+
+  // Multiple Images Upload Component for Shop
+  const MultipleImagesUploadField = ({ 
+    label, 
+    images, 
+    onImagesChange, 
+    folder = 'nk3d/shop'
+  }: { 
+    label: string; 
+    images: string[]; 
+    onImagesChange: (images: string[]) => void;
+    folder?: string;
+  }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleClick = () => {
+      fileInputRef.current?.click();
+    };
+
+    const removeImage = (index: number) => {
+      const updated = images.filter((_, i) => i !== index);
+      onImagesChange(updated);
+    };
+
+    return (
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <label className="block text-sm font-semibold text-gray-700">{label}</label>
+          <span className="text-red-500 text-sm">*</span>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-xs text-blue-800">
+              <p className="font-semibold mb-1">Image Upload Guide:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-blue-700">
+                <li>First image will be the main product image displayed in the carousel</li>
+                <li>Additional images will appear in a scrolling gallery below the product</li>
+                <li>You can upload multiple images at once (select multiple files)</li>
+                <li>Images are automatically uploaded to Cloudinary</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleClick}
+            className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#009f3b] hover:bg-gray-50 transition-colors cursor-pointer w-full"
+          >
+            <Upload className="w-5 h-5 text-gray-600" />
+            <span className="text-sm text-gray-600 font-medium">Click to Upload Images (Multiple files supported)</span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => handleShopMultipleImageUpload(e, folder)}
+            className="hidden"
+          />
+          {images.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-600">
+                {images.length} image{images.length !== 1 ? 's' : ''} uploaded
+                {images.length > 0 && <span className="text-gray-500 ml-2">(First image is main product image)</span>}
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img 
+                      src={imageUrl} 
+                      alt={`Preview ${index + 1}`} 
+                      className="w-full h-24 object-cover rounded border-2 border-gray-300" 
+                    />
+                    {index === 0 && (
+                      <div className="absolute top-1 left-1 bg-[#009f3b] text-white text-xs px-2 py-0.5 rounded font-semibold">
+                        Main
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove image"
+                    >
+                      ×
+                    </button>
+                    <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                      #{index + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        {images.length === 0 && (
+          <p className="text-xs text-gray-500 mt-2 italic">No images uploaded yet. At least one image is required.</p>
+        )}
+      </div>
+    );
   };
 
   // Reusable Image Upload Component
@@ -4560,19 +4724,59 @@ export default function AdminDashboard() {
           {activeTab === 'shop' && (
             <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-[#009f3b]">Shop Management</h2>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-[#009f3b] mb-1">Shop Management</h2>
+                  <p className="text-sm text-gray-600">Manage your product catalog, prices, and inventory</p>
+                </div>
                 <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
                   <button 
                     onClick={() => {
                       setShowShopForm(true);
                       setEditingShop(null);
                     }}
-                    className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial"
+                    className="bg-[#009f3b] text-white px-3 md:px-4 py-2 text-sm md:text-base rounded-none font-semibold hover:bg-[#00782d] transition-colors flex-1 sm:flex-initial flex items-center justify-center gap-2"
                   >
-                    + Add Product
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Product
                   </button>
                   </div>
                 </div>
+
+              {/* Quick Guide Info Box */}
+              {!showShopForm && (
+                <div className="bg-gradient-to-r from-[#009f3b] to-[#00782d] text-white rounded-xl p-4 md:p-6 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-white/20 rounded-full p-2 flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-2">Quick Start Guide</h3>
+                      <ul className="space-y-2 text-sm text-white/90">
+                        <li className="flex items-start gap-2">
+                          <span className="text-white font-bold mt-0.5">1.</span>
+                          <span>Click <strong>"Add Product"</strong> to create a new product listing</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-white font-bold mt-0.5">2.</span>
+                          <span>Upload <strong>multiple images</strong> - the first image will be the main product image</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-white font-bold mt-0.5">3.</span>
+                          <span>Set a <strong>single price</strong> or enable <strong>variants</strong> for different sizes/types with different prices</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-white font-bold mt-0.5">4.</span>
+                          <span>Add a <strong>category</strong> to help customers find your products easily</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Products List/Grid */}
               {!showShopForm && (
@@ -4677,12 +4881,17 @@ export default function AdminDashboard() {
               {/* Add/Edit Form */}
               {showShopForm && (
                 <div className="pt-4 md:pt-6">
-                  <div className="bg-white border border-gray-300 rounded-xl p-4 md:p-6">
+                  <div className="bg-white border border-gray-300 rounded-xl p-4 md:p-6 shadow-sm">
                   <form onSubmit={handleSaveShop}>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h3 className="text-base md:text-lg font-bold text-[#009f3b]">
-                      {editingShop ? 'Edit Product' : 'Add New Product'}
-                    </h3>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                      <h3 className="text-base md:text-lg font-bold text-[#009f3b] mb-1">
+                        {editingShop ? 'Edit Product' : 'Add New Product'}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {editingShop ? 'Update product information below' : 'Fill in the required fields to add a new product'}
+                      </p>
+                    </div>
                 <button
                         type="button"
                       onClick={() => {
@@ -4693,75 +4902,139 @@ export default function AdminDashboard() {
                           setShopCategory('');
                           setShopDescription('');
                           setShopImage('');
+                          setShopImages([]);
                           setShopVariants([]);
                           setShopHasVariants(false);
                       }}
-                      className="text-gray-600 hover:text-gray-800 text-sm"
+                      className="text-gray-600 hover:text-gray-800 text-sm font-medium px-3 py-1.5 hover:bg-gray-100 rounded transition-colors"
                     >
                       Cancel
                 </button>
               </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Product Name *</label>
-                          <input 
-                            type="text" 
-                            value={shopName}
-                            onChange={(e) => setShopName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
-                            required
-                          />
-                    </div>
-                    <div>
-                      <ImageUploadField
-                        label="Product Image *"
-                        imageUrl={shopImage}
-                        onImageChange={setShopImage}
-                        folder="nk3d/shop"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Price {!shopHasVariants ? '*' : '(Optional - use variants below)'}
-                          </label>
-                          <input 
-                            type="text" 
-                            value={shopPrice}
-                            onChange={(e) => setShopPrice(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
-                            placeholder="e.g., 100000 or $100"
-                            required={!shopHasVariants}
-                            disabled={shopHasVariants}
-                          />
-                    </div>
-                    <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
-                          <input 
-                            type="text" 
-                            value={shopCategory}
-                            onChange={(e) => setShopCategory(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-black" 
-                            placeholder="e.g., Furniture, Decor, etc."
-                            required
-                          />
-                    </div>
-                  </div>
+                <div className="space-y-6">
+                  {/* Basic Information Section */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-[#009f3b] rounded"></div>
+                      Basic Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                        <textarea 
-                          value={shopDescription}
-                          onChange={(e) => setShopDescription(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y text-black placeholder:text-black" 
-                          placeholder="Enter product description..."
-                          rows={4}
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700">Product Name</label>
+                          <span className="text-red-500 text-sm">*</span>
+                        </div>
+                        <input 
+                          type="text" 
+                          value={shopName}
+                          onChange={(e) => setShopName(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-gray-400" 
+                          placeholder="Enter product name"
+                          required
                         />
+                        <p className="text-xs text-gray-500 mt-1">The name that will be displayed to customers</p>
                       </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700">Category</label>
+                          <span className="text-red-500 text-sm">*</span>
+                        </div>
+                        <input 
+                          type="text" 
+                          value={shopCategory}
+                          onChange={(e) => setShopCategory(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-gray-400" 
+                          placeholder="e.g., Furniture, Decor, Lighting"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Used to organize and filter products</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product Images Section */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-[#009f3b] rounded"></div>
+                      Product Images
+                    </h4>
+                    <MultipleImagesUploadField
+                      label="Product Images"
+                      images={shopImages}
+                      onImagesChange={setShopImages}
+                      folder="nk3d/shop"
+                    />
+                  </div>
+
+                  {/* Pricing Section */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-[#009f3b] rounded"></div>
+                      Pricing
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700">
+                            Price
+                          </label>
+                          {!shopHasVariants && <span className="text-red-500 text-sm">*</span>}
+                          {shopHasVariants && <span className="text-xs text-gray-500">(Optional - use variants below)</span>}
+                        </div>
+                        <input 
+                          type="text" 
+                          value={shopPrice}
+                          onChange={(e) => setShopPrice(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black placeholder:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                          placeholder="e.g., 100000 or FRW 100,000"
+                          required={!shopHasVariants}
+                          disabled={shopHasVariants}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {shopHasVariants 
+                            ? 'Price is set per variant below' 
+                            : 'Enter the product price (can include currency symbol)'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-[#009f3b] rounded"></div>
+                      Description
+                    </h4>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Product Description</label>
+                      <textarea 
+                        value={shopDescription}
+                        onChange={(e) => setShopDescription(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] min-h-[100px] resize-y text-black placeholder:text-gray-400" 
+                        placeholder="Describe the product features, materials, dimensions, etc."
+                        rows={4}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Provide detailed information about the product (optional but recommended)</p>
+                    </div>
+                  </div>
                       
                       {/* Product Variants Section */}
-                      <div className=" pt-4">
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <div className="w-1 h-4 bg-[#009f3b] rounded"></div>
+                          Product Variants
+                        </h4>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                          <div className="flex items-start gap-2">
+                            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="text-xs text-blue-800">
+                              <p className="font-semibold mb-1">What are Variants?</p>
+                              <p className="text-blue-700">Variants allow you to offer the same product in different sizes, colors, or types with different prices. For example: Small ($50), Medium ($75), Large ($100).</p>
+                            </div>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-3 mb-4">
                           <input
                             type="checkbox"
@@ -4784,21 +5057,30 @@ export default function AdminDashboard() {
                         
                         {shopHasVariants && (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <label className="block text-sm font-semibold text-gray-700">Product Variants</label>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-sm font-semibold text-gray-700">Add Variants</label>
                               <button
                                 type="button"
                                 onClick={() => setShopVariants([...shopVariants, { type: '', price: '', stock: 0 }])}
-                                className="text-sm text-[#009f3b] hover:text-[#00782d] font-medium"
+                                className="text-sm text-[#009f3b] hover:text-[#00782d] font-medium flex items-center gap-1 px-3 py-1.5 border border-[#009f3b] rounded hover:bg-[#009f3b] hover:text-white transition-colors"
                               >
-                                + Add Variant
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Variant
                               </button>
                             </div>
                             
                             {shopVariants.map((variant, index) => (
-                              <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-gray-50 rounded border border-gray-200">
+                              <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 shadow-sm">
+                                <div className="flex items-center gap-2 mb-2 md:mb-0 md:col-span-4">
+                                  <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Variant #{index + 1}</span>
+                                </div>
                                 <div>
-                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Type/Name *</label>
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <label className="block text-xs font-semibold text-gray-700">Type/Name</label>
+                                    <span className="text-red-500 text-xs">*</span>
+                                  </div>
                                   <input
                                     type="text"
                                     value={variant.type}
@@ -4807,13 +5089,17 @@ export default function AdminDashboard() {
                                       updated[index].type = e.target.value;
                                       setShopVariants(updated);
                                     }}
-                                    placeholder="e.g., Small, Medium, Large, Red, Blue"
+                                    placeholder="e.g., Small, Medium, Large"
                                     className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
                                     required={shopHasVariants}
                                   />
+                                  <p className="text-xs text-gray-500 mt-0.5">Variant identifier</p>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Price *</label>
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <label className="block text-xs font-semibold text-gray-700">Price</label>
+                                    <span className="text-red-500 text-xs">*</span>
+                                  </div>
                                   <input
                                     type="text"
                                     value={variant.price}
@@ -4826,9 +5112,10 @@ export default function AdminDashboard() {
                                     className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
                                     required={shopHasVariants}
                                   />
+                                  <p className="text-xs text-gray-500 mt-0.5">Price for this variant</p>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-semibold text-gray-600 mb-1">Variant Image (Optional)</label>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">Variant Image</label>
                                   <div className="border border-gray-300 rounded">
                                     <ImageUploadField
                                       label=""
@@ -4841,10 +5128,11 @@ export default function AdminDashboard() {
                                       folder="nk3d/shop/variants"
                                     />
                                   </div>
+                                  <p className="text-xs text-gray-500 mt-0.5">Optional: Different image for this variant</p>
                                 </div>
                                 <div className="flex items-end gap-2">
                                   <div className="flex-1">
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Stock (Optional)</label>
+                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Quantity</label>
                                     <input
                                       type="number"
                                       value={variant.stock || 0}
@@ -4855,7 +5143,9 @@ export default function AdminDashboard() {
                                       }}
                                       min="0"
                                       className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+                                      placeholder="0"
                                     />
+                                    <p className="text-xs text-gray-500 mt-0.5">Available quantity</p>
                                   </div>
                                   <button
                                     type="button"
@@ -4863,7 +5153,8 @@ export default function AdminDashboard() {
                                       const updated = shopVariants.filter((_, i) => i !== index);
                                       setShopVariants(updated);
                                     }}
-                                    className="px-3 py-2 text-red-600 hover:text-red-700 text-sm font-medium"
+                                    className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm font-medium rounded transition-colors"
+                                    title="Remove variant"
                                   >
                                     ×
                                   </button>
@@ -4872,15 +5163,18 @@ export default function AdminDashboard() {
                             ))}
                             
                             {shopHasVariants && shopVariants.length === 0 && (
-                              <p className="text-sm text-gray-500 italic">Click "Add Variant" to add product types with different prices</p>
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                                <p className="font-semibold mb-1">No variants added yet</p>
+                                <p>Click "Add Variant" button above to create product variants with different prices.</p>
+                              </div>
                             )}
                           </div>
                         )}
                         
                         {!shopHasVariants && (
-                          <div className="text-sm text-gray-600">
-                            <p>If this product has multiple types (e.g., sizes, colors) with different prices, enable variants above.</p>
-                            <p className="mt-1">Otherwise, use the Price field above for a single price.</p>
+                          <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 text-sm text-gray-700">
+                            <p className="font-semibold mb-1">Single Price Product</p>
+                            <p>This product has one price. If you need different prices for sizes, colors, or types, enable variants above.</p>
                           </div>
                         )}
                       </div>
@@ -4909,6 +5203,9 @@ export default function AdminDashboard() {
                             setShopCategory('');
                             setShopDescription('');
                             setShopImage('');
+                            setShopImages([]);
+                            setShopVariants([]);
+                            setShopHasVariants(false);
                         }}
                         className="bg-gray-200 text-gray-700 px-4 md:px-6 py-2 rounded-none font-semibold hover:bg-gray-300 transition-colors flex-1 sm:flex-initial"
                       >
