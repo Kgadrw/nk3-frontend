@@ -127,11 +127,12 @@ const Shop = () => {
 
   const addToCart = (product: Product) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => (item.product.id || item.product._id) === (product.id || product._id));
+      const productId = getProductId(product);
+      const existingItem = prevCart.find(item => getProductId(item.product) === productId);
       let updatedCart;
       if (existingItem) {
         updatedCart = prevCart.map(item =>
-          (item.product.id || item.product._id) === (product.id || product._id)
+          getProductId(item.product) === productId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -152,6 +153,11 @@ const Shop = () => {
     setCartOpen(true);
   };
 
+  // Helper function to get product ID
+  const getProductId = (product: Product): string | number => {
+    return product.id || product._id || '';
+  };
+
   const updateQuantity = (productId: string | number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -159,7 +165,7 @@ const Shop = () => {
     }
     setCart(prevCart => {
       const updatedCart = prevCart.map(item =>
-        (item.product.id || item.product._id) === productId
+        getProductId(item.product) === productId
           ? { ...item, quantity }
           : item
       );
@@ -178,7 +184,7 @@ const Shop = () => {
 
   const removeFromCart = (productId: string | number) => {
     setCart(prevCart => {
-      const updatedCart = prevCart.filter(item => (item.product.id || item.product._id) !== productId);
+      const updatedCart = prevCart.filter(item => getProductId(item.product) !== productId);
       
       // Save to localStorage
       if (typeof window !== 'undefined') {
@@ -319,10 +325,11 @@ const Shop = () => {
               const productImage = (product.images && Array.isArray(product.images) && product.images.length > 0)
                 ? product.images[0]
                 : product.image;
+              const productId = getProductId(product);
 
               return (
                 <div
-                  key={product.id || product._id}
+                  key={productId}
                   className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200"
                 >
                   <Link href={`/shop/${product._id || product.id}`}>
@@ -396,9 +403,10 @@ const Shop = () => {
                       const productImage = (item.product.images && Array.isArray(item.product.images) && item.product.images.length > 0)
                         ? item.product.images[0]
                         : item.product.image;
+                      const itemProductId = getProductId(item.product);
 
                       return (
-                        <div key={item.product.id || item.product._id} className="flex gap-4 border-b border-gray-200 pb-4">
+                        <div key={itemProductId} className="flex gap-4 border-b border-gray-200 pb-4">
                           <div className="relative w-20 h-20 flex-shrink-0">
                             <Image
                               src={productImage}
@@ -415,7 +423,7 @@ const Shop = () => {
                             </p>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => updateQuantity(item.product.id || item.product._id, item.quantity - 1)}
+                                onClick={() => updateQuantity(getProductId(item.product), item.quantity - 1)}
                                 className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded text-gray-600 hover:bg-gray-100"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,7 +432,7 @@ const Shop = () => {
                               </button>
                               <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                               <button
-                                onClick={() => updateQuantity(item.product.id || item.product._id, item.quantity + 1)}
+                                onClick={() => updateQuantity(getProductId(item.product), item.quantity + 1)}
                                 className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded text-gray-600 hover:bg-gray-100"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -432,7 +440,7 @@ const Shop = () => {
                                 </svg>
                               </button>
                               <button
-                                onClick={() => removeFromCart(item.product.id || item.product._id)}
+                                onClick={() => removeFromCart(getProductId(item.product))}
                                 className="ml-auto text-red-600 hover:text-red-700 text-sm"
                               >
                                 Remove
