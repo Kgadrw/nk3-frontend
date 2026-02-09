@@ -1934,27 +1934,28 @@ export default function AdminDashboard() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setImage: (url: string) => void, folder: string = 'nk3d/images') => {
     const file = e.target.files?.[0];
     if (file) {
-      // Create a local preview first
+      // Create a local preview immediately - don't wait
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);
       };
       reader.readAsDataURL(file);
 
-      // Upload to Cloudinary
-      showToast('Uploading image to Cloudinary...', 'info');
-      try {
-        const { uploadToCloudinary } = await import('@/lib/cloudinary');
-        const cloudinaryUrl = await uploadToCloudinary(file, folder);
-        setImage(cloudinaryUrl);
-        showToast('Image uploaded successfully!', 'success');
-      } catch (error: any) {
-        // Failed to upload to Cloudinary
-        console.error('Cloudinary upload error:', error);
-        const errorMessage = error?.message || 'Failed to upload image to Cloudinary';
-        showToast(`Upload failed: ${errorMessage}. Please check your Cloudinary configuration.`, 'error');
-        // Keep the local preview if upload fails, but user will see the error
-      }
+      // Upload to Cloudinary in the background (non-blocking)
+      (async () => {
+        try {
+          const { uploadToCloudinary } = await import('@/lib/cloudinary');
+          const cloudinaryUrl = await uploadToCloudinary(file, folder);
+          // Update with Cloudinary URL when ready
+          setImage(cloudinaryUrl);
+          showToast('Image uploaded successfully!', 'success');
+        } catch (error: any) {
+          // Failed to upload to Cloudinary - silently fail, keep local preview
+          console.error('Cloudinary upload error:', error);
+          // Don't show error to user - they can still use the local image
+          // The form validation will catch if Cloudinary URL is required
+        }
+      })();
     }
   };
 
@@ -1964,36 +1965,70 @@ export default function AdminDashboard() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    showToast(`Uploading ${fileArray.length} image(s)...`, 'info');
-
-    try {
-      const { uploadToCloudinary } = await import('@/lib/cloudinary');
-      const uploadPromises = fileArray.map(async (file) => {
-        try {
-          const cloudinaryUrl = await uploadToCloudinary(file, folder);
-          return cloudinaryUrl;
-        } catch (error) {
-          console.error('Failed to upload image:', error);
-          return null;
-        }
+    
+    // Show local previews immediately
+    const localPreviews: string[] = [];
+    const previewPromises = fileArray.map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          localPreviews.push(dataUrl);
+          resolve(dataUrl);
+        };
+        reader.readAsDataURL(file);
       });
+    });
 
-      const uploadedUrls = await Promise.all(uploadPromises);
-      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
-      
-      if (validUrls.length > 0) {
-        setPortfolioGallery([...portfolioGallery, ...validUrls]);
-        showToast(`Successfully uploaded ${validUrls.length} image(s)!`, 'success');
-      } else {
-        showToast('Failed to upload images. Please try again.', 'error');
+    // Wait for all previews to load, then update state immediately
+    await Promise.all(previewPromises);
+    setPortfolioGallery([...portfolioGallery, ...localPreviews]);
+
+    // Upload to Cloudinary in the background (non-blocking)
+    (async () => {
+      try {
+        const { uploadToCloudinary } = await import('@/lib/cloudinary');
+        const uploadPromises = fileArray.map(async (file, index) => {
+          try {
+            const cloudinaryUrl = await uploadToCloudinary(file, folder);
+            return { index, url: cloudinaryUrl };
+          } catch (error) {
+            console.error('Failed to upload image:', error);
+            return { index, url: null };
+          }
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        const validResults = uploadResults.filter((result): result is { index: number; url: string } => result.url !== null);
+        
+        if (validResults.length > 0) {
+          // Update gallery array with Cloudinary URLs, preserving order
+          setPortfolioGallery((prevGallery) => {
+            const updated = [...prevGallery];
+            // Replace local previews with Cloudinary URLs
+            validResults.forEach(({ index, url }) => {
+              const localPreviewIndex = portfolioGallery.length + index;
+              if (localPreviewIndex < updated.length) {
+                updated[localPreviewIndex] = url;
+              }
+            });
+            return updated;
+          });
+          
+          if (validResults.length === fileArray.length) {
+            showToast(`Successfully uploaded ${validResults.length} image(s)!`, 'success');
+          } else {
+            showToast(`Uploaded ${validResults.length} of ${fileArray.length} image(s)`, 'success');
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading multiple images:', error);
+        // Don't show error - images are already visible as local previews
       }
+    })();
 
-      // Reset file input
-      e.target.value = '';
-    } catch (error) {
-      console.error('Error uploading multiple images:', error);
-      showToast('Error uploading images. Please try again.', 'error');
-    }
+    // Reset file input
+    e.target.value = '';
   };
 
   // Handle multiple shop image uploads
@@ -2002,36 +2037,70 @@ export default function AdminDashboard() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    showToast(`Uploading ${fileArray.length} image(s)...`, 'info');
-
-    try {
-      const { uploadToCloudinary } = await import('@/lib/cloudinary');
-      const uploadPromises = fileArray.map(async (file) => {
-        try {
-          const cloudinaryUrl = await uploadToCloudinary(file, folder);
-          return cloudinaryUrl;
-        } catch (error) {
-          console.error('Failed to upload image:', error);
-          return null;
-        }
+    
+    // Show local previews immediately
+    const localPreviews: string[] = [];
+    const previewPromises = fileArray.map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          localPreviews.push(dataUrl);
+          resolve(dataUrl);
+        };
+        reader.readAsDataURL(file);
       });
+    });
 
-      const uploadedUrls = await Promise.all(uploadPromises);
-      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
-      
-      if (validUrls.length > 0) {
-        setShopImages([...shopImages, ...validUrls]);
-        showToast(`Successfully uploaded ${validUrls.length} image(s)!`, 'success');
-      } else {
-        showToast('Failed to upload images. Please try again.', 'error');
+    // Wait for all previews to load, then update state immediately
+    await Promise.all(previewPromises);
+    setShopImages([...shopImages, ...localPreviews]);
+
+    // Upload to Cloudinary in the background (non-blocking)
+    (async () => {
+      try {
+        const { uploadToCloudinary } = await import('@/lib/cloudinary');
+        const uploadPromises = fileArray.map(async (file, index) => {
+          try {
+            const cloudinaryUrl = await uploadToCloudinary(file, folder);
+            return { index, url: cloudinaryUrl };
+          } catch (error) {
+            console.error('Failed to upload image:', error);
+            return { index, url: null };
+          }
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        const validResults = uploadResults.filter((result): result is { index: number; url: string } => result.url !== null);
+        
+        if (validResults.length > 0) {
+          // Update images array with Cloudinary URLs, preserving order
+          setShopImages((prevImages) => {
+            const updated = [...prevImages];
+            // Replace local previews with Cloudinary URLs
+            validResults.forEach(({ index, url }) => {
+              const localPreviewIndex = shopImages.length + index;
+              if (localPreviewIndex < updated.length) {
+                updated[localPreviewIndex] = url;
+              }
+            });
+            return updated;
+          });
+          
+          if (validResults.length === fileArray.length) {
+            showToast(`Successfully uploaded ${validResults.length} image(s)!`, 'success');
+          } else {
+            showToast(`Uploaded ${validResults.length} of ${fileArray.length} image(s)`, 'success');
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading multiple images:', error);
+        // Don't show error - images are already visible as local previews
       }
+    })();
 
-      // Reset file input
-      e.target.value = '';
-    } catch (error) {
-      console.error('Error uploading multiple images:', error);
-      showToast('Error uploading images. Please try again.', 'error');
-    }
+    // Reset file input
+    e.target.value = '';
   };
 
   // Multiple Images Upload Component for Shop
