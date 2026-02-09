@@ -12,6 +12,7 @@ type Product = {
   description: string;
   price: number | string;
   image: string;
+  images?: string[]; // Array of image URLs
   category: string;
   variants?: Array<{ type: string; price: string; stock?: number; image?: string }>;
   hasVariants?: boolean;
@@ -41,6 +42,7 @@ const Shop = () => {
           ...p,
           id: p._id || p.id,
           price: typeof p.price === 'string' ? parseFloat(p.price.replace(/[^0-9.]/g, '')) || 0 : p.price,
+          images: p.images || (p.image ? [p.image] : []), // Support images array or fall back to single image
           variants: p.variants || [],
           hasVariants: p.hasVariants || (p.variants && p.variants.length > 0)
         }));
@@ -217,38 +219,250 @@ const Shop = () => {
     }
   }, [cart]);
 
-  // Shop is temporarily unavailable - show coming soon message
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        try {
+          setCart(JSON.parse(savedCart));
+        } catch (e) {
+          console.error('Error loading cart from localStorage:', e);
+        }
+      }
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 md:p-12">
-          <div className="mb-6">
-            <svg className="w-24 h-24 mx-auto text-[#009f3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Shop Coming Soon
-          </h1>
-          <p className="text-lg text-gray-600 mb-6">
-            We're working hard to bring you an amazing shopping experience. 
-            Our online shop will be available soon!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a
-              href="/contact"
-              className="bg-[#009f3b] text-white px-8 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors inline-block"
-            >
-              Contact Us
-            </a>
-            <a
-              href="/"
-              className="bg-gray-200 text-gray-700 px-8 py-3 rounded-none font-semibold hover:bg-gray-300 transition-colors inline-block"
-            >
-              Back to Home
-            </a>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Shop</h1>
+          <p className="text-gray-600">Browse our collection of products</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Filters and Search */}
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Search Products</label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, description..."
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#009f3b] text-black"
+              >
+                <option value="default">Default</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Products Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600">
+              {searchQuery || selectedCategory !== 'all'
+                ? 'Try adjusting your filters or search terms'
+                : 'No products available at the moment'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => {
+              // Get the first image from images array or fall back to image
+              const productImage = (product.images && Array.isArray(product.images) && product.images.length > 0)
+                ? product.images[0]
+                : product.image;
+
+              return (
+                <div
+                  key={product.id || product._id}
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200"
+                >
+                  <Link href={`/shop/${product._id || product.id}`}>
+                    <div className="relative aspect-square bg-gray-100">
+                      <Image
+                        src={productImage}
+                        alt={product.name}
+                        fill
+                        className="object-cover hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    </div>
+                  </Link>
+                  <div className="p-4">
+                    <Link href={`/shop/${product._id || product.id}`}>
+                      <h3 className="font-semibold text-gray-900 mb-2 hover:text-[#009f3b] transition-colors line-clamp-2">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-bold text-[#009f3b]">
+                        {formatPrice(getPriceAsNumber(product.price))}
+                      </span>
+                      {product.hasVariants && (
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          Variants
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="w-full bg-[#009f3b] text-white px-4 py-2 rounded-none font-semibold hover:bg-[#00782d] transition-colors"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Cart Sidebar */}
+        {cartOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setCartOpen(false)}></div>
+            <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-gray-900">Shopping Cart</h2>
+                <button
+                  onClick={() => setCartOpen(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {cart.length === 0 ? (
+                  <div className="text-center py-12">
+                    <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <p className="text-gray-600">Your cart is empty</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {cart.map((item) => {
+                      const productImage = (item.product.images && Array.isArray(item.product.images) && item.product.images.length > 0)
+                        ? item.product.images[0]
+                        : item.product.image;
+
+                      return (
+                        <div key={item.product.id || item.product._id} className="flex gap-4 border-b border-gray-200 pb-4">
+                          <div className="relative w-20 h-20 flex-shrink-0">
+                            <Image
+                              src={productImage}
+                              alt={item.product.name}
+                              fill
+                              className="object-cover rounded"
+                              sizes="80px"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 text-sm mb-1 truncate">{item.product.name}</h4>
+                            <p className="text-sm text-[#009f3b] font-semibold mb-2">
+                              {formatPrice(getPriceAsNumber(item.product.price))}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => updateQuantity(item.product.id || item.product._id, item.quantity - 1)}
+                                className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded text-gray-600 hover:bg-gray-100"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                </svg>
+                              </button>
+                              <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                              <button
+                                onClick={() => updateQuantity(item.product.id || item.product._id, item.quantity + 1)}
+                                className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded text-gray-600 hover:bg-gray-100"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => removeFromCart(item.product.id || item.product._id)}
+                                className="ml-auto text-red-600 hover:text-red-700 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              {cart.length > 0 && (
+                <div className="border-t border-gray-200 p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-900">Total:</span>
+                    <span className="text-xl font-bold text-[#009f3b]">{formatPrice(getTotalPrice())}</span>
+                  </div>
+                  <Link
+                    href="/checkout"
+                    onClick={() => setCartOpen(false)}
+                    className="block w-full bg-[#009f3b] text-white px-6 py-3 rounded-none font-semibold hover:bg-[#00782d] transition-colors text-center"
+                  >
+                    Proceed to Checkout
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
