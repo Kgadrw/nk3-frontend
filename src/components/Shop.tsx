@@ -47,21 +47,26 @@ const Shop = () => {
         }));
         setProducts(productsData);
 
-        // Extract unique categories from products
-        const uniqueCategories = new Set<string>();
+        // Extract unique categories from products (case-insensitive, merge duplicates)
+        const categoryMap = new Map<string, string>(); // normalized key -> original label
         productsData.forEach((product: Product) => {
           if (product.category && product.category.trim()) {
-            uniqueCategories.add(product.category.trim());
+            const normalized = product.category.trim().toLowerCase();
+            const original = product.category.trim();
+            // Only add if we haven't seen this normalized category before
+            if (!categoryMap.has(normalized)) {
+              categoryMap.set(normalized, original);
+            }
           }
         });
 
         // Sort categories and create category list
-        const sortedCategories = Array.from(uniqueCategories).sort();
+        const sortedCategories = Array.from(categoryMap.values()).sort();
         const categoryList = [
           { id: 'all', label: 'All Products' },
           ...sortedCategories.map(cat => ({
-            id: cat,
-            label: cat
+            id: cat.toLowerCase(), // Use normalized version for id
+            label: cat // Keep original label for display
           }))
         ];
         setCategories(categoryList);
@@ -86,9 +91,11 @@ const Shop = () => {
   const filteredProducts = (() => {
     let filtered = products;
 
-    // Filter by category
+    // Filter by category (case-insensitive comparison)
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      filtered = filtered.filter(product => 
+        product.category && product.category.trim().toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     // Filter by search query
